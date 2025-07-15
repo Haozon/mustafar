@@ -110,44 +110,57 @@ if __name__ == '__main__':
     dtype = torch.float16
 
 
-    
+
     if 'llama' in model_args.model_name_or_path.lower() or 'longchat' in model_args.model_name_or_path.lower():
         config = LlamaConfig.from_pretrained(model_args.model_name_or_path)
         print("---------------------model name: ", model_args.model_name_or_path)
-        tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, 
-                                            use_fast=False, 
-                                            trust_remote_code=True, 
+        tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path,
+                                            use_fast=False,
+                                            trust_remote_code=True,
                                             #tokenizer_type='llama',
                                             #cache_dir=cache_dir,
                                             )
                                             # model_max_length=training_args.model_max_length)
     elif 'mistral' in model_args.model_name_or_path.lower():
         config = MistralConfig.from_pretrained(model_args.model_name_or_path)
-        tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path, 
-                                            use_fast=False, 
+        tokenizer = AutoTokenizer.from_pretrained(model_args.model_name_or_path,
+                                            use_fast=False,
                                             trust_remote_code=True)
-    
-    
+
+
     else:
         raise NotImplementedError
-    
+
     operation_mode = model_args.mode
     if operation_mode == 'mustafar':
-    
+
         if operation_mode == 'mustafar':
             print("@@@@@@@@@@@Using Mustafar")
-            
-            #select the pruning method to use. 
+
+            #select the pruning method to use.
+            # Key: token-wise + Magnitude, Value: channel-wise + Magnitude (原始MUSTAFAR方法)
             #from models.llama_mustafar_Kt_Mag_Vc_Mag import LlamaForCausalLM_MUSTAFAR
+
+            # Key: token-wise + Magnitude, Value: channel-wise + Output-aware
             #from models.llama_mustafar_Kt_Mag_Vc_Opa import LlamaForCausalLM_MUSTAFAR
+
+            # Key: token-wise + Magnitude, Value: token-wise + Magnitude
             from models.llama_mustafar_Kt_Mag_Vt_Mag import LlamaForCausalLM_MUSTAFAR
+
+            # Key: token-wise + Magnitude, Value: token-wise + Output-aware
             #from models.llama_mustafar_Kt_Mag_Vt_Opa import LlamaForCausalLM_MUSTAFAR
+
+            # Key: token-wise + Output-aware, Value: token-wise + Magnitude
             #from models.llama_mustafar_Kt_Opa_Vt_Mag import LlamaForCausalLM_MUSTAFAR
+
+            # ThinK方法应用于Key Cache (结构化剪枝)
             #from models.llama_think import LlamaForCausalLM_MUSTAFAR
+
+            # ThinK方法应用于Value Cache (结构化剪枝)
             #from models.llama_thinv import LlamaForCausalLM_MUSTAFAR
-            
-            #kernel version. 
-            #from models.llama_mustafar_kernel import LlamaForCausalLM_MUSTAFAR
+
+            #kernel version.
+            # from models.llama_mustafar_kernel import LlamaForCausalLM_MUSTAFAR
 
 
             #print("Using the V-per-token pruning model.")
@@ -167,8 +180,8 @@ if __name__ == '__main__':
 
         else:
             raise NotImplementedError
-    
-    
+
+
     elif operation_mode == 'mustafar-mistral':
         from models.mistral_mustafar_Kt_Mag_Vt_Mag import MistralForCausalLM_MUSTAFAR
         print("@@@@@@@@@@@Using Mustafar mistral")
@@ -190,15 +203,15 @@ if __name__ == '__main__':
     max_length = model2maxlen[model_name]
     if data_args.e:
         print("Evaluating on Extended Benchmark Set!")
-        datasets = ["qasper", "multifieldqa_en", "hotpotqa", "2wikimqa", "gov_report", "multi_news", 
+        datasets = ["qasper", "multifieldqa_en", "hotpotqa", "2wikimqa", "gov_report", "multi_news",
                     "trec", "triviaqa", "samsum", "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
     else:
         print("Evaluating on All Benchmark Set")
         datasets = ["narrativeqa", "qasper", "multifieldqa_en", "hotpotqa", "2wikimqa", "musique", \
             "gov_report", "qmsum", "multi_news", "trec", "triviaqa", "samsum", \
             "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
-    
-    datasets = ["narrativeqa"]
+
+    # datasets = ["narrativeqa"]
 
     # we design specific prompt format and max generation length for each task, feel free to modify them to optimize model output
     dataset2prompt = json.load(open("config/dataset2prompt.json", "r"))
@@ -208,8 +221,8 @@ if __name__ == '__main__':
         os.makedirs("pred")
     if not os.path.exists("pred_e"):
         os.makedirs("pred_e")
-    
-    
+
+
     if operation_mode in ['mustafar', 'mustafar-llama3', 'mustafar-mistral']:
 
         for dataset in datasets:
@@ -230,4 +243,3 @@ if __name__ == '__main__':
                 for pred in preds:
                     json.dump(pred, f, ensure_ascii=False)
                     f.write('\n')
-    

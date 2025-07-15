@@ -1,12 +1,19 @@
 # model e.g.: meta-llama/Llama-2-7b-hf
 
 #gpuid=$1
-k_sparsity=$1
-v_sparsity=$2
-group_size=32
-model=$3
-mode=$4
+# k_sparsity=$1
+# v_sparsity=$2
+# group_size=32
+# model=$3
+# mode=$4
 e=0
+
+# k_sparsity=0.5, v_sparsity=0.5
+k_sparsity=0.5
+v_sparsity=0.5
+group_size=32
+model=/mnt/dolphinfs/hdd_pool/docker/user/hadoop-hdpmlpserving/LLMs/LLMs_HF/llama-2-7b
+mode='mustafar'
 
 CUDA_VISIBLE_DEVICES=0 python ./pred_long_bench.py --model_name_or_path $model \
     --cache_dir ./cached_models \
@@ -15,4 +22,18 @@ CUDA_VISIBLE_DEVICES=0 python ./pred_long_bench.py --model_name_or_path $model \
     --group_size $group_size \
     --residual_length $group_size \
     --mode $mode \
-    --e ${e} 
+    --e ${e} &
+
+# 新增测试 k=0.7, v=0.7
+k_sparsity=0.7
+v_sparsity=0.7
+CUDA_VISIBLE_DEVICES=1 python ./pred_long_bench.py --model_name_or_path $model \
+    --cache_dir ./cached_models \
+    --k_sparsity $k_sparsity \
+    --v_sparsity $v_sparsity \
+    --group_size $group_size \
+    --residual_length $group_size \
+    --mode $mode \
+    --e ${e} &
+
+wait  # 等待所有后台任务完成

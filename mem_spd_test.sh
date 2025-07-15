@@ -1,0 +1,1 @@
+python3 mem_spd_test.py

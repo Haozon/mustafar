@@ -43,7 +43,9 @@ This repository provides:
 
 
 1. We recommend first initializing a venv or a conda environment. 
-
+    ```
+    conda create -n zhanghao331-mustafar python==3.11
+    ```
 
 2. Install the requirements. 
 

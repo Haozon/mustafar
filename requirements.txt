@@ -8,7 +8,7 @@ asttokens==3.0.0
 async-timeout==5.0.1
 attributedict==0.3.0
 attrs==25.1.0
-bitsandbytes==0.45.5
+bitsandbytes==0.42.0
 blessings==1.7
 cachetools==5.5.1
 certifi==2024.12.14
@@ -107,7 +107,7 @@ termcolor==2.5.0
 tokenizers==0.19.1
 toml==0.10.2
 tomli==2.2.1
-torch==2.4.1
+torch==2.6.0
 tox==4.15.1
 tqdm==4.67.1
 traitlets==5.14.3

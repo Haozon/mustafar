@@ -9,6 +9,8 @@
     "LLaMA-2-7B-32K": 7500,
     "llama-7b": 4096,
     "Llama-2-7b-chat-hf": 4096,
+    "Llama-2-7b": 4096,
+    "llama-2-7b": 4096,
     "Llama-2-7b-hf": 4096,
     "llama-13b": 4096,
     "Llama-2-13b-chat-hf": 4096,
