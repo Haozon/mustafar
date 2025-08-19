@@ -145,7 +145,7 @@ if __name__ == '__main__':
             #from models.llama_mustafar_Kt_Mag_Vc_Opa import LlamaForCausalLM_MUSTAFAR
 
             # Key: token-wise + Magnitude, Value: token-wise + Magnitude
-            from models.llama_mustafar_Kt_Mag_Vt_Mag import LlamaForCausalLM_MUSTAFAR
+            # from models.llama_mustafar_Kt_Mag_Vt_Mag import LlamaForCausalLM_MUSTAFAR
 
             # Key: token-wise + Magnitude, Value: token-wise + Output-aware
             #from models.llama_mustafar_Kt_Mag_Vt_Opa import LlamaForCausalLM_MUSTAFAR
@@ -160,7 +160,9 @@ if __name__ == '__main__':
             #from models.llama_thinv import LlamaForCausalLM_MUSTAFAR
 
             #kernel version.
-            # from models.llama_mustafar_kernel import LlamaForCausalLM_MUSTAFAR
+            # 设置导入路径
+            import setup_paths  # 自动配置路径
+            from models.llama_mustafar_kernel import LlamaForCausalLM_MUSTAFAR
 
 
             #print("Using the V-per-token pruning model.")
@@ -207,10 +209,11 @@ if __name__ == '__main__':
                     "trec", "triviaqa", "samsum", "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
     else:
         print("Evaluating on All Benchmark Set")
-        datasets = ["narrativeqa", "qasper", "multifieldqa_en", "hotpotqa", "2wikimqa", "musique", \
-            "gov_report", "qmsum", "multi_news", "trec", "triviaqa", "samsum", \
-            "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
-
+        # datasets = ["narrativeqa", "qasper", "multifieldqa_en", "hotpotqa", "2wikimqa", "musique", \
+        #     "gov_report", "qmsum", "multi_news", "trec", "triviaqa", "samsum", \
+        #     "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
+        datasets = ["gov_report", "qmsum", "multi_news", "trec", "triviaqa", "samsum", \
+                "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
     # datasets = ["narrativeqa"]
 
     # we design specific prompt format and max generation length for each task, feel free to modify them to optimize model output
