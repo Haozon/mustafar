@@ -139,13 +139,13 @@ if __name__ == '__main__':
 
             #select the pruning method to use.
             # Key: token-wise + Magnitude, Value: channel-wise + Magnitude (原始MUSTAFAR方法)
-            #from models.llama_mustafar_Kt_Mag_Vc_Mag import LlamaForCausalLM_MUSTAFAR
+            # from models.llama_mustafar_Kt_Mag_Vc_Mag import LlamaForCausalLM_MUSTAFAR
 
             # Key: token-wise + Magnitude, Value: channel-wise + Output-aware
             #from models.llama_mustafar_Kt_Mag_Vc_Opa import LlamaForCausalLM_MUSTAFAR
 
             # Key: token-wise + Magnitude, Value: token-wise + Magnitude
-            # from models.llama_mustafar_Kt_Mag_Vt_Mag import LlamaForCausalLM_MUSTAFAR
+            from models.llama_mustafar_Kt_Mag_Vt_Mag import LlamaForCausalLM_MUSTAFAR
 
             # Key: token-wise + Magnitude, Value: token-wise + Output-aware
             #from models.llama_mustafar_Kt_Mag_Vt_Opa import LlamaForCausalLM_MUSTAFAR
@@ -161,8 +161,8 @@ if __name__ == '__main__':
 
             #kernel version.
             # 设置导入路径
-            import setup_paths  # 自动配置路径
-            from models.llama_mustafar_kernel import LlamaForCausalLM_MUSTAFAR
+            # import setup_paths  # 自动配置路径
+            # from models.llama_mustafar_kernel import LlamaForCausalLM_MUSTAFAR
 
 
             #print("Using the V-per-token pruning model.")
@@ -212,8 +212,9 @@ if __name__ == '__main__':
         # datasets = ["narrativeqa", "qasper", "multifieldqa_en", "hotpotqa", "2wikimqa", "musique", \
         #     "gov_report", "qmsum", "multi_news", "trec", "triviaqa", "samsum", \
         #     "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
-        datasets = ["gov_report", "qmsum", "multi_news", "trec", "triviaqa", "samsum", \
-                "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
+        # datasets = ["gov_report", "qmsum", "multi_news", "trec", "triviaqa", "samsum", \
+        #         "passage_count", "passage_retrieval_en", "lcc", "repobench-p"]
+        datasets = ["narrativeqa", "qasper", "multifieldqa_en", "hotpotqa", "2wikimqa", "musique"]
     # datasets = ["narrativeqa"]
 
     # we design specific prompt format and max generation length for each task, feel free to modify them to optimize model output
@@ -230,12 +231,12 @@ if __name__ == '__main__':
 
         for dataset in datasets:
             if data_args.e:
-                data = load_dataset('THUDM/LongBench', f"{dataset}_e", split='test')
+                data = load_dataset('THUDM/LongBench', f"{dataset}_e", split='test', trust_remote_code=True)
                 if not os.path.exists(f"pred_e/{model_name}_{max_length}_K_{model_args.k_sparsity}_V_{model_args.v_sparsity}"):
                     os.makedirs(f"pred_e/{model_name}_{max_length}_K_{model_args.k_sparsity}_V_{model_args.v_sparsity}")
                 out_path = f"pred_e/{model_name}_{max_length}_K_{model_args.k_sparsity}_V_{model_args.v_sparsity}/{dataset}.jsonl"
             else:
-                data = load_dataset('THUDM/LongBench', dataset, split='test')
+                data = load_dataset('THUDM/LongBench', dataset, split='test', trust_remote_code=True)
                 if not os.path.exists(f"pred/{model_name}_{max_length}_K_{model_args.k_sparsity}_V_{model_args.v_sparsity}"):
                     os.makedirs(f"pred/{model_name}_{max_length}_K_{model_args.k_sparsity}_V_{model_args.v_sparsity}")
                 out_path = f"pred/{model_name}_{max_length}_K_{model_args.k_sparsity}_V_{model_args.v_sparsity}/{dataset}.jsonl"

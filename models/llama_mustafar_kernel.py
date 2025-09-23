@@ -5,7 +5,7 @@ from typing import List, Optional, Tuple
 import torch
 import torch.nn.functional as F
 from torch import nn
-
+import torch.cuda.nvtx as nvtx
 
 from transformers.models.llama.configuration_llama import *
 from transformers.models.llama.modeling_llama import *
@@ -23,6 +23,20 @@ import torch.nn.functional as F
 import gc
 
 import torch.cuda.nvtx as nvtx
+
+def calculate_memory_usage(tensor_or_list):
+    """
+    计算张量、列表或元组的总内存占用（字节）。
+    递归处理嵌套结构，只统计 torch.Tensor 的显存。
+    """
+    total = 0
+    if isinstance(tensor_or_list, torch.Tensor):
+        total += tensor_or_list.numel() * tensor_or_list.element_size()
+    elif isinstance(tensor_or_list, (list, tuple)):
+        for item in tensor_or_list:
+            total += calculate_memory_usage(item)  # 递归调用
+    # 对于 int、float 等非张量类型，跳过（无显存占用）
+    return total
 
 
 
@@ -75,6 +89,7 @@ class LlamaAttention_MUSTAFAR(nn.Module):
 
     
     def dh_prune_key(self, key_states: torch.Tensor, target_sparsity=None):
+        # nvtx.range_push("dh_prune_key")
         if target_sparsity is None:
             target_sparsity = self.k_sparsity
         """
@@ -110,11 +125,13 @@ class LlamaAttention_MUSTAFAR(nn.Module):
         pruned_key_states = key_states_flat * mask
 
         # Reshape back to original dimensions
+        # nvtx.range_pop()
         return pruned_key_states.view(B, H, T, D)
         
         #return key[:, :, -self.residual_length:, :].contiguous()
         
     def dh_prune_value(self, key_states: torch.Tensor, target_sparsity=None):
+        # nvtx.range_push("dh_prune_value")
         if target_sparsity is None:
             target_sparsity = self.v_sparsity
         """
@@ -150,6 +167,7 @@ class LlamaAttention_MUSTAFAR(nn.Module):
 
         
         # Reshape back to original dimensions
+        # nvtx.range_pop()
         return pruned_key_states.view(B, H, T, D)
 
 
@@ -411,8 +429,9 @@ class LlamaFlashAttention_MUSTAFAR(LlamaAttention_MUSTAFAR):
                 query_states.transpose(1, 2), key_states.transpose(1, 2), 
                 value_states.transpose(1, 2), None, q_len, dropout=0.0
             )
-
-
+            # 压缩前统计：原始 KV 的总内存
+            original_kv_memory = calculate_memory_usage(key_states) + calculate_memory_usage(value_states)
+            print(f"[Prefill] Original KV Memory: {original_kv_memory / 1e6:.2f} MB")
             compressed_length = ((kv_seq_len - self.residual_length) // 256) * 256
             if compressed_length != 0:
                 
@@ -444,7 +463,10 @@ class LlamaFlashAttention_MUSTAFAR(LlamaAttention_MUSTAFAR):
             
         past_key_value = (k_compressed, k_local_window, v_compressed, v_local_window, compressed_length, kv_seq_len)
         attn_output = attn_output.reshape(bsz, q_len, self.hidden_size)
-
+        # 压缩后统计：past_key_value 的总内存（KV Cache 大小）
+        compressed_kv_memory = calculate_memory_usage(past_key_value)
+        print(f"[Prefill] Compressed KV Cache Memory: {compressed_kv_memory / 1e6:.2f} MB")
+        print(f"[Prefill] Memory Savings: {(original_kv_memory - compressed_kv_memory) / original_kv_memory * 100:.2f}%")
         if self.config.pretraining_tp > 1:
             attn_output = attn_output.split(self.hidden_size // self.config.pretraining_tp, dim=2)
             o_proj_slices = self.o_proj.weight.split(self.hidden_size // self.config.pretraining_tp, dim=1)

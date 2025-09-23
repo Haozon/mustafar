@@ -1233,6 +1233,7 @@ class LlamaFlashAttention_MUSTAFAR(LlamaAttention_MUSTAFAR):
             value_layer.reshape(batch_size * kv_seq_len, num_key_value_heads, head_dim), indices_k
         )
         if query_length == kv_seq_len:
+            import pdb;pdb.set_trace()
             query_layer = index_first_axis(
                 query_layer.reshape(batch_size * kv_seq_len, self.num_heads, head_dim), indices_k
             )

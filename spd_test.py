@@ -14,9 +14,13 @@ V_SPARSITY = 0.7
 GROUP_SIZE = 32
 BATCH_SIZE = 8
 
+PROMPT_LENGTH = 4096
+OUTPUT_LENGTH = 1
+NUM_REPEATS = 3
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-model_name_or_path = '/mnt/dolphinfs/hdd_pool/docker/user/hadoop-hdpmlpserving/LLMs/LLMs_HF/llama-2-7b'
+model_name_or_path = '/home/zh/model/Meta-Llama-3-8B-Instruct'
 
 def create_model(use_mustafar=True):
     """创建模型"""
@@ -94,9 +98,9 @@ def main():
     torch.cuda.manual_seed_all(42)
     
     batch_size = BATCH_SIZE
-    prompt_length = 300
-    output_length = 600
-    num_repeats = 3
+    prompt_length = PROMPT_LENGTH
+    output_length = OUTPUT_LENGTH
+    num_repeats = NUM_REPEATS
     
     # 创建输入数据
     context = []

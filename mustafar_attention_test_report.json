@@ -1,8 +1,8 @@
 {
   "test_info": {
-    "timestamp": "2025-08-12 20:13:35",
-    "device": "cuda:1",
-    "compression_available": true,
+    "timestamp": "2025-09-22 15:49:44",
+    "device": "cuda:0",
+    "compression_available": false,
     "mustafar_available": true,
     "pytorch_version": "2.6.0+cu124",
     "cuda_version": "12.4"
@@ -14,8 +14,8 @@
         "seq_len": 512,
         "head_dim": 64
       },
-      "execution_time_ms": 0.11606216430664062,
-      "time_std_ms": 0.006382140723840284,
+      "execution_time_ms": 0.07922649383544922,
+      "time_std_ms": 0.0041720526470033934,
       "output_shape": [
         1,
         512,
@@ -38,8 +38,8 @@
         "seq_len": 1024,
         "head_dim": 128
       },
-      "execution_time_ms": 0.12862682342529297,
-      "time_std_ms": 0.059282217563884326,
+      "execution_time_ms": 0.09121894836425781,
+      "time_std_ms": 0.043440519384488105,
       "output_shape": [
         2,
         1024,
@@ -62,8 +62,8 @@
         "seq_len": 2048,
         "head_dim": 128
       },
-      "execution_time_ms": 0.35669803619384766,
-      "time_std_ms": 0.03861725274693936,
+      "execution_time_ms": 0.29206275939941406,
+      "time_std_ms": 0.01812357612463095,
       "output_shape": [
         4,
         2048,
@@ -88,8 +88,8 @@
         "seq_len": 512,
         "head_dim": 64
       },
-      "execution_time_ms": 0.11060237884521484,
-      "time_std_ms": 0.003127648310113599,
+      "execution_time_ms": 0.0764608383178711,
+      "time_std_ms": 0.005109116007204343,
       "output_shape": [
         1,
         1,
@@ -113,8 +113,8 @@
         "seq_len": 1024,
         "head_dim": 128
       },
-      "execution_time_ms": 0.11110305786132812,
-      "time_std_ms": 0.0035968822795192927,
+      "execution_time_ms": 0.07655620574951172,
+      "time_std_ms": 0.005557199027647686,
       "output_shape": [
         2,
         1,
@@ -138,8 +138,8 @@
         "seq_len": 2048,
         "head_dim": 128
       },
-      "execution_time_ms": 0.10902881622314453,
-      "time_std_ms": 0.0037893556231143985,
+      "execution_time_ms": 0.07431507110595703,
+      "time_std_ms": 0.0016416292176343926,
       "output_shape": [
         4,
         1,
@@ -164,37 +164,6 @@
         "batch_size": 1,
         "seq_len": 512,
         "head_dim": 64
-      },
-      "compression": {
-        "time_ms": 499.9966621398926,
-        "bitmap_shape": [
-          1,
-          4096
-        ],
-        "counts_shape": [
-          1,
-          4097
-        ],
-        "num_packed_batches": 1
-      },
-      "kernel": {
-        "time_ms": 0.1857280731201172,
-        "output_shape": [
-          1,
-          8,
-          512
-        ],
-        "output_dtype": "torch.float16"
-      },
-      "memory_usage": {
-        "initial": {
-          "allocated_gb": 0.0079345703125,
-          "reserved_gb": 0.01953125
-        },
-        "peak": {
-          "allocated_gb": 0.009079933166503906,
-          "reserved_gb": 0.021484375
-        }
       }
     },
     "config_1_2x1024x128": {
@@ -202,37 +171,6 @@
         "batch_size": 2,
         "seq_len": 1024,
         "head_dim": 128
-      },
-      "compression": {
-        "time_ms": 4.090309143066406,
-        "bitmap_shape": [
-          2,
-          16384
-        ],
-        "counts_shape": [
-          2,
-          16385
-        ],
-        "num_packed_batches": 2
-      },
-      "kernel": {
-        "time_ms": 0.11420249938964844,
-        "output_shape": [
-          2,
-          8,
-          1024
-        ],
-        "output_dtype": "torch.float16"
-      },
-      "memory_usage": {
-        "initial": {
-          "allocated_gb": 0.0079345703125,
-          "reserved_gb": 0.01953125
-        },
-        "peak": {
-          "allocated_gb": 0.015501976013183594,
-          "reserved_gb": 0.0234375
-        }
       }
     },
     "config_2_4x2048x128": {
@@ -240,37 +178,6 @@
         "batch_size": 4,
         "seq_len": 2048,
         "head_dim": 128
-      },
-      "compression": {
-        "time_ms": 5.277156829833984,
-        "bitmap_shape": [
-          4,
-          65536
-        ],
-        "counts_shape": [
-          4,
-          65537
-        ],
-        "num_packed_batches": 4
-      },
-      "kernel": {
-        "time_ms": 0.19979476928710938,
-        "output_shape": [
-          4,
-          8,
-          2048
-        ],
-        "output_dtype": "torch.float16"
-      },
-      "memory_usage": {
-        "initial": {
-          "allocated_gb": 0.0079345703125,
-          "reserved_gb": 0.01953125
-        },
-        "peak": {
-          "allocated_gb": 0.06011819839477539,
-          "reserved_gb": 0.10546875
-        }
       }
     }
   },
@@ -280,21 +187,6 @@
         "batch_size": 1,
         "seq_len": 512,
         "head_dim": 64
-      },
-      "compression": {
-        "time_ms": 5.158662796020508,
-        "bitmap_shape": [
-          1,
-          4096
-        ],
-        "counts_shape": [
-          1,
-          4097
-        ],
-        "num_packed_batches": 1
-      },
-      "kernel": {
-        "error": "The size of tensor a (64) must match the size of tensor b (512) at non-singleton dimension 2"
       }
     },
     "config_1_2x1024x128": {
@@ -302,21 +194,6 @@
         "batch_size": 2,
         "seq_len": 1024,
         "head_dim": 128
-      },
-      "compression": {
-        "time_ms": 3.4537315368652344,
-        "bitmap_shape": [
-          2,
-          16384
-        ],
-        "counts_shape": [
-          2,
-          16385
-        ],
-        "num_packed_batches": 2
-      },
-      "kernel": {
-        "error": "The size of tensor a (128) must match the size of tensor b (1024) at non-singleton dimension 2"
       }
     },
     "config_2_4x2048x128": {
@@ -324,75 +201,60 @@
         "batch_size": 4,
         "seq_len": 2048,
         "head_dim": 128
-      },
-      "compression": {
-        "time_ms": 4.667997360229492,
-        "bitmap_shape": [
-          4,
-          65536
-        ],
-        "counts_shape": [
-          4,
-          65537
-        ],
-        "num_packed_batches": 4
-      },
-      "kernel": {
-        "error": "The size of tensor a (128) must match the size of tensor b (2048) at non-singleton dimension 2"
       }
     }
   },
   "performance_comparison": {
     "prefill_phase": {
       "config_0_1x512x64": {
-        "original_time_ms": 0.11606216430664062,
-        "mustafar_compression_time_ms": 499.9966621398926,
-        "mustafar_kernel_time_ms": 0.1857280731201172,
-        "mustafar_total_time_ms": 500.1823902130127,
-        "speedup_ratio": 0.00023203968507810367,
-        "performance_gain_percent": -99.97679603149219
+        "original_time_ms": 0.07922649383544922,
+        "mustafar_compression_time_ms": 0,
+        "mustafar_kernel_time_ms": 0,
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
       },
       "config_1_2x1024x128": {
-        "original_time_ms": 0.12862682342529297,
-        "mustafar_compression_time_ms": 4.090309143066406,
-        "mustafar_kernel_time_ms": 0.11420249938964844,
-        "mustafar_total_time_ms": 4.204511642456055,
-        "speedup_ratio": 0.0305925715905869,
-        "performance_gain_percent": -96.94074284094131
+        "original_time_ms": 0.09121894836425781,
+        "mustafar_compression_time_ms": 0,
+        "mustafar_kernel_time_ms": 0,
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
       },
       "config_2_4x2048x128": {
-        "original_time_ms": 0.35669803619384766,
-        "mustafar_compression_time_ms": 5.277156829833984,
-        "mustafar_kernel_time_ms": 0.19979476928710938,
-        "mustafar_total_time_ms": 5.476951599121094,
-        "speedup_ratio": 0.06512711126588891,
-        "performance_gain_percent": -93.48728887341112
+        "original_time_ms": 0.29206275939941406,
+        "mustafar_compression_time_ms": 0,
+        "mustafar_kernel_time_ms": 0,
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
       }
     },
     "decoding_phase": {
       "config_0_1x512x64": {
-        "original_time_ms": 0.11060237884521484,
-        "mustafar_compression_time_ms": 5.158662796020508,
+        "original_time_ms": 0.0764608383178711,
+        "mustafar_compression_time_ms": 0,
         "mustafar_kernel_time_ms": 0,
-        "mustafar_total_time_ms": 5.158662796020508,
-        "speedup_ratio": 0.021440125710588342,
-        "performance_gain_percent": -97.85598742894118
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
       },
       "config_1_2x1024x128": {
-        "original_time_ms": 0.11110305786132812,
-        "mustafar_compression_time_ms": 3.4537315368652344,
+        "original_time_ms": 0.07655620574951172,
+        "mustafar_compression_time_ms": 0,
         "mustafar_kernel_time_ms": 0,
-        "mustafar_total_time_ms": 3.4537315368652344,
-        "speedup_ratio": 0.032168990749689354,
-        "performance_gain_percent": -96.78310092503106
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
       },
       "config_2_4x2048x128": {
-        "original_time_ms": 0.10902881622314453,
-        "mustafar_compression_time_ms": 4.667997360229492,
+        "original_time_ms": 0.07431507110595703,
+        "mustafar_compression_time_ms": 0,
         "mustafar_kernel_time_ms": 0,
-        "mustafar_total_time_ms": 4.667997360229492,
-        "speedup_ratio": 0.02335665764339343,
-        "performance_gain_percent": -97.66433423566066
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
       }
     }
   },
@@ -400,18 +262,18 @@
     "prefill_phase": {
       "config_0_1x512x64": {
         "original_memory_gb": 0.00018310546875,
-        "mustafar_memory_gb": 0.009079933166503906,
-        "memory_reduction_percent": -4858.854166666666
+        "mustafar_memory_gb": 0,
+        "memory_reduction_percent": 100.0
       },
       "config_1_2x1024x128": {
         "original_memory_gb": 0.0093994140625,
-        "mustafar_memory_gb": 0.015501976013183594,
-        "memory_reduction_percent": -64.92491883116884
+        "mustafar_memory_gb": 0,
+        "memory_reduction_percent": 100.0
       },
       "config_2_4x2048x128": {
         "original_memory_gb": 0.0137939453125,
-        "mustafar_memory_gb": 0.06011819839477539,
-        "memory_reduction_percent": -335.83033738938053
+        "mustafar_memory_gb": 0,
+        "memory_reduction_percent": 100.0
       }
     },
     "decoding_phase": {

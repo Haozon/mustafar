@@ -27,8 +27,8 @@ setup(
         CUDAExtension(
             name='mustafar_package', #import module name
             sources=['pybind.cpp', 'mustafar_wrapper.cu'], 
-            extra_objects=['../../build/kernel/SpMM_API.o'],          
-            include_dirs=[torch.utils.cpp_extension.include_paths(), '../../build/kernel', '../csrc'],  
+            extra_objects=['../build/SpMM_API.o'],          
+            include_dirs=torch.utils.cpp_extension.include_paths() + [os.path.abspath('../build')],
             extra_link_args=[f"-L{torch_lib_path}", "-lc10"],
         )
     ],

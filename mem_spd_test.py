@@ -19,9 +19,13 @@ BATCH_SIZE = 8
 MUSTAFAR_MODE = True
 # MUSTAFAR_MODE = False
 
+PROMPT_LENGTH = 4096
+OUTPUT_LENGTH = 1024
+NUM_REPEATS = 3
+
 os.environ["CUDA_VISIBLE_DEVICES"] = "0"
 
-model_name_or_path = '/mnt/dolphinfs/hdd_pool/docker/user/hadoop-hdpmlpserving/LLMs/LLMs_HF/llama-2-7b'
+model_name_or_path = '/home/zh/model/Meta-Llama-3-8B-Instruct'
 config = LlamaConfig.from_pretrained(model_name_or_path)
 config.k_sparsity = K_SPARSITY
 config.v_sparsity = V_SPARSITY
@@ -30,7 +34,6 @@ config.residual_length = GROUP_SIZE
 
 if MUSTAFAR_MODE:
     # 设置导入路径
-    import setup_paths  # 自动配置路径
     from models.llama_mustafar_kernel import LlamaForCausalLM_MUSTAFAR
     print("@@@@@@@@@@@Using Mustafar")
     config.use_flash = True
@@ -127,7 +130,7 @@ def benchmark_with_token_timing(model, inputs, model_name, max_tokens=600, num_r
             tpot = sum(token_times[1:]) / len(token_times[1:]) if len(token_times) > 1 else token_times[0]
             all_ttft_times.append(ttft)
             all_tpot_times.append(tpot)
-            
+        
             print(f"  Repeat {repeat + 1}: TTFT={ttft:.2f}ms, TPOT={tpot:.2f}ms")
     
     # Calculate averages
@@ -149,13 +152,9 @@ torch.cuda.manual_seed_all(42)
 
 context = []
 batch_size = BATCH_SIZE
-# prompt_lenth = 4096
-# output_length = 4096
-# prompt_lenth = 2048
-# output_length = 2048
-prompt_lenth = 300
-output_length = 600
-num_repeats = 3
+prompt_lenth = PROMPT_LENGTH
+output_length = OUTPUT_LENGTH
+num_repeats = NUM_REPEATS
 
 for _ in range(batch_size):
     string = 'apple bear' * (prompt_lenth // 2)

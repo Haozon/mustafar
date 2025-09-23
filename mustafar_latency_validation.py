@@ -26,10 +26,7 @@ import sys
 import gc
 from typing import Dict, List, Tuple, Optional
 
-# 设置导入路径 - 使用build目录中的编译产物
-import setup_paths  # 自动配置路径
 
-# 导入官方压缩函数
 try:
     from compression import convert_key_batched, convert_value_batched
     COMPRESSION_AVAILABLE = True
