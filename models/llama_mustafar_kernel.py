@@ -39,6 +39,107 @@ def calculate_memory_usage(tensor_or_list):
     return total
 
 
+def mustafar_key_formulation(k_bitmaps, k_nzs, k_idxs, k_nz_offset, query, compressed_length, model_dim, total_batch_size, num_key_value_groups):
+    """
+    Sparse matrix multiplication for compressed key cache.
+    
+    Computes attention scores between query and compressed key cache using sparse representation.
+    
+    Args:
+        k_bitmaps: [total_batch_kv, num_tiles] - int64 bitmaps indicating non-zero positions
+        k_nzs: concatenated non-zero values from all batches - float16
+        k_idxs: [total_batch_kv, num_tiles] - int32 cumulative indices for non-zero values
+        k_nz_offset: [total_batch_kv] - int32 batch offsets for accessing k_nzs
+        query: [total_batch_size, seq_len, model_dim] - float16 padded query (padded to 8)
+        compressed_length: int - number of compressed tokens
+        model_dim: int - head dimension (e.g., 128)
+        total_batch_size: int - batch_size * num_heads
+        num_key_value_groups: int - num_heads // num_key_value_heads
+    
+    Returns:
+        att_scores: [total_batch_size, 1, compressed_length] - attention scores
+    """
+    device = query.device
+    dtype = query.dtype
+    
+    # Reconstruct sparse key cache and perform matrix multiplication
+    # k_bitmaps shape: [total_batch_kv, num_tiles]
+    # Each tile represents 64 elements (8x8 block in the compressed representation)
+    
+    total_batch_kv = k_bitmaps.shape[0]
+    num_tiles = k_bitmaps.shape[1]
+    
+    # Calculate dimensions
+    # compressed_length tokens, each with model_dim dimensions
+    # num_tiles = (compressed_length * model_dim) // 64
+    
+    # Initialize output attention scores
+    att_scores = torch.zeros(total_batch_size, 1, compressed_length, dtype=dtype, device=device)
+    
+    # Process each batch
+    for batch_idx in range(total_batch_kv):
+        # Get the query for this batch (replicate across num_key_value_groups if needed)
+        # query shape: [total_batch_size, seq_len, model_dim]
+        # We need to map batch_idx (which is batch * num_heads) to the correct query
+        query_head_idx = batch_idx % total_batch_size
+        q = query[query_head_idx:query_head_idx+1, 0:1, :]  # [1, 1, model_dim]
+        
+        # Reconstruct the sparse key for this batch
+        # Iterate through tiles and reconstruct the key matrix
+        key_reconstructed = torch.zeros(compressed_length, model_dim, dtype=dtype, device=device)
+        
+        for tile_idx in range(num_tiles):
+            bitmap = k_bitmaps[batch_idx, tile_idx].item()
+            
+            # Calculate which token and position this tile corresponds to
+            # Tiles are arranged as: [token_0_tile_0, token_0_tile_1, ..., token_1_tile_0, ...]
+            # Each token has (model_dim // 64) tiles
+            tiles_per_token = model_dim // 64
+            token_idx = tile_idx // tiles_per_token
+            tile_in_token = tile_idx % tiles_per_token
+            
+            # Position within the token's model_dim
+            start_pos = tile_in_token * 64
+            
+            # Get the non-zero values for this tile
+            # k_idxs[batch_idx, tile_idx] gives the cumulative count up to this tile
+            if tile_idx == 0:
+                nz_start = 0
+            else:
+                nz_start = k_idxs[batch_idx, tile_idx - 1].item()
+            
+            nz_end = k_idxs[batch_idx, tile_idx].item()
+            
+            # Get batch offset for accessing k_nzs
+            batch_offset = k_nz_offset[batch_idx].item()
+            
+            # Extract non-zero values for this tile
+            nz_values = k_nzs[batch_offset + nz_start:batch_offset + nz_end]
+            
+            # Reconstruct the tile using the bitmap
+            nz_idx = 0
+            for bit_pos in range(64):
+                if (bitmap >> (63 - bit_pos)) & 1:
+                    if token_idx < compressed_length and start_pos + bit_pos < model_dim:
+                        if nz_idx < len(nz_values):
+                            key_reconstructed[token_idx, start_pos + bit_pos] = nz_values[nz_idx]
+                            nz_idx += 1
+        
+        # Compute attention score: Q @ K^T
+        # q: [1, 1, model_dim]
+        # key_reconstructed: [compressed_length, model_dim]
+        # result: [1, 1, compressed_length]
+        score = torch.matmul(q, key_reconstructed.t())  # [1, 1, compressed_length]
+        
+        # Map back to the correct position in att_scores
+        # batch_idx ranges from 0 to total_batch_kv-1
+        # We need to place this in att_scores at the correct head position
+        head_idx = batch_idx % total_batch_size
+        att_scores[head_idx:head_idx+1, :, :] = score
+    
+    return att_scores
+
+
 
 #Note that only flashattention is supported for now. 
 
@@ -431,13 +532,13 @@ class LlamaFlashAttention_MUSTAFAR(LlamaAttention_MUSTAFAR):
             )
             # 压缩前统计：原始 KV 的总内存
             original_kv_memory = calculate_memory_usage(key_states) + calculate_memory_usage(value_states)
-            print(f"[Prefill] Original KV Memory: {original_kv_memory / 1e6:.2f} MB")
+            # print(f"[Prefill] Original KV Memory: {original_kv_memory / 1e6:.2f} MB")
+            # ((4098 - 32) // 256) * 256 = 3840 
             compressed_length = ((kv_seq_len - self.residual_length) // 256) * 256
             if compressed_length != 0:
                 
                 key_states[:, :, :compressed_length, :] = self.dh_prune_key(key_states[:, :, :compressed_length, :])
                 value_states[:, :, :compressed_length, :] = self.dh_prune_value(value_states[:, :, :compressed_length, :])
-                
                 k_bmps, k_idxs, k_nzs = compression.convert_key_batched(key_states[:, :, :(compressed_length), :].reshape(total_batch_kv, -1, self.head_dim)) # support batching.
                 k_nz_offset = torch.zeros(total_batch_kv, dtype=torch.int32, device=key_states.device)
                 for i in range(1, total_batch_kv):
@@ -465,8 +566,12 @@ class LlamaFlashAttention_MUSTAFAR(LlamaAttention_MUSTAFAR):
         attn_output = attn_output.reshape(bsz, q_len, self.hidden_size)
         # 压缩后统计：past_key_value 的总内存（KV Cache 大小）
         compressed_kv_memory = calculate_memory_usage(past_key_value)
-        print(f"[Prefill] Compressed KV Cache Memory: {compressed_kv_memory / 1e6:.2f} MB")
-        print(f"[Prefill] Memory Savings: {(original_kv_memory - compressed_kv_memory) / original_kv_memory * 100:.2f}%")
+        # try:
+        #     print(f"[Prefill] Compressed KV Cache Memory: {compressed_kv_memory / 1e6:.2f} MB")
+        #     print(f"[Prefill] Memory Savings: {(original_kv_memory - compressed_kv_memory) / original_kv_memory * 100:.2f}%")
+        # except UnboundLocalError:
+        #     pass
+
         if self.config.pretraining_tp > 1:
             attn_output = attn_output.split(self.hidden_size // self.config.pretraining_tp, dim=2)
             o_proj_slices = self.o_proj.weight.split(self.hidden_size // self.config.pretraining_tp, dim=1)

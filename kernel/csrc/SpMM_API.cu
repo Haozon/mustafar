@@ -55,11 +55,13 @@
 void print_packed_halfs(uint32_t packed_value) {
     // Extract the first half (lower 16 bits)
     // 提取第一个half值（低16位）
-    half first_half = (half)(packed_value & 0xFFFF);  // Mask to get the lower 16 bits
+    uint16_t first_half_bits = packed_value & 0xFFFF;  // Mask to get the lower 16 bits
+    half first_half = __ushort_as_half(first_half_bits);
 
     // Extract the second half (upper 16 bits)
     // 提取第二个half值（高16位）
-    half second_half = (half)((packed_value >> 16) & 0xFFFF);  // Shift right and mask to get the upper 16 bits
+    uint16_t second_half_bits = (packed_value >> 16) & 0xFFFF;  // Shift right and mask to get the upper 16 bits
+    half second_half = __ushort_as_half(second_half_bits);
 
     // Print the two half values
     // 打印两个half值（转换为float以便阅读）

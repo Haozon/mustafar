@@ -173,6 +173,7 @@ __device__ __forceinline__ void SpMM_DecompressFromRegisterToShared(half* __rest
     // 计算在共享内存中的起始位置（整个共享内存空间是256x64）
 int tile_element_start = TB_ROW * 64 * 64 + TB_COL * 2;
 #pragma unroll
+    // 处理 2 个 64x1 的 tile, 每个 tile 对应 64 个 channel
     for (int i = 0; i < 2; i++) {
          // Reinterpret Registers_nz as half*
         // 将寄存器中的uint32数据重新解释为half*

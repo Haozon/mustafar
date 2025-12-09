@@ -247,6 +247,9 @@ def compress_value_batched(
     tl.store(packed_not_ptr + store_idx, vals, mask=valid_pos)
 
 def convert_key_batched(inputs: torch.Tensor):
+    # B: batch_size * num_kv_heads
+    # M: seq_length
+    # N: head_dim
     B, M, N = inputs.shape
     assert inputs.is_cuda
     assert inputs.dim() == 3
@@ -430,4 +433,10 @@ def convert_value_batched(inputs: torch.Tensor):
     #bitmaps and accoum_counts size is deterministic [B, num_tiles_per_batch]
     #packed_not_batched determined right above. 
     return bitmaps, accum_counts, packed_not_batched 
-    
+'''
+bitmaps
+类型/形状：torch.Tensor，dtype=torch.int64，形状 [B, num_tiles_per_batch]。
+含义：每个元素是 64-bit 位图（tile 内 64 个位置），bit=1 表示该位置非零。位的排列与压缩核中使用的顺序一致（代码中用 bitmap >> (63 - offset) 来取位）.
+
+
+'''
