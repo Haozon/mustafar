@@ -10,6 +10,15 @@
 #define DEBUG2 0
 #define DEBUG1 0
 
+// Quantized layout constants (current benchmark uses 2-bit quantization).
+constexpr int QUANT_TILES_PER_THREAD = 2;
+constexpr int QUANT_VALUES_PER_TILE = 64;
+constexpr int QUANT_CAPACITY_2BIT = 16;  // one uint32 stores 16 x 2-bit values
+constexpr int MAX_UINT32_PER_TILE = QUANT_VALUES_PER_TILE / QUANT_CAPACITY_2BIT;  // 4
+constexpr int QUANT_REG_UNITS = QUANT_TILES_PER_THREAD * MAX_UINT32_PER_TILE;      // 8
+constexpr int DEQUANT_MODE_SPEED = 0;   // float dequant math (throughput-oriented)
+constexpr int DEQUANT_MODE_MEMORY = 1;  // half dequant math (memory/bandwidth-oriented)
+
 /**
  * @brief 从全局内存加载量化的稀疏矩阵数据到寄存器
  * 
@@ -25,61 +34,63 @@
  */
 template<typename TilingConfig, typename SparseKernelConfig>
 __device__ __forceinline__ void SpMM_CopyFromGlobalToReg_Quant(
-    uint32_t    Registers_quant[64],  // 存储量化值（uint32 数组）
+    uint32_t    Registers_quant[QUANT_REG_UNITS],  // 2 tiles * 4 uint32/tile
     uint64_t*   Registers_bmp,
-    uint32_t*   Registers_tile_offset,  // tile 的 uint32 偏移
-    float*      Registers_scale,        // per-tile scale
-    float*      Registers_zero,         // per-tile zero_point
+    half*       Registers_scale,        // per-tile scale
+    half*       Registers_zero,         // per-tile zero_point
     const uint32_t* GlobalPTR_quant,    // 量化值的全局指针 (uint32*)
     const uint64_t* GlobalPTR_bmp,
     const uint32_t* GlobalPTR_tile_offset,
-    const float* GlobalPTR_scale,
-    const float* GlobalPTR_zero,
+    const uint32_t* GlobalPTR_tile_counts,
+    const uint32_t* GlobalPTR_tile_units,
+    const half* GlobalPTR_scale,
+    const half* GlobalPTR_zero,
     uint32_t* nnz_tile0, 
     uint32_t* nnz_tile1,
+    uint32_t* units_tile0,
+    uint32_t* units_tile1,
     int startTileIdx,
     int bit,           // 量化位宽 (2)
     int capacity       // 每 uint32 容纳的量化值数 (16)
 ) 
 {
-    constexpr int MAX_UINT32_PER_TILE = 4;  // 64 values / 16 values per uint32 = 4 uint32s max
-   
 #pragma unroll     
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < QUANT_TILES_PER_THREAD; i++) {
         int globalTileIdx = startTileIdx + i;
         
         // 加载 bitmap
         Registers_bmp[i] = GlobalPTR_bmp[globalTileIdx];
-        
-        // 加载 tile offset (uint32 偏移)
-        Registers_tile_offset[i] = GlobalPTR_tile_offset[globalTileIdx];
         
         // 加载 scale 和 zero_point
         Registers_scale[i] = GlobalPTR_scale[globalTileIdx];
         Registers_zero[i] = GlobalPTR_zero[globalTileIdx];
         
         // 计算非零元素数量
-        uint32_t num_nz_per_bitmap = __popcll(Registers_bmp[i]);
+        uint32_t num_nz_per_bitmap = 0;
+        uint32_t units_needed = 0;
+        if (GlobalPTR_tile_counts != nullptr && GlobalPTR_tile_units != nullptr) {
+            num_nz_per_bitmap = GlobalPTR_tile_counts[globalTileIdx];
+            units_needed = GlobalPTR_tile_units[globalTileIdx];
+        } else {
+            num_nz_per_bitmap = __popcll(Registers_bmp[i]);
+            units_needed = (num_nz_per_bitmap + capacity - 1) / capacity;
+        }
         if (i) {
             *nnz_tile1 = num_nz_per_bitmap;
+            *units_tile1 = units_needed;
         } else {
             *nnz_tile0 = num_nz_per_bitmap;
+            *units_tile0 = units_needed;
         }
-        
-        // 计算该 tile 需要的 uint32 数量
-        uint32_t units_needed = (num_nz_per_bitmap + capacity - 1) / capacity;
-        
+
         // 加载量化值（uint32 数组）
-        uint32_t uint32_offset = Registers_tile_offset[i];
+        uint32_t uint32_offset = GlobalPTR_tile_offset[globalTileIdx];
         
 #pragma unroll 
         for (int j = 0; j < MAX_UINT32_PER_TILE; j++) {
             if (j < units_needed) {
                 // 直接加载 uint32，天然对齐
-                Registers_quant[i * 32 + j] = GlobalPTR_quant[uint32_offset + j];
-            } else {
-                // 清零未使用的寄存器
-                Registers_quant[i * 32 + j] = 0;
+                Registers_quant[i * MAX_UINT32_PER_TILE + j] = GlobalPTR_quant[uint32_offset + j];
             }
         }
     }
@@ -115,15 +126,17 @@ __device__ __forceinline__ void SpMM_InitSharedMemory(half* __restrict__ SharedP
  * 2. 应用反量化：value = (q - zero_point) * scale
  * 3. 转换为 float16 并写入共享内存
  */
-template<typename TilingConfig, typename SparseKernelConfig>
+template<typename TilingConfig, typename SparseKernelConfig, bool Fast2Bit, int DequantMode>
 __device__ __forceinline__ void SpMM_DecompressFromRegisterToShared_Quant(
     half* __restrict__ SharedPTR,
-    uint32_t Registers_quant[64],
+    uint32_t Registers_quant[QUANT_REG_UNITS],
     uint64_t* Registers_bmp,
-    float* Registers_scale,
-    float* Registers_zero,
+    half* Registers_scale,
+    half* Registers_zero,
     uint32_t* nnz_tile0, 
     uint32_t* nnz_tile1,
+    uint32_t* units_tile0,
+    uint32_t* units_tile1,
     int TB_ROW, 
     int TB_COL,
     int bit,        // 量化位宽 (2)
@@ -133,44 +146,117 @@ __device__ __forceinline__ void SpMM_DecompressFromRegisterToShared_Quant(
     int tile_element_start = TB_ROW * 64 * 64 + TB_COL * 2;
     
 #pragma unroll
-    for (int i = 0; i < 2; i++) {
+    for (int i = 0; i < QUANT_TILES_PER_THREAD; i++) {
         // 获取当前 tile 的 bitmap, scale, zero_point
         uint64_t bmp = Registers_bmp[i];
-        float scale = Registers_scale[i];
-        float zero_point = Registers_zero[i];
+        half scale_h = Registers_scale[i];
+        half zero_h = Registers_zero[i];
         uint32_t nnz_tile = i ? *nnz_tile1 : *nnz_tile0;
+        uint32_t units_tile = i ? *units_tile1 : *units_tile0;
+        if (nnz_tile == 0 || units_tile == 0) {
+            continue;
+        }
         
         // 直接使用 uint32 数组
-        uint32_t* quant_units = Registers_quant + i * 32;
+        uint32_t* quant_units = Registers_quant + i * MAX_UINT32_PER_TILE;
         
-        int pos1 = 0;
+        // Reverse bitmap once so we can pop next nz position with ffs() + x&(x-1).
+        // This preserves original "from MSB to LSB" traversal order.
+        uint64_t bmp_rev = __brevll(bmp);
         int fuk = tile_element_start + i;
-        uint32_t mask = (1 << bit) - 1;  // 2-bit: mask = 0b11
-        
+
+        if constexpr (DequantMode == DEQUANT_MODE_MEMORY) {
+            if constexpr (Fast2Bit) {
+                int values_remaining = static_cast<int>(nnz_tile);
 #pragma unroll
-        for (int j = 0; j < 64; j++) {
-            if (j == nnz_tile) {
-                break;
+                for (int unit_idx = 0; unit_idx < MAX_UINT32_PER_TILE; unit_idx++) {
+                    if (unit_idx >= static_cast<int>(units_tile)) {
+                        break;
+                    }
+                    uint32_t packed = quant_units[unit_idx];
+                    int lanes_this_unit =
+                        values_remaining >= QUANT_CAPACITY_2BIT ? QUANT_CAPACITY_2BIT : values_remaining;
+#pragma unroll
+                    for (int bit_lane = 0; bit_lane < QUANT_CAPACITY_2BIT; bit_lane++) {
+                        if (bit_lane >= lanes_this_unit) {
+                            break;
+                        }
+                        int pos1 = __ffsll(bmp_rev) - 1;
+                        bmp_rev &= (bmp_rev - 1);
+
+                        uint32_t q_value = packed & 0x3u;
+                        packed >>= 2;
+
+                        half q_h = __int2half_rn(static_cast<int>(q_value));
+                        half dequant_value_h = __hmul(__hsub(q_h, zero_h), scale_h);
+                        int output_idx = fuk + (pos1 << 6);
+                        SharedPTR[output_idx] = dequant_value_h;
+                    }
+                    values_remaining -= lanes_this_unit;
+                }
+            } else {
+                const uint32_t mask = (1u << bit) - 1u;
+#pragma unroll
+                for (int j = 0; j < static_cast<int>(nnz_tile); j++) {
+                    int pos1 = __ffsll(bmp_rev) - 1;
+                    bmp_rev &= (bmp_rev - 1);
+
+                    int unit_idx = j / capacity;
+                    int bit_offset = (j % capacity) * bit;
+                    uint32_t q_value = (quant_units[unit_idx] >> bit_offset) & mask;
+
+                    half q_h = __int2half_rn(static_cast<int>(q_value));
+                    half dequant_value_h = __hmul(__hsub(q_h, zero_h), scale_h);
+                    int output_idx = fuk + (pos1 << 6);
+                    SharedPTR[output_idx] = dequant_value_h;
+                }
             }
-            
-            // 找到下一个非零位置
-            pos1 = __clzll(bmp);
-            bmp &= ~(0x8000000000000000ULL >> pos1);
-            
-            // 从打包的 uint32 中提取量化值
-            int unit_idx = j / capacity;           // 第几个 uint32
-            int bit_offset = (j % capacity) * bit; // 在 uint32 内的位偏移
-            uint32_t packed_unit = quant_units[unit_idx];
-            uint32_t q_value = (packed_unit >> bit_offset) & mask;
-            
-            // 反量化：dequant_value = (q - zero_point) * scale
-            float dequant_value = (static_cast<float>(q_value) - zero_point) * scale;
-            
-            // 转换为 half 并写入共享内存
-            int output_idx = fuk + (pos1 << 6);
-            SharedPTR[output_idx] = __float2half(dequant_value);
-            
-            pos1++;
+        } else {
+            float scale_f = __half2float(scale_h);
+            float zero_f = __half2float(zero_h);
+            if constexpr (Fast2Bit) {
+                int values_remaining = static_cast<int>(nnz_tile);
+#pragma unroll
+                for (int unit_idx = 0; unit_idx < MAX_UINT32_PER_TILE; unit_idx++) {
+                    if (unit_idx >= static_cast<int>(units_tile)) {
+                        break;
+                    }
+                    uint32_t packed = quant_units[unit_idx];
+                    int lanes_this_unit =
+                        values_remaining >= QUANT_CAPACITY_2BIT ? QUANT_CAPACITY_2BIT : values_remaining;
+#pragma unroll
+                    for (int bit_lane = 0; bit_lane < QUANT_CAPACITY_2BIT; bit_lane++) {
+                        if (bit_lane >= lanes_this_unit) {
+                            break;
+                        }
+                        int pos1 = __ffsll(bmp_rev) - 1;
+                        bmp_rev &= (bmp_rev - 1);
+
+                        uint32_t q_value = packed & 0x3u;
+                        packed >>= 2;
+
+                        float dequant_value = (static_cast<float>(q_value) - zero_f) * scale_f;
+                        int output_idx = fuk + (pos1 << 6);
+                        SharedPTR[output_idx] = __float2half(dequant_value);
+                    }
+                    values_remaining -= lanes_this_unit;
+                }
+            } else {
+                const uint32_t mask = (1u << bit) - 1u;
+#pragma unroll
+                for (int j = 0; j < static_cast<int>(nnz_tile); j++) {
+                    int pos1 = __ffsll(bmp_rev) - 1;
+                    bmp_rev &= (bmp_rev - 1);
+
+                    int unit_idx = j / capacity;
+                    int bit_offset = (j % capacity) * bit;
+                    uint32_t q_value = (quant_units[unit_idx] >> bit_offset) & mask;
+
+                    float dequant_value = (static_cast<float>(q_value) - zero_f) * scale_f;
+                    int output_idx = fuk + (pos1 << 6);
+                    SharedPTR[output_idx] = __float2half(dequant_value);
+                }
+            }
         }
     }
 }
@@ -184,14 +270,14 @@ __device__ __forceinline__ void SpMM_DecompressFromRegisterToShared_Quant(
  * 2. 在解压阶段进行反量化
  * 3. 其余计算流程与原版相同
  */
-template<typename TilingConfig, typename SparseKernelConfig>
+template<typename TilingConfig, typename SparseKernelConfig, bool Fast2Bit, int DequantMode>
 __global__ void 
 Key_Kernel_Quant(const half*  A,
                  const uint64_t* bmp, 
                  const uint32_t* NZ_quant,     // 量化值 (uint32)
                  const uint32_t* tile_offsets, // tile uint32 偏移
-                 const float* scales,          // per-tile scale
-                 const float* zeros,           // per-tile zero_point
+                 const half* scales,           // per-tile scale
+                 const half* zeros,            // per-tile zero_point
                  const half*  B,
                  half*        Reduction_Workspace,
                  const int    M_Global,
@@ -211,8 +297,8 @@ Key_Kernel_Quant(const half*  A,
     const uint32_t* NZ_quant_batch = NZ_quant;
     const uint32_t* tile_offsets_batch = tile_offsets + mustafar_group_id * (M_Global * K_Global / 64);
     const uint64_t* bmp_batch = bmp + mustafar_group_id * (M_Global * K_Global / 64);
-    const float* scales_batch = scales + mustafar_group_id * (M_Global * K_Global / 64);
-    const float* zeros_batch = zeros + mustafar_group_id * (M_Global * K_Global / 64);
+    const half* scales_batch = scales + mustafar_group_id * (M_Global * K_Global / 64);
+    const half* zeros_batch = zeros + mustafar_group_id * (M_Global * K_Global / 64);
     
     const half* B_batch = B + mustafar_batch_id * K_Global * N_Global;
     half* C_batch = Reduction_Workspace + mustafar_batch_id * M_Global * N_Global;
@@ -234,12 +320,13 @@ Key_Kernel_Quant(const half*  A,
 
     // 寄存器变量（量化版本）
     uint64_t Registers_bmp[2];
-    uint32_t Registers_tile_offset[2];
-    float    Registers_scale[2];
-    float    Registers_zero[2];
-    uint32_t Registers_quant[64];  // 存储打包的量化值
+    half     Registers_scale[2];
+    half     Registers_zero[2];
+    uint32_t Registers_quant[QUANT_REG_UNITS];  // 2 tiles * 4 uint32/tile
     uint32_t nnz_tile0;
     uint32_t nnz_tile1;
+    uint32_t units_tile0;
+    uint32_t units_tile1;
 
     extern __shared__ __align__(128) half smem[];
 
@@ -267,16 +354,19 @@ Key_Kernel_Quant(const half*  A,
     SpMM_CopyFromGlobalToReg_Quant<TilingConfig, SparseKernelConfig>(
         Registers_quant,
         Registers_bmp,
-        Registers_tile_offset,
         Registers_scale,
         Registers_zero,
         NZ_quant_batch,
         bmp_batch,
         tile_offsets_batch,
+        nullptr,
+        nullptr,
         scales_batch,
         zeros_batch,
         &nnz_tile0, 
         &nnz_tile1,
+        &units_tile0,
+        &units_tile1,
         StartTileIdx,
         bit,
         capacity
@@ -298,7 +388,7 @@ Key_Kernel_Quant(const half*  A,
     __syncthreads();
 
     // 解压并反量化到共享内存
-    SpMM_DecompressFromRegisterToShared_Quant<TilingConfig, SparseKernelConfig>(
+    SpMM_DecompressFromRegisterToShared_Quant<TilingConfig, SparseKernelConfig, Fast2Bit, DequantMode>(
         smem,
         Registers_quant,
         Registers_bmp,
@@ -306,6 +396,8 @@ Key_Kernel_Quant(const half*  A,
         Registers_zero,
         &nnz_tile0, 
         &nnz_tile1,
+        &units_tile0,
+        &units_tile1,
         TB_Row, 
         TB_Col,
         bit,
@@ -337,16 +429,19 @@ Key_Kernel_Quant(const half*  A,
         SpMM_CopyFromGlobalToReg_Quant<TilingConfig, SparseKernelConfig>(
             Registers_quant,
             Registers_bmp,
-            Registers_tile_offset,
             Registers_scale,
             Registers_zero,
             NZ_quant_batch,
             bmp_batch,
             tile_offsets_batch,
+            nullptr,
+            nullptr,
             scales_batch,
             zeros_batch,
             &nnz_tile0,
             &nnz_tile1, 
+            &units_tile0,
+            &units_tile1,
             StartTileIdx,
             bit,
             capacity
@@ -361,7 +456,7 @@ Key_Kernel_Quant(const half*  A,
         cp_async_wait_group<1>();
         __syncthreads();
         
-        SpMM_DecompressFromRegisterToShared_Quant<TilingConfig, SparseKernelConfig>(
+        SpMM_DecompressFromRegisterToShared_Quant<TilingConfig, SparseKernelConfig, Fast2Bit, DequantMode>(
             smem_write_PTR,
             Registers_quant,
             Registers_bmp,
@@ -369,6 +464,8 @@ Key_Kernel_Quant(const half*  A,
             Registers_zero,
             &nnz_tile0,
             &nnz_tile1,
+            &units_tile0,
+            &units_tile1,
             TB_Row, 
             TB_Col,
             bit,
@@ -406,14 +503,16 @@ Key_Kernel_Quant(const half*  A,
  * 
  * 与 Key_Kernel_Quant 类似，但使用 Value 矩阵的索引计算方式
  */
-template<typename TilingConfig, typename SparseKernelConfig>
+template<typename TilingConfig, typename SparseKernelConfig, bool Fast2Bit, int DequantMode>
 __global__ void 
 Value_Kernel_Quant(const half*  A,
                    const uint64_t* bmp, 
                    const uint32_t* NZ_quant,
                    const uint32_t* tile_offsets,
-                   const float* scales,
-                   const float* zeros,
+                   const uint32_t* tile_counts,
+                   const uint32_t* tile_units,
+                   const half* scales,
+                   const half* zeros,
                    const half*  B,
                    half*        Reduction_Workspace,
                    const int    M_Global,
@@ -430,9 +529,11 @@ Value_Kernel_Quant(const half*  A,
     
     const uint32_t* NZ_quant_batch = NZ_quant;
     const uint32_t* tile_offsets_batch = tile_offsets + mustafar_group_id * (M_Global * K_Global / 64);
+    const uint32_t* tile_counts_batch = tile_counts + mustafar_group_id * (M_Global * K_Global / 64);
+    const uint32_t* tile_units_batch = tile_units + mustafar_group_id * (M_Global * K_Global / 64);
     const uint64_t* bmp_batch = bmp + mustafar_group_id * (M_Global * K_Global / 64);
-    const float* scales_batch = scales + mustafar_group_id * (M_Global * K_Global / 64);
-    const float* zeros_batch = zeros + mustafar_group_id * (M_Global * K_Global / 64);
+    const half* scales_batch = scales + mustafar_group_id * (M_Global * K_Global / 64);
+    const half* zeros_batch = zeros + mustafar_group_id * (M_Global * K_Global / 64);
 
     const half* B_batch = B + mustafar_batch_id * K_Global * N_Global;
     half* C_batch = Reduction_Workspace + mustafar_batch_id * M_Global * N_Global * Split_K;
@@ -453,12 +554,13 @@ Value_Kernel_Quant(const half*  A,
         NumIter = AverageNumKBlock;
 
     uint64_t Registers_bmp[2];
-    uint32_t Registers_tile_offset[2];
-    float    Registers_scale[2];
-    float    Registers_zero[2];
-    uint32_t Registers_quant[64];
+    half     Registers_scale[2];
+    half     Registers_zero[2];
+    uint32_t Registers_quant[QUANT_REG_UNITS];
     uint32_t nnz_tile0;
     uint32_t nnz_tile1;
+    uint32_t units_tile0;
+    uint32_t units_tile1;
 
     extern __shared__ __align__(128) half smem[];
 
@@ -486,16 +588,19 @@ Value_Kernel_Quant(const half*  A,
     SpMM_CopyFromGlobalToReg_Quant<TilingConfig, SparseKernelConfig>(
         Registers_quant,
         Registers_bmp,
-        Registers_tile_offset,
         Registers_scale,
         Registers_zero,
         NZ_quant_batch,
         bmp_batch,
         tile_offsets_batch,
+        tile_counts_batch,
+        tile_units_batch,
         scales_batch,
         zeros_batch,
         &nnz_tile0, 
         &nnz_tile1,
+        &units_tile0,
+        &units_tile1,
         StartTileIdx,
         bit,
         capacity
@@ -515,7 +620,7 @@ Value_Kernel_Quant(const half*  A,
     cp_async_wait_group<1>();
     __syncthreads();
 
-    SpMM_DecompressFromRegisterToShared_Quant<TilingConfig, SparseKernelConfig>(
+    SpMM_DecompressFromRegisterToShared_Quant<TilingConfig, SparseKernelConfig, Fast2Bit, DequantMode>(
         smem,
         Registers_quant,
         Registers_bmp,
@@ -523,6 +628,8 @@ Value_Kernel_Quant(const half*  A,
         Registers_zero,
         &nnz_tile0, 
         &nnz_tile1,
+        &units_tile0,
+        &units_tile1,
         TB_Row, 
         TB_Col,
         bit,
@@ -554,16 +661,19 @@ Value_Kernel_Quant(const half*  A,
         SpMM_CopyFromGlobalToReg_Quant<TilingConfig, SparseKernelConfig>(
             Registers_quant,
             Registers_bmp,
-            Registers_tile_offset,
             Registers_scale,
             Registers_zero,
             NZ_quant_batch,
             bmp_batch,
             tile_offsets_batch,
+            tile_counts_batch,
+            tile_units_batch,
             scales_batch,
             zeros_batch,
             &nnz_tile0,
             &nnz_tile1, 
+            &units_tile0,
+            &units_tile1,
             StartTileIdx,
             bit,
             capacity
@@ -578,7 +688,7 @@ Value_Kernel_Quant(const half*  A,
         cp_async_wait_group<1>();
         __syncthreads();
         
-        SpMM_DecompressFromRegisterToShared_Quant<TilingConfig, SparseKernelConfig>(
+        SpMM_DecompressFromRegisterToShared_Quant<TilingConfig, SparseKernelConfig, Fast2Bit, DequantMode>(
             smem_write_PTR,
             Registers_quant,
             Registers_bmp,
@@ -586,6 +696,8 @@ Value_Kernel_Quant(const half*  A,
             Registers_zero,
             &nnz_tile0,
             &nnz_tile1,
+            &units_tile0,
+            &units_tile1,
             TB_Row, 
             TB_Col,
             bit,

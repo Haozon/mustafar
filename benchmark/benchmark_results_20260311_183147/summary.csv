@@ -1,0 +1,6 @@
+config,k_sparsity,v_sparsity,quant_bits,quant_k_mode,quant_v_mode,quant_v_split_k,quant_v_tile_config,status,ttft_ms,tpot_ms,total_ms,peak_gb,batch_ms,throughput_tps,log_file
+dense,0.0,0.0,,0,0,4,0,ok,102.47,34.98,347.31,15.83,354.62,22.56,benchmark_results_20260311_183147/dense_output.txt
+sparse_50,0.5,0.5,,0,0,4,0,ok,210.45,50.60,564.68,15.80,583.30,13.72,benchmark_results_20260311_183147/sparse_50_output.txt
+sparse_70,0.7,0.7,,0,0,4,0,ok,203.80,48.60,543.98,15.78,558.55,14.32,benchmark_results_20260311_183147/sparse_70_output.txt
+sparse_50_quant_2bit,0.5,0.5,2,0,0,4,0,ok,162.93,64.67,615.59,15.80,642.40,12.45,benchmark_results_20260311_183147/sparse_50_quant_2bit_output.txt
+sparse_70_quant_2bit,0.7,0.7,2,0,0,4,0,ok,144.99,44.75,458.23,15.80,636.62,12.57,benchmark_results_20260311_183147/sparse_70_quant_2bit_output.txt

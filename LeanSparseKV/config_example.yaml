@@ -1,0 +1,49 @@
+# LeanSparseKV Configuration Example
+# 自适应稀疏KV缓存系统配置文件
+
+# 模型设置
+model_path: "/path/to/your/model"  # 模型路径
+device: "auto"  # "auto", "cuda", "cpu"
+
+# 输出设置
+output_dir: "calibration_results"  # 结果输出目录
+
+# 校准数据集设置
+dataset: "wikitext"  # "math", "gsm8k", "general"
+num_samples: 200  # 校准样本数量
+max_length: 2048  # 最大序列长度
+batch_size: 8     # 批处理大小
+
+# 稀疏化配置
+target_sparsity: 0.70  # 目标平均稀疏度 (70%) - 与target_distribution匹配
+granularity: "per_layer"  # "per_layer" 或 "per_head"
+
+# 5级稀疏度配置
+sparsity_levels: [0.0, 0.5, 0.7, 0.9, 1.0]  # [0%, 50%, 70%, 90%, 100%]
+
+# 目标token分布 (决定每个稀疏度等级的token占比)
+# 修正后的分布 - 解决大部分token被分配到100%稀疏度的问题
+target_distribution: [0.05, 0.15, 0.30, 0.30, 0.20]  # 平均约70%稀疏
+
+# 分布含义：
+# Level 0 (0%稀疏): 5% 最重要的token完全保留
+# Level 1 (50%稀疏): 15% 重要token保留一半
+# Level 2 (70%稀疏): 30% 中等token，对齐baseline
+# Level 3 (90%稀疏): 30% 低重要性token大幅压缩  
+# Level 4 (100%稀疏): 20% 最不重要token完全剪枝
+
+# 其他可选分布:
+# 保守分布: [0.10, 0.20, 0.35, 0.25, 0.10]  # 平均约60%稀疏
+# 激进分布: [0.03, 0.12, 0.25, 0.35, 0.25]  # 平均约75%稀疏
+
+# 验证设置
+validation:
+  enabled: true
+  num_samples: 100
+  datasets: ["wikitext"]  # 验证数据集
+
+# 可视化设置
+visualization:
+  enabled: true
+  save_plots: true
+  plot_format: "png"

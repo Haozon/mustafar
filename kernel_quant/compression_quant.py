@@ -71,8 +71,8 @@ def compress_key_batched(
     counts_ptr,         # flattened [B * num_tiles_per_batch]  (raw counts per tile)
     tile_offsets_ptr,   # flattened [B * num_tiles_per_batch]  # 每 tile 的全局 uint32 偏移
     packed_not_ptr,     # flattened output buffer (uint32)
-    scales_ptr,         # flattened [B * num_tiles_per_batch] float32, per-tile scale
-    zeros_ptr,          # flattened [B * num_tiles_per_batch] float32, per-tile zero_point
+    scales_ptr,         # flattened [B * num_tiles_per_batch] float16, per-tile scale
+    zeros_ptr,          # flattened [B * num_tiles_per_batch] float16, per-tile zero_point
     bit,  # 量化比特宽度 (2)
     capacity,  # 每 uint32 可容纳量化值数 = 32//bit = 16
     total_elems: tl.constexpr,
@@ -131,8 +131,8 @@ def compress_key_batched(
     mask_valid = valid & within_cnt
 
     # per-tile scale / zero_point（calculate_bitmap_and_scale_key_batched 已按 tile 存储）
-    scale = tl.load(scales_ptr + flat_tile_index)
-    zero_point = tl.load(zeros_ptr + flat_tile_index)
+    scale = tl.load(scales_ptr + flat_tile_index).to(tl.float32)
+    zero_point = tl.load(zeros_ptr + flat_tile_index).to(tl.float32)
     # 对标量使用条件表达式而不是 tl.where
     if scale == 0.0:
         scale = 1.0
@@ -163,8 +163,8 @@ def convert_key_batched_quant(inputs: torch.Tensor):
         bitmaps: [B, num_tiles_per_batch] int64
         tile_offsets: [B, num_tiles_per_batch] int32 (uint32 偏移量)
         packed_quant_values: uint32 一维数组（全局打包缓冲）
-        scales: [B, num_tiles_per_batch] float32 每个 tile 的缩放因子
-        zeros: [B, num_tiles_per_batch] float32 每个 tile 的零点
+        scales: [B, num_tiles_per_batch] float16 每个 tile 的缩放因子
+        zeros: [B, num_tiles_per_batch] float16 每个 tile 的零点
     """
     # B: batch_size * num_kv_heads
     # M: seq_length
@@ -180,8 +180,8 @@ def convert_key_batched_quant(inputs: torch.Tensor):
 
     bitmaps = torch.empty((B, num_tiles_per_batch), dtype=torch.int64, device=inputs.device)
     counts  = torch.empty((B, num_tiles_per_batch), dtype=torch.int32, device=inputs.device)
-    scales = torch.empty((B, num_tiles_per_batch), dtype=torch.float, device=inputs.device)
-    zeros = torch.empty((B, num_tiles_per_batch), dtype=torch.float, device=inputs.device)
+    scales = torch.empty((B, num_tiles_per_batch), dtype=torch.float16, device=inputs.device)
+    zeros = torch.empty((B, num_tiles_per_batch), dtype=torch.float16, device=inputs.device)
 
     # PPrecomputed shifts for bitmap assembly
     shift_amounts = np.arange(63, -1, -1, dtype=np.int64)
@@ -263,6 +263,271 @@ def convert_key_batched_quant(inputs: torch.Tensor):
     return bitmaps, tile_offsets, packed_not_flat, scales, zeros
 
 
+@triton.jit
+def calculate_bitmap_and_scale_value_batched(
+    input_ptr,        # [B * num_tiles_per_batch * 64]
+    bitmaps_ptr,      # [B * num_tiles_per_batch]
+    counts_ptr,       # [B * num_tiles_per_batch]
+    scales_ptr,       # [B * num_tiles_per_batch]
+    zeros_ptr,        # [B * num_tiles_per_batch]
+    total_elems: tl.constexpr,
+    shifts_ptr,       # [64]
+    stride_batch: tl.constexpr,
+    M: tl.constexpr,
+    N: tl.constexpr
+):
+    """
+    计算 Value 矩阵的 bitmap 和量化参数
+    与 Key 版本的唯一区别：使用 Value 的索引计算方式（行主序）
+    """
+    tile_id = tl.program_id(0)
+    batch_id = tl.program_id(1)
+
+    # Value 矩阵的索引计算（按行主序）
+    tiles_per_row = N // 64
+    tiles_per_block = tiles_per_row * 64
+    block_idx = tile_id // tiles_per_block
+    rem = tile_id % tiles_per_block
+    col_tile = rem // 64
+    r_in_block = rem % 64
+    row = block_idx * 64 + r_in_block
+    col_start = col_tile * 64
+    base_idx = batch_id * stride_batch + row * N + col_start
+    offsets = tl.arange(0, 64)
+    indices = base_idx + offsets
+
+    vals = tl.load(input_ptr + indices)
+    bit_mask = tl.where(vals != 0.0, 1, 0)
+    shifts = tl.load(shifts_ptr + offsets)
+    bitmap = tl.sum(bit_mask * shifts, axis=0)
+    
+    cnt = tl.sum(bit_mask, axis=0)
+
+    # 计算 scale 和 zero_point
+    INF = 1e10
+    masked_vals_for_min = tl.where(bit_mask != 0, vals, INF)
+    masked_vals_for_max = tl.where(bit_mask != 0, vals, -INF)
+    
+    xmin = tl.min(masked_vals_for_min, axis=0)
+    xmax = tl.max(masked_vals_for_max, axis=0)
+    
+    # 如果 cnt > 0，计算 scale 和 zero_point；否则使用默认值
+    has_nonzero = cnt > 0
+    if has_nonzero:
+        scale = (xmax - xmin) / (2**2 - 1)  # 2-bit 量化
+        # 避免除以零
+        if scale == 0.0:
+            scale = 1.0
+        zero_point = tl.floor(-xmin / scale + 0.5)
+    else:
+        scale = 1.0
+        zero_point = 0.0
+
+    # 存储 bitmap、counts、scale 和 zero_point
+    flat_tile_index = batch_id * (stride_batch // 64) + tile_id
+    tl.store(bitmaps_ptr + flat_tile_index, bitmap)
+    tl.store(counts_ptr + flat_tile_index, cnt)
+    tl.store(scales_ptr + flat_tile_index, scale)
+    tl.store(zeros_ptr + flat_tile_index, zero_point)
+
+
+@triton.jit
+def compress_value_batched(
+    input_ptr,          # flattened [B * num_tiles_per_batch * 64]
+    bitmaps_ptr,        # flattened [B * num_tiles_per_batch]
+    counts_ptr,         # flattened [B * num_tiles_per_batch]  (raw counts per tile)
+    tile_offsets_ptr,   # flattened [B * num_tiles_per_batch]  # 每 tile 的全局 uint32 偏移
+    packed_not_ptr,     # flattened output buffer (uint32)
+    scales_ptr,         # flattened [B * num_tiles_per_batch] float16, per-tile scale
+    zeros_ptr,          # flattened [B * num_tiles_per_batch] float16, per-tile zero_point
+    bit,  # 量化比特宽度 (2)
+    capacity,  # 每 uint32 可容纳量化值数 = 32//bit = 16
+    total_elems: tl.constexpr,
+    stride_batch: tl.constexpr,  # = num_tiles_per_batch * 64
+    M: tl.constexpr,
+    N: tl.constexpr
+):
+    """
+    Value 矩阵的量化压缩
+    与 Key 版本的区别：使用 Value 的索引计算方式（行主序）
+    """
+    tile_id = tl.program_id(0)
+    batch_id = tl.program_id(1)
+
+    # Value 矩阵的索引计算（按行主序）
+    tiles_per_row = N // 64
+    tiles_per_block = tiles_per_row * 64
+    block_idx = tile_id // tiles_per_block
+    rem = tile_id % tiles_per_block
+    col_tile = rem // 64
+    r_in_block = rem % 64
+    row = block_idx * 64 + r_in_block
+    col_start = col_tile * 64
+    base_idx = batch_id * stride_batch + row * N + col_start
+    offsets = tl.arange(0, 64)
+    indices = base_idx + offsets
+
+    # 读取值
+    vals = tl.load(input_ptr + indices)
+
+    # flat tile index (用于访问 per-tile metadata)
+    tiles_per_batch = stride_batch // 64
+    flat_tile_index = batch_id * tiles_per_batch + tile_id
+
+    # 读取 per-tile 元数据
+    bitmap = tl.load(bitmaps_ptr + flat_tile_index)
+    cnt = tl.load(counts_ptr + flat_tile_index)  # raw non-zero count
+    tile_uint32_offset = tl.load(tile_offsets_ptr + flat_tile_index)  # uint32 offset (int)
+
+    # 如果没有非零，直接返回
+    if cnt == 0:
+        return
+
+    # 哪些 lane 有有效值
+    shifted = bitmap >> (63 - offsets)
+    bit_mask = shifted & 1
+    valid = bit_mask != 0
+
+    # tile 内的顺序索引
+    prefix = tl.cumsum(bit_mask, axis=0) - 1
+    gidx = tl.where(valid, prefix, 0)
+
+    # 在 cnt 范围内的 mask
+    cnt_i = tl.cast(cnt, tl.int32)
+    within_cnt = gidx < cnt_i
+    mask_valid = valid & within_cnt
+
+    # per-tile scale / zero_point
+    scale = tl.load(scales_ptr + flat_tile_index).to(tl.float32)
+    zero_point = tl.load(zeros_ptr + flat_tile_index).to(tl.float32)
+    if scale == 0.0:
+        scale = 1.0
+
+    # 量化
+    maxq = (1 << bit) - 1
+
+    q_float = tl.floor(vals / scale + 0.5) + zero_point
+    q_clamped = tl.minimum(tl.maximum(q_float, 0.0), tl.cast(maxq, tl.float32))
+    q_int = tl.cast(q_clamped, tl.uint32)
+
+    # 计算目标 uint32 索引与位移
+    uint32_idx = tile_uint32_offset + (gidx // capacity)
+    bit_shift = (gidx % capacity) * bit
+
+    # 构造要写入的 uint32 值
+    value_to_write = tl.cast(q_int << bit_shift, tl.int32)
+
+    # 使用原子 OR 操作写入
+    tl.atomic_or(packed_not_ptr + uint32_idx, value_to_write, mask=mask_valid)
+
+
+def convert_value_batched_quant(inputs: torch.Tensor):
+    """
+    对 Value Cache 进行稀疏压缩并应用 2-bit per-token-head 量化（Triton kernel 实现打包）。
+    
+    参数：
+        inputs: [B, M, N] float16，Value 矩阵
+            B: batch_size * num_kv_heads
+            M: seq_length
+            N: head_dim
+    
+    返回：
+        bitmaps: [B, num_tiles_per_batch] int64
+        tile_offsets: [B, num_tiles_per_batch] int32 (uint32 偏移量)
+        packed_quant_values: uint32 一维数组（全局打包缓冲）
+        counts: [B, num_tiles_per_batch] int32 每个 tile 的非零数量
+        units_per_tile: [B, num_tiles_per_batch] int32 每个 tile 的 uint32 数量
+        scales: [B, num_tiles_per_batch] float16 每个 tile 的缩放因子
+        zeros: [B, num_tiles_per_batch] float16 每个 tile 的零点
+    """
+    # B: batch_size * num_kv_heads
+    # M: seq_length
+    # N: head_dim
+    B, M, N = inputs.shape
+    assert inputs.is_cuda
+    assert inputs.dim() == 3
+    assert M % 64 == 0
+    device = inputs.device
+    
+    # Value 矩阵不需要转置（按行主序处理）
+    inputs_t = inputs.contiguous()
+    num_tiles_per_batch = (M * N) // 64
+
+    bitmaps = torch.empty((B, num_tiles_per_batch), dtype=torch.int64, device=inputs.device)
+    counts  = torch.empty((B, num_tiles_per_batch), dtype=torch.int32, device=inputs.device)
+    scales = torch.empty((B, num_tiles_per_batch), dtype=torch.float16, device=inputs.device)
+    zeros = torch.empty((B, num_tiles_per_batch), dtype=torch.float16, device=inputs.device)
+
+    # Precomputed shifts for bitmap assembly
+    shift_amounts = np.arange(63, -1, -1, dtype=np.int64)
+    shifts_np = np.left_shift(np.int64(1), shift_amounts)
+    const_shifts = torch.tensor(shifts_np, device='cuda')
+
+    grid = (num_tiles_per_batch, B)
+    stride_batch = num_tiles_per_batch * 64
+
+    # 1) 计算 bitmap / counts / scale / zero_point（Triton）
+    calculate_bitmap_and_scale_value_batched[grid](
+        inputs_t.view(-1),
+        bitmaps.view(-1),
+        counts.view(-1),
+        scales.view(-1),
+        zeros.view(-1),
+        total_elems=B * M * N,
+        shifts_ptr=const_shifts,
+        stride_batch=stride_batch,
+        M=M,
+        N=N
+    )
+
+    # capacity = 32 // bit (使用 uint32 存储)
+    bit = 2
+    capacity = 16  # 每个 uint32 能存放多少个量化值 (32 bits / 2 bits = 16)
+
+    # 每个 tile 需要的 uint32 数量 = ceil(raw_count / capacity)
+    units_per_tile = (counts + capacity - 1) // capacity  # [B, T], 单位是 uint32 数量
+    
+    # 每 batch 总 uint32 数量
+    total_units_per_batch = units_per_tile.sum(dim=1).to(torch.int32)  # [B]
+    
+    # 每 batch 在全局 buffer 的基址（单位：uint32）
+    batch_base_offsets = torch.zeros((B,), dtype=torch.int32, device=device)
+    if B > 1:
+        batch_base_offsets[1:] = torch.cumsum(total_units_per_batch, dim=0)[:-1]
+
+    # 每个 tile 在 batch 内的起始偏移（单位：uint32，row-wise prefix, 左移）
+    starts_intra = torch.cumsum(units_per_tile, dim=1)
+    starts_intra = torch.cat([torch.zeros((B, 1), dtype=starts_intra.dtype, device=device), starts_intra[:, :-1]], dim=1)
+
+    # 每个 tile 的全局 uint32 起始偏移 (B, T)
+    tile_offsets = (batch_base_offsets.unsqueeze(1).to(starts_intra.dtype) + starts_intra).to(torch.int32)
+
+    # 全局总 uint32 数量用于分配 packed buffer
+    total_packed_size = int(total_units_per_batch.sum().item()) if total_units_per_batch.numel() > 0 else 0
+    # 使用 int32 创建 buffer（PyTorch 没有 uint32 类型）
+    packed_not_flat = torch.zeros((total_packed_size,), dtype=torch.int32, device=device)
+
+    # 2) 调用 Triton kernel 将每个 tile 的非零量化并写入全局 packed_not_flat
+    if total_packed_size > 0:
+        compress_value_batched[grid](
+            inputs_t.view(-1),
+            bitmaps.view(-1),
+            counts.view(-1),
+            tile_offsets.contiguous().view(-1),
+            packed_not_flat.view(-1),
+            scales.view(-1),
+            zeros.view(-1),
+            bit,
+            capacity,
+            total_elems=B * M * N,
+            stride_batch=stride_batch,
+            M=M,
+            N=N
+        )
+
+    return bitmaps, tile_offsets, packed_not_flat, counts, units_per_tile, scales, zeros
+
+
 if __name__ == '__main__':
     import time
     
@@ -278,7 +543,9 @@ if __name__ == '__main__':
     # 计算原始大小（float16 = 2 bytes）
     original_size_bytes = inputs.numel() * 2  # float16 is 2 bytes
     
-    print('Testing quantized compression...')
+    print('='*60)
+    print('Testing Key quantized compression...')
+    print('='*60)
     print(f'Original tensor shape: {inputs.shape}')
     print(f'Original size: {original_size_bytes / 1024 / 1024:.2f} MB')
     print(f'Sparsity: {sparsity * 100:.1f}%')
@@ -297,13 +564,13 @@ if __name__ == '__main__':
     bitmaps_size = bitmaps.numel() * 8  # int64 = 8 bytes
     tile_offsets_size = tile_offsets.numel() * 4  # int32 = 4 bytes
     packed_quant_size = packed_quant.numel() * 4  # uint32 = 4 bytes
-    scales_size = scales.numel() * 4  # float32 = 4 bytes
-    zeros_size = zeros.numel() * 4  # float32 = 4 bytes
+    scales_size = scales.numel() * scales.element_size()
+    zeros_size = zeros.numel() * zeros.element_size()
     
     compressed_size_bytes = bitmaps_size + tile_offsets_size + packed_quant_size + scales_size + zeros_size
     
     # 打印结果
-    print('=== 压缩结果 ===')
+    print('=== Key 压缩结果 ===')
     print(f'Bitmaps shape: {bitmaps.shape}, size: {bitmaps_size / 1024:.2f} KB')
     print(f'Tile offsets shape: {tile_offsets.shape}, size: {tile_offsets_size / 1024:.2f} KB')
     print(f'Packed quant values shape: {packed_quant.shape}, size: {packed_quant_size / 1024:.2f} KB')
@@ -321,3 +588,63 @@ if __name__ == '__main__':
     print('=== 时间统计 ===')
     print(f'压缩耗时: {compression_time:.2f} ms')
     print(f'吞吐量: {original_size_bytes / 1024 / 1024 / (compression_time / 1000):.2f} MB/s')
+    print()
+    
+    # 测试 Value 量化压缩
+    print('='*60)
+    print('Testing Value quantized compression...')
+    print('='*60)
+    
+    # 使用相同的输入数据
+    torch.cuda.synchronize()
+    start_time = time.time()
+    
+    v_bitmaps, v_tile_offsets, v_packed_quant, v_counts, v_units, v_scales, v_zeros = convert_value_batched_quant(inputs)
+    torch.cuda.synchronize()
+    end_time = time.time()
+    v_compression_time = (end_time - start_time) * 1000
+    
+    # 计算压缩后的大小
+    v_bitmaps_size = v_bitmaps.numel() * 8
+    v_tile_offsets_size = v_tile_offsets.numel() * 4
+    v_packed_quant_size = v_packed_quant.numel() * 4
+    v_counts_size = v_counts.numel() * v_counts.element_size()
+    v_units_size = v_units.numel() * v_units.element_size()
+    v_scales_size = v_scales.numel() * v_scales.element_size()
+    v_zeros_size = v_zeros.numel() * v_zeros.element_size()
+    
+    v_compressed_size_bytes = (
+        v_bitmaps_size
+        + v_tile_offsets_size
+        + v_packed_quant_size
+        + v_counts_size
+        + v_units_size
+        + v_scales_size
+        + v_zeros_size
+    )
+    
+    print('=== Value 压缩结果 ===')
+    print(f'Bitmaps shape: {v_bitmaps.shape}, size: {v_bitmaps_size / 1024:.2f} KB')
+    print(f'Tile offsets shape: {v_tile_offsets.shape}, size: {v_tile_offsets_size / 1024:.2f} KB')
+    print(f'Packed quant values shape: {v_packed_quant.shape}, size: {v_packed_quant_size / 1024:.2f} KB')
+    print(f'Counts shape: {v_counts.shape}, size: {v_counts_size / 1024:.2f} KB')
+    print(f'Units shape: {v_units.shape}, size: {v_units_size / 1024:.2f} KB')
+    print(f'Scales shape: {v_scales.shape}, size: {v_scales_size / 1024:.2f} KB')
+    print(f'Zeros shape: {v_zeros.shape}, size: {v_zeros_size / 1024:.2f} KB')
+    print()
+    
+    print('=== 存储占比统计 ===')
+    print(f'原始大小: {original_size_bytes / 1024 / 1024:.2f} MB')
+    print(f'压缩后大小: {v_compressed_size_bytes / 1024 / 1024:.2f} MB')
+    v_compression_ratio = v_compressed_size_bytes / original_size_bytes
+    print(f'压缩比: {v_compression_ratio:.4f} ({(1 - v_compression_ratio) * 100:.2f}% 节省)')
+    print()
+    
+    print('=== 时间统计 ===')
+    print(f'压缩耗时: {v_compression_time:.2f} ms')
+    print(f'吞吐量: {original_size_bytes / 1024 / 1024 / (v_compression_time / 1000):.2f} MB/s')
+    print()
+    
+    print('='*60)
+    print('✅ Key 和 Value 量化压缩测试完成!')
+    print('='*60)

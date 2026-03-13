@@ -1,0 +1,38 @@
+@@@@@@@@@@@Using Mustafar
+Running warmup iteration...
+bs: 8, seqlen: 4098+1024
+model:/home/zh/model/Meta-Llama-3-8B-Instruct
+
+=== Original Batch Generation Results ===
+Batch generation time: 66995.63 ms
+Peak mem: 41.37 GB
+
+=== Token-level timing for Mustafar ===
+Running token-level warmup...
+Running repeat 1/3...
+  Repeat 1: TTFT=5982.81ms, TPOT=48.14ms
+Running repeat 2/3...
+  Repeat 2: TTFT=5768.59ms, TPOT=48.17ms
+Running repeat 3/3...
+  Repeat 3: TTFT=5851.48ms, TPOT=48.16ms
+Average TTFT: 5867.63 ms
+Average TPOT: 48.16 ms
+Total generation time: 55132.49 ms
+Peak memory: 44.69 GB
+
+=== Final Results Summary ===
+Model: Mustafar
+TTFT: 5867.63 ms
+TPOT: 48.16 ms
+Total generation time: 55132.49 ms
+Peak memory: 44.69 GB
+Batch size: 8, Input length: 4098, Output length: 1024
+
+
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]
+Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.87it/s]
+Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.88it/s]
+Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.86it/s]
+Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.61it/s]
+Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.28it/s]
+

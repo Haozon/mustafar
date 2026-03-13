@@ -1,0 +1,297 @@
+{
+  "test_info": {
+    "timestamp": "2025-09-22 15:49:44",
+    "device": "cuda:0",
+    "compression_available": false,
+    "mustafar_available": true,
+    "pytorch_version": "2.6.0+cu124",
+    "cuda_version": "12.4"
+  },
+  "original_attention_prefill": {
+    "config_0_1x512x64": {
+      "config": {
+        "batch_size": 1,
+        "seq_len": 512,
+        "head_dim": 64
+      },
+      "execution_time_ms": 0.07922649383544922,
+      "time_std_ms": 0.0041720526470033934,
+      "output_shape": [
+        1,
+        512,
+        64
+      ],
+      "memory_usage": {
+        "initial": {
+          "allocated_gb": 0.0,
+          "reserved_gb": 0.0
+        },
+        "peak": {
+          "allocated_gb": 0.00018310546875,
+          "reserved_gb": 0.001953125
+        }
+      }
+    },
+    "config_1_2x1024x128": {
+      "config": {
+        "batch_size": 2,
+        "seq_len": 1024,
+        "head_dim": 128
+      },
+      "execution_time_ms": 0.09121894836425781,
+      "time_std_ms": 0.043440519384488105,
+      "output_shape": [
+        2,
+        1024,
+        128
+      ],
+      "memory_usage": {
+        "initial": {
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125
+        },
+        "peak": {
+          "allocated_gb": 0.0093994140625,
+          "reserved_gb": 0.021484375
+        }
+      }
+    },
+    "config_2_4x2048x128": {
+      "config": {
+        "batch_size": 4,
+        "seq_len": 2048,
+        "head_dim": 128
+      },
+      "execution_time_ms": 0.29206275939941406,
+      "time_std_ms": 0.01812357612463095,
+      "output_shape": [
+        4,
+        2048,
+        128
+      ],
+      "memory_usage": {
+        "initial": {
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125
+        },
+        "peak": {
+          "allocated_gb": 0.0137939453125,
+          "reserved_gb": 0.01953125
+        }
+      }
+    }
+  },
+  "original_attention_decoding": {
+    "config_0_1x512x64": {
+      "config": {
+        "batch_size": 1,
+        "seq_len": 512,
+        "head_dim": 64
+      },
+      "execution_time_ms": 0.0764608383178711,
+      "time_std_ms": 0.005109116007204343,
+      "output_shape": [
+        1,
+        1,
+        64
+      ],
+      "kv_cache_length": 511,
+      "memory_usage": {
+        "initial": {
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125
+        },
+        "peak": {
+          "allocated_gb": 0.00818014144897461,
+          "reserved_gb": 0.021484375
+        }
+      }
+    },
+    "config_1_2x1024x128": {
+      "config": {
+        "batch_size": 2,
+        "seq_len": 1024,
+        "head_dim": 128
+      },
+      "execution_time_ms": 0.07655620574951172,
+      "time_std_ms": 0.005557199027647686,
+      "output_shape": [
+        2,
+        1,
+        128
+      ],
+      "kv_cache_length": 1023,
+      "memory_usage": {
+        "initial": {
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125
+        },
+        "peak": {
+          "allocated_gb": 0.009888172149658203,
+          "reserved_gb": 0.0234375
+        }
+      }
+    },
+    "config_2_4x2048x128": {
+      "config": {
+        "batch_size": 4,
+        "seq_len": 2048,
+        "head_dim": 128
+      },
+      "execution_time_ms": 0.07431507110595703,
+      "time_std_ms": 0.0016416292176343926,
+      "output_shape": [
+        4,
+        1,
+        128
+      ],
+      "kv_cache_length": 2047,
+      "memory_usage": {
+        "initial": {
+          "allocated_gb": 0.0079345703125,
+          "reserved_gb": 0.01953125
+        },
+        "peak": {
+          "allocated_gb": 0.015748023986816406,
+          "reserved_gb": 0.021484375
+        }
+      }
+    }
+  },
+  "mustafar_attention_prefill": {
+    "config_0_1x512x64": {
+      "config": {
+        "batch_size": 1,
+        "seq_len": 512,
+        "head_dim": 64
+      }
+    },
+    "config_1_2x1024x128": {
+      "config": {
+        "batch_size": 2,
+        "seq_len": 1024,
+        "head_dim": 128
+      }
+    },
+    "config_2_4x2048x128": {
+      "config": {
+        "batch_size": 4,
+        "seq_len": 2048,
+        "head_dim": 128
+      }
+    }
+  },
+  "mustafar_attention_decoding": {
+    "config_0_1x512x64": {
+      "config": {
+        "batch_size": 1,
+        "seq_len": 512,
+        "head_dim": 64
+      }
+    },
+    "config_1_2x1024x128": {
+      "config": {
+        "batch_size": 2,
+        "seq_len": 1024,
+        "head_dim": 128
+      }
+    },
+    "config_2_4x2048x128": {
+      "config": {
+        "batch_size": 4,
+        "seq_len": 2048,
+        "head_dim": 128
+      }
+    }
+  },
+  "performance_comparison": {
+    "prefill_phase": {
+      "config_0_1x512x64": {
+        "original_time_ms": 0.07922649383544922,
+        "mustafar_compression_time_ms": 0,
+        "mustafar_kernel_time_ms": 0,
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
+      },
+      "config_1_2x1024x128": {
+        "original_time_ms": 0.09121894836425781,
+        "mustafar_compression_time_ms": 0,
+        "mustafar_kernel_time_ms": 0,
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
+      },
+      "config_2_4x2048x128": {
+        "original_time_ms": 0.29206275939941406,
+        "mustafar_compression_time_ms": 0,
+        "mustafar_kernel_time_ms": 0,
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
+      }
+    },
+    "decoding_phase": {
+      "config_0_1x512x64": {
+        "original_time_ms": 0.0764608383178711,
+        "mustafar_compression_time_ms": 0,
+        "mustafar_kernel_time_ms": 0,
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
+      },
+      "config_1_2x1024x128": {
+        "original_time_ms": 0.07655620574951172,
+        "mustafar_compression_time_ms": 0,
+        "mustafar_kernel_time_ms": 0,
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
+      },
+      "config_2_4x2048x128": {
+        "original_time_ms": 0.07431507110595703,
+        "mustafar_compression_time_ms": 0,
+        "mustafar_kernel_time_ms": 0,
+        "mustafar_total_time_ms": 0,
+        "speedup_ratio": 0,
+        "performance_gain_percent": 0
+      }
+    }
+  },
+  "memory_comparison": {
+    "prefill_phase": {
+      "config_0_1x512x64": {
+        "original_memory_gb": 0.00018310546875,
+        "mustafar_memory_gb": 0,
+        "memory_reduction_percent": 100.0
+      },
+      "config_1_2x1024x128": {
+        "original_memory_gb": 0.0093994140625,
+        "mustafar_memory_gb": 0,
+        "memory_reduction_percent": 100.0
+      },
+      "config_2_4x2048x128": {
+        "original_memory_gb": 0.0137939453125,
+        "mustafar_memory_gb": 0,
+        "memory_reduction_percent": 100.0
+      }
+    },
+    "decoding_phase": {
+      "config_0_1x512x64": {
+        "original_memory_gb": 0.00818014144897461,
+        "mustafar_memory_gb": 0,
+        "memory_reduction_percent": 100.0
+      },
+      "config_1_2x1024x128": {
+        "original_memory_gb": 0.009888172149658203,
+        "mustafar_memory_gb": 0,
+        "memory_reduction_percent": 100.0
+      },
+      "config_2_4x2048x128": {
+        "original_memory_gb": 0.015748023986816406,
+        "mustafar_memory_gb": 0,
+        "memory_reduction_percent": 100.0
+      }
+    }
+  }
+}

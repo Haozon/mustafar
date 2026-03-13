@@ -1,0 +1,17 @@
+Mustafar Quantized Sparse Kernel Test Results
+============================================================
+Configuration:
+  Model: Mustafar-Quant-2bit
+  Quantization: 2-bit per-token
+  K Sparsity: 70.0%
+  V Sparsity: 70.0%
+  Batch size: 1
+  Input length: 1026
+  Output length: 8
+
+Results:
+  TTFT: 312.95 ms
+  TPOT: 40.30 ms
+  Total time: 595.07 ms
+  Peak memory: 15.80 GB
+  Batch time: 620.92 ms
