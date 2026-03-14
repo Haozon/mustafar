@@ -1,0 +1,138 @@
+# JSQKV Benchmark Configuration
+# 吞吐量测试配置文件
+
+models:
+  llama2_7b:
+    path: "/home/zh/model/Llama-2-7b-hf"
+    input_length: 2048
+    output_length: 2048
+    display_name: "Llama-2 7B"
+  
+  llama3_8b:
+    path: "/home/zh/model/Meta-Llama-3-8B-Instruct"
+    input_length: 4096
+    output_length: 4096
+    display_name: "Llama-3 8B Instruct"
+
+# 所有可用的测试配置
+test_configs:
+  dense:
+    k_sparsity: 1.0
+    v_sparsity: 1.0
+    use_quant: false
+    display_name: "Dense"
+    
+  sparse_50:
+    k_sparsity: 0.5
+    v_sparsity: 0.5
+    use_quant: false
+    display_name: "Mustafar-KV-50%"
+    
+  sparse_70:
+    k_sparsity: 0.7
+    v_sparsity: 0.7
+    use_quant: false
+    display_name: "Mustafar-KV-70%"
+    
+  sparse_50_quant_2bit:
+    k_sparsity: 0.5
+    v_sparsity: 0.5
+    use_quant: true
+    quant_bits: 2
+    display_name: "Mustafar-KV-50%-Quant-2bit"
+    
+  sparse_70_quant_2bit:
+    k_sparsity: 0.7
+    v_sparsity: 0.7
+    use_quant: true
+    quant_bits: 2
+    display_name: "Mustafar-KV-70%-Quant-2bit"
+
+# 定义多个绘图方案
+plot_schemes:
+  # 方案1: Dense vs Sparse-50% vs Sparse-50%-Quant (复现论文图7)
+  scheme_1:
+    name: "throughput_comparison_50"
+    title: "Throughput comparison of Mustafar to dense inference (50% sparsity)"
+    configs: ["dense", "sparse_50", "sparse_50_quant_2bit"]
+    styles:
+      dense:
+        color: "#FF69B4"  # 粉色
+        marker: "^"
+        linestyle: "--"
+      sparse_50:
+        color: "#2E8B57"  # 绿色
+        marker: "s"
+        linestyle: "-"
+      sparse_50_quant_2bit:
+        color: "#FF8C00"  # 橙色
+        marker: "o"
+        linestyle: "--"
+  
+  # 方案2: Dense vs Sparse-70% vs Sparse-70%-Quant
+  scheme_2:
+    name: "throughput_comparison_70"
+    title: "Throughput comparison of Mustafar to dense inference (70% sparsity)"
+    configs: ["dense", "sparse_70", "sparse_70_quant_2bit"]
+    styles:
+      dense:
+        color: "#FF69B4"
+        marker: "^"
+        linestyle: "--"
+      sparse_70:
+        color: "#2E8B57"
+        marker: "s"
+        linestyle: "-"
+      sparse_70_quant_2bit:
+        color: "#FF8C00"
+        marker: "o"
+        linestyle: "--"
+  
+  # 方案3: 对比不同稀疏度（无量化）
+  scheme_3:
+    name: "throughput_comparison_sparsity"
+    title: "Throughput comparison (different sparsity levels)"
+    configs: ["dense", "sparse_50", "sparse_70"]
+    styles:
+      dense:
+        color: "#FF69B4"
+        marker: "^"
+        linestyle: "--"
+      sparse_50:
+        color: "#2E8B57"
+        marker: "s"
+        linestyle: "-"
+      sparse_70:
+        color: "#4169E1"  # 蓝色
+        marker: "o"
+        linestyle: "-"
+  
+  # 方案4: 对比量化效果
+  scheme_4:
+    name: "throughput_comparison_quantization"
+    title: "Throughput comparison (quantization effect)"
+    configs: ["sparse_50", "sparse_50_quant_2bit", "sparse_70", "sparse_70_quant_2bit"]
+    styles:
+      sparse_50:
+        color: "#2E8B57"
+        marker: "s"
+        linestyle: "-"
+      sparse_50_quant_2bit:
+        color: "#FF8C00"
+        marker: "s"
+        linestyle: "--"
+      sparse_70:
+        color: "#4169E1"
+        marker: "o"
+        linestyle: "-"
+      sparse_70_quant_2bit:
+        color: "#DC143C"  # 红色
+        marker: "o"
+        linestyle: "--"
+
+# 测试参数
+batch_sizes: [1, 2, 4, 6, 8]
+num_repeats: 3
+warmup_tokens: 10
+group_size: 32
+residual_length: 256

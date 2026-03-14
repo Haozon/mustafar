@@ -1,0 +1,29 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Results
+results/raw_data/*.json
+results/plots/*.pdf
+results/plots/*.png
+
+# Keep directory structure
+!results/raw_data/.gitkeep
+!results/plots/.gitkeep
+
+# Logs
+*.log
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db

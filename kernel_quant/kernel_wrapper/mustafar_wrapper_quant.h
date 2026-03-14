@@ -4,25 +4,28 @@
 
 torch::Tensor mustafar_key_formulation_quant(
     torch::Tensor bmp,              // torch.int64
-    torch::Tensor NZ_quant,         // torch.uint8 (量化值)
-    torch::Tensor tile_offsets,     // torch.int32 (tile 字节偏移)
-    torch::Tensor scales,           // torch.float32 (per-tile scale)
-    torch::Tensor zeros,            // torch.float32 (per-tile zero_point)
+    torch::Tensor NZ_quant,         // torch.int32 (packed quant values, uint32 bit layout)
+    torch::Tensor tile_offsets,     // torch.int32 (tile uint32 偏移)
+    torch::Tensor scales,           // torch.float16 (per-tile scale)
+    torch::Tensor zeros,            // torch.float16 (per-tile zero_point)
     torch::Tensor B,                // torch.float16
     int M_Global,
     int K_Global, 
     int Batch_Size, 
     int num_key_value_groups,
     int bit,                        // 量化位宽
-    int capacity                    // 每字节容纳的量化值数
+    int capacity,                   // 每字节容纳的量化值数
+    int dequant_mode = 0            // 0: speed, 1: memory
 );
 
 torch::Tensor mustafar_value_formulation_quant(
     torch::Tensor bmp,
     torch::Tensor NZ_quant,
     torch::Tensor tile_offsets,
-    torch::Tensor scales,
-    torch::Tensor zeros,
+    torch::Tensor tile_counts,      // torch.int32
+    torch::Tensor tile_units,       // torch.int32
+    torch::Tensor scales,           // torch.float16
+    torch::Tensor zeros,            // torch.float16
     torch::Tensor B,
     torch::Tensor Reduction_Workspace,
     int M_Global,
@@ -30,5 +33,8 @@ torch::Tensor mustafar_value_formulation_quant(
     int Batch_Size, 
     int num_key_value_groups,
     int bit,
-    int capacity
+    int capacity,
+    int dequant_mode = 0,           // 0: speed, 1: memory
+    int split_k = 1,
+    int value_tile_config = 0
 );

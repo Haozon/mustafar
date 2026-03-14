@@ -15,15 +15,15 @@
 /**
  * @brief Key矩阵的量化 Split-K 稀疏矩阵乘法内核启动器模板
  */
-template<typename TilingConfig, typename SparseKernelConfig>
+template<typename TilingConfig, typename SparseKernelConfig, bool Fast2Bit>
 static void Key_SplitK_Kernel_Ex_Quant(
     cudaStream_t stream,
     const half*  A,
     const uint64_t* bmp, 
     const uint32_t* NZ_quant,
     const uint32_t* tile_offsets,
-    const float* scales,
-    const float* zeros,
+    const half* scales,
+    const half* zeros,
     const half*  B,
     half*        Reduction_Workspace,
     const int    M_Global,
@@ -33,7 +33,8 @@ static void Key_SplitK_Kernel_Ex_Quant(
     const int    Batch_Size, 
     const int    num_key_value_groups,
     int          bit,
-    int          capacity);
+    int          capacity,
+    int          dequant_mode);
 
 /**
  * @brief Key矩阵量化稀疏矩阵乘法的主要 API 接口
@@ -63,8 +64,8 @@ cudaError_t Key_SplitK_API_Quant(
     const uint64_t* bmp, 
     const uint32_t* NZ_quant,
     const uint32_t* tile_offsets,
-    const float* scales,
-    const float* zeros,
+    const half* scales,
+    const half* zeros,
     const half*  B,
     half*        C,
     const int    M_Global,
@@ -75,20 +76,23 @@ cudaError_t Key_SplitK_API_Quant(
     const int    Batch_Size, 
     const int    num_key_value_groups,
     int          bit,
-    int          capacity);
+    int          capacity,
+    int          dequant_mode);
 
 /**
  * @brief Value矩阵的量化 Split-K 稀疏矩阵乘法内核启动器模板
  */
-template<typename TilingConfig, typename SparseKernelConfig>
+template<typename TilingConfig, typename SparseKernelConfig, bool Fast2Bit>
 static void Value_SplitK_Kernel_Ex_Quant(
     cudaStream_t stream,
     const half*  A,
     const uint64_t* bmp, 
     const uint32_t* NZ_quant,
     const uint32_t* tile_offsets,
-    const float* scales,
-    const float* zeros,
+    const uint32_t* tile_counts,
+    const uint32_t* tile_units,
+    const half* scales,
+    const half* zeros,
     const half*  B,
     half*        Reduction_Workspace,
     const int    M_Global,
@@ -98,7 +102,8 @@ static void Value_SplitK_Kernel_Ex_Quant(
     const int    Batch_Size, 
     const int    num_key_value_groups,
     int          bit,
-    int          capacity);
+    int          capacity,
+    int          dequant_mode);
 
 /**
  * @brief Value矩阵量化稀疏矩阵乘法的主要 API 接口
@@ -128,8 +133,10 @@ cudaError_t Value_SplitK_API_Quant(
     const uint64_t* bmp, 
     const uint32_t* NZ_quant,
     const uint32_t* tile_offsets,
-    const float* scales,
-    const float* zeros,
+    const uint32_t* tile_counts,
+    const uint32_t* tile_units,
+    const half* scales,
+    const half* zeros,
     const half*  B,
     half*        C,
     const int    M_Global,
@@ -140,6 +147,8 @@ cudaError_t Value_SplitK_API_Quant(
     const int    Batch_Size, 
     const int    num_key_value_groups,
     int          bit,
-    int          capacity);
+    int          capacity,
+    int          dequant_mode,
+    int          value_tile_config);
 
 #endif // SPMM_API_QUANT_CUH

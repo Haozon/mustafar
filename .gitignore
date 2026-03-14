@@ -90,7 +90,39 @@ Thumbs.db
 *.log
 *.out
 *.err
+*.pid
 
 # Documentation build
 docs/_build/
 site/
+
+outputs
+
+sensitivity_results*
+
+pred*
+
+# Local workspace metadata
+.kiro/
+SnapKV/
+
+# Evaluation and experiment outputs
+pred/
+DiffSparseKV/pred*/
+DiffSparseKV/tmp_eval/
+DiffSparseKV/outputs/
+benchmark/benchmark_results_*/
+mustar_report_output/
+layer_level_sensitivity_analysis/sensitivity_custom/
+layer_level_sensitivity_analysis/sensitivity_results*
+mem_spd_test_quant_results_*.txt
+benchmark/mem_spd_test_quant_results_*.txt
+monitor/feishu_config.json
+mustafar*_report.json
+
+# Profiling and calibration artifacts
+JSQKV_benchmark/profile_sparse_quant/*.json
+JSQKV_benchmark/results/
+LeanSparseKV/calibration_results/
+LeanSparseKV/threshold_stability_analysis/threshold_data/
+LeanSparseKV/threshold_stability_analysis/visualization_results/
