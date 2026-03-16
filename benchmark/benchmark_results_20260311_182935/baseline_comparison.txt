@@ -1,6 +1,0 @@
-Config,Status,TTFT(ms),TPOT(ms),PeakGB,Throughput(tok/s),TTFT_speedup_vs_dense,TPOT_speedup_vs_dense,Peak_mem_saving_vs_dense
-dense,ok,238.77,41.30,15.83,15.48,1.000,1.000,0.00%
-sparse_50,ok,1111.61,85.62,15.80,4.54,0.215,0.482,0.19%
-sparse_70,ok,1026.37,43.75,15.78,5.23,0.233,0.944,0.32%
-sparse_50_quant_2bit,ok,530.87,45.95,15.80,10.57,0.450,0.899,0.19%
-sparse_70_quant_2bit,ok,527.91,44.84,15.80,9.93,0.452,0.921,0.19%

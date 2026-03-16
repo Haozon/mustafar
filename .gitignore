@@ -122,7 +122,12 @@ mustafar*_report.json
 
 # Profiling and calibration artifacts
 JSQKV_benchmark/profile_sparse_quant/*.json
+JSQKV_benchmark/profile_sparse_quant/quant_profile_trace.json
 JSQKV_benchmark/results/
 LeanSparseKV/calibration_results/
 LeanSparseKV/threshold_stability_analysis/threshold_data/
 LeanSparseKV/threshold_stability_analysis/visualization_results/
+kernel/build/
+kernel/kernel_wrapper/build/
+models/__pycache__/
+utils/__pycache__/
