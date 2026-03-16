@@ -99,6 +99,8 @@ torch::Tensor mustafar_key_formulation_quant(
         bmp_cuda_ptr,
         NZ_quant_cuda_ptr,
         tile_offsets_cuda_ptr,
+        nullptr,
+        nullptr,
         scales_cuda_ptr,
         zeros_cuda_ptr,
         B_cuda_ptr,
@@ -109,6 +111,99 @@ torch::Tensor mustafar_key_formulation_quant(
         static_cast<half*>(nullptr),
         1,  // Split_K
         Batch_Size, 
+        num_key_value_groups,
+        bit,
+        capacity,
+        dequant_mode
+    );
+
+    return C;
+}
+
+torch::Tensor mustafar_key_formulation_quant_meta(
+    torch::Tensor bmp,
+    torch::Tensor NZ_quant,
+    torch::Tensor tile_offsets,
+    torch::Tensor tile_counts,
+    torch::Tensor tile_units,
+    torch::Tensor scales,
+    torch::Tensor zeros,
+    torch::Tensor B,
+    int M_Global,
+    int K_Global,
+    int Batch_Size,
+    int num_key_value_groups,
+    int bit,
+    int capacity,
+    int dequant_mode
+)
+{
+    if (B.device() != bmp.device() || B.device() != NZ_quant.device() ||
+        B.device() != tile_offsets.device() || B.device() != tile_counts.device() ||
+        B.device() != tile_units.device() || B.device() != scales.device() ||
+        B.device() != zeros.device()) {
+        throw std::runtime_error("All input tensors must be on the same device.");
+    }
+    if (B.dtype() != at::kHalf) {
+        throw std::runtime_error("Tensor B must be of type float16.");
+    }
+    if (NZ_quant.dtype() != at::kInt) {
+        throw std::runtime_error("Tensor NZ_quant must be of type uint32.");
+    }
+    if (bmp.dtype() != at::kLong) {
+        throw std::runtime_error("Tensor bmp must be of type int64.");
+    }
+    if (tile_offsets.dtype() != at::kInt || tile_counts.dtype() != at::kInt || tile_units.dtype() != at::kInt) {
+        throw std::runtime_error("tile_offsets/tile_counts/tile_units must be int32.");
+    }
+    if (scales.dtype() != at::kHalf || zeros.dtype() != at::kHalf) {
+        throw std::runtime_error("Tensor scales/zeros must be of type float16.");
+    }
+    TORCH_CHECK(
+        bmp.is_contiguous() && NZ_quant.is_contiguous() &&
+        tile_offsets.is_contiguous() && tile_counts.is_contiguous() &&
+        tile_units.is_contiguous() && B.is_contiguous() &&
+        scales.is_contiguous() && zeros.is_contiguous(),
+        "All tensors must be contiguous."
+    );
+    TORCH_CHECK(
+        bmp.is_cuda() && NZ_quant.is_cuda() && tile_offsets.is_cuda() &&
+        tile_counts.is_cuda() && tile_units.is_cuda() &&
+        B.is_cuda() && scales.is_cuda() && zeros.is_cuda(),
+        "All tensors must be on CUDA device."
+    );
+
+    cudaStream_t stream = at::cuda::getCurrentCUDAStream().stream();
+    auto C = torch::empty({Batch_Size, 8, M_Global}, B.options());
+
+    const uint64_t* bmp_cuda_ptr = reinterpret_cast<const uint64_t*>(bmp.data_ptr<int64_t>());
+    const uint32_t* NZ_quant_cuda_ptr = reinterpret_cast<const uint32_t*>(NZ_quant.data_ptr<int32_t>());
+    const uint32_t* tile_offsets_cuda_ptr = reinterpret_cast<const uint32_t*>(tile_offsets.data_ptr<int32_t>());
+    const uint32_t* tile_counts_cuda_ptr = reinterpret_cast<const uint32_t*>(tile_counts.data_ptr<int32_t>());
+    const uint32_t* tile_units_cuda_ptr = reinterpret_cast<const uint32_t*>(tile_units.data_ptr<int32_t>());
+    const half* scales_cuda_ptr = reinterpret_cast<const half*>(scales.data_ptr<at::Half>());
+    const half* zeros_cuda_ptr = reinterpret_cast<const half*>(zeros.data_ptr<at::Half>());
+    const half* B_cuda_ptr = reinterpret_cast<const half*>(B.data_ptr<at::Half>());
+    half* C_cuda_ptr = reinterpret_cast<half*>(C.data_ptr<at::Half>());
+
+    Key_SplitK_API_Quant(
+        stream,
+        static_cast<half*>(nullptr),
+        bmp_cuda_ptr,
+        NZ_quant_cuda_ptr,
+        tile_offsets_cuda_ptr,
+        tile_counts_cuda_ptr,
+        tile_units_cuda_ptr,
+        scales_cuda_ptr,
+        zeros_cuda_ptr,
+        B_cuda_ptr,
+        C_cuda_ptr,
+        M_Global,
+        8,
+        K_Global,
+        static_cast<half*>(nullptr),
+        1,
+        Batch_Size,
         num_key_value_groups,
         bit,
         capacity,
@@ -262,6 +357,100 @@ torch::Tensor mustafar_value_formulation_quant(
         capacity,
         dequant_mode,
         value_tile_config
+    );
+
+    return C;
+}
+
+torch::Tensor mustafar_value_formulation_quant_decode_n1(
+    torch::Tensor bmp,
+    torch::Tensor NZ_quant,
+    torch::Tensor tile_offsets,
+    torch::Tensor tile_counts,
+    torch::Tensor tile_units,
+    torch::Tensor scales,
+    torch::Tensor zeros,
+    torch::Tensor score,
+    torch::Tensor Reduction_Workspace,
+    int M_Global,
+    int K_Global,
+    int Batch_Size,
+    int num_key_value_groups,
+    int bit,
+    int capacity,
+    int dequant_mode,
+    int split_k
+)
+{
+    if (score.device() != bmp.device() || score.device() != NZ_quant.device() ||
+        score.device() != tile_offsets.device() || score.device() != tile_counts.device() ||
+        score.device() != tile_units.device() || score.device() != scales.device() ||
+        score.device() != zeros.device()) {
+        throw std::runtime_error("All input tensors must be on the same device.");
+    }
+    if (score.dtype() != at::kHalf) {
+        throw std::runtime_error("score must be float16.");
+    }
+    TORCH_CHECK(
+        bmp.is_contiguous() && NZ_quant.is_contiguous() && tile_offsets.is_contiguous() &&
+        tile_counts.is_contiguous() && tile_units.is_contiguous() &&
+        scales.is_contiguous() && zeros.is_contiguous() && score.is_contiguous(),
+        "All tensors must be contiguous."
+    );
+    TORCH_CHECK(
+        bmp.is_cuda() && NZ_quant.is_cuda() && tile_offsets.is_cuda() && tile_counts.is_cuda() &&
+        tile_units.is_cuda() && scales.is_cuda() && zeros.is_cuda() && score.is_cuda(),
+        "All tensors must be on CUDA device."
+    );
+
+    cudaStream_t stream = at::cuda::getCurrentCUDAStream().stream();
+    auto C = torch::empty({Batch_Size, M_Global}, score.options());
+
+    const uint64_t* bmp_cuda_ptr = reinterpret_cast<const uint64_t*>(bmp.data_ptr<int64_t>());
+    const uint32_t* NZ_quant_cuda_ptr = reinterpret_cast<const uint32_t*>(NZ_quant.data_ptr<int32_t>());
+    const uint32_t* tile_offsets_cuda_ptr = reinterpret_cast<const uint32_t*>(tile_offsets.data_ptr<int32_t>());
+    const uint32_t* tile_counts_cuda_ptr = reinterpret_cast<const uint32_t*>(tile_counts.data_ptr<int32_t>());
+    const uint32_t* tile_units_cuda_ptr = reinterpret_cast<const uint32_t*>(tile_units.data_ptr<int32_t>());
+    const half* scales_cuda_ptr = reinterpret_cast<const half*>(scales.data_ptr<at::Half>());
+    const half* zeros_cuda_ptr = reinterpret_cast<const half*>(zeros.data_ptr<at::Half>());
+    const half* score_cuda_ptr = reinterpret_cast<const half*>(score.data_ptr<at::Half>());
+    half* C_cuda_ptr = reinterpret_cast<half*>(C.data_ptr<at::Half>());
+
+    const int max_split_k = max(1, K_Global / 64);
+    if (split_k < 1) {
+        split_k = 1;
+    }
+    if (split_k > max_split_k) {
+        split_k = max_split_k;
+    }
+
+    torch::Tensor Effective_Reduction_Workspace = Reduction_Workspace;
+    const int64_t required_workspace_numel = static_cast<int64_t>(Batch_Size) * M_Global * split_k;
+    if (Reduction_Workspace.numel() < required_workspace_numel ||
+        Reduction_Workspace.device() != score.device() ||
+        Reduction_Workspace.dtype() != score.dtype()) {
+        Effective_Reduction_Workspace = torch::empty({required_workspace_numel}, score.options());
+    }
+    half* Reduction_Workspace_cuda_ptr = reinterpret_cast<half*>(Effective_Reduction_Workspace.data_ptr<at::Half>());
+
+    Value_SplitK_API_Quant_DecodeN1(
+        stream,
+        bmp_cuda_ptr,
+        NZ_quant_cuda_ptr,
+        tile_offsets_cuda_ptr,
+        tile_counts_cuda_ptr,
+        tile_units_cuda_ptr,
+        scales_cuda_ptr,
+        zeros_cuda_ptr,
+        score_cuda_ptr,
+        C_cuda_ptr,
+        Reduction_Workspace_cuda_ptr,
+        M_Global,
+        K_Global,
+        split_k,
+        Batch_Size,
+        num_key_value_groups,
+        dequant_mode
     );
 
     return C;

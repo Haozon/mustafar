@@ -80,6 +80,7 @@ class LlamaDiffSparseKVAttention(nn.Module):
         self.head_aggregation_mode = getattr(config, 'head_aggregation_mode', 'mean')
         self.head_aggregation_alpha = getattr(config, 'head_aggregation_alpha', 0.5)
         self.head_disagreement_ratio = getattr(config, 'head_disagreement_ratio', -1.0)
+        self.selector_mode = getattr(config, 'selector_mode', 'diffsparse')
         
         # Validate observation window size
         if self.obs_window_size < self.window_size:
@@ -768,6 +769,15 @@ class LlamaDiffSparseKVAttention(nn.Module):
         # Expand aggregated scores back to [B, H_kv, seq_len] for compatibility
         importance_scores = importance_scores_aggregated.unsqueeze(1).expand_as(importance_scores_per_head)
         
+        if self.selector_mode == "snapkv":
+            return self._prefill_with_snapkv(
+                attn_output=attn_output,
+                key_states=key_states,
+                value_states=value_states,
+                importance_scores=importance_scores_aggregated,
+                kv_seq_len=kv_seq_len,
+            )
+
         # 4. Compute per-layer thresholds (based on aggregated importance)
         thresholds = self.threshold_manager.compute_per_layer_thresholds(
             importance_scores_aggregated.unsqueeze(1)  # [B, 1, seq_len] - treat as single head
@@ -845,6 +855,56 @@ class LlamaDiffSparseKVAttention(nn.Module):
                 print(f"  Tokens evicted: {kv_seq_len - actual_kv_seq_len} ({(kv_seq_len - actual_kv_seq_len) / kv_seq_len * 100:.1f}%)")
             print(f"  Overall sparsity: K={total_k_sparsity:.2%}, V={total_v_sparsity:.2%}")
         
+        return attn_output, None, past_key_value
+
+    def _prefill_with_snapkv(
+        self,
+        attn_output: torch.Tensor,
+        key_states: torch.Tensor,
+        value_states: torch.Tensor,
+        importance_scores: torch.Tensor,
+        kv_seq_len: int,
+    ) -> Tuple[torch.Tensor, Optional[torch.Tensor], Tuple[torch.Tensor]]:
+        """
+        SnapKV-style prefill selection:
+        keep a recent window dense and select top-k prefix tokens according to
+        observation-window attention scores under a fixed token budget.
+        """
+        recent_keep = min(self.window_size, kv_seq_len)
+        desired_keep = max(recent_keep, int(round((1.0 - self.config.expected_sparsity) * kv_seq_len)))
+        desired_keep = min(desired_keep, kv_seq_len)
+
+        prefix_len = kv_seq_len - recent_keep
+        prefix_keep = max(0, desired_keep - recent_keep)
+
+        if prefix_len > 0 and prefix_keep > 0:
+            prefix_scores = importance_scores[0, :prefix_len]
+            topk = min(prefix_keep, prefix_len)
+            prefix_indices = torch.topk(prefix_scores, topk, largest=True).indices
+            prefix_indices = torch.sort(prefix_indices).values
+        else:
+            prefix_indices = key_states.new_empty((0,), dtype=torch.long)
+
+        recent_indices = torch.arange(kv_seq_len - recent_keep, kv_seq_len, device=key_states.device)
+        keep_indices = torch.cat([prefix_indices, recent_indices], dim=0)
+        keep_indices = torch.unique(keep_indices, sorted=True)
+
+        key_states_full = key_states[:, :, keep_indices, :]
+        value_states_full = value_states[:, :, keep_indices, :]
+
+        self.window_state = None
+        self.diff_sparse_thresholds = None
+        self.thresholds_computed = False
+
+        past_key_value = (key_states_full, value_states_full, kv_seq_len)
+
+        if DEBUG:
+            print("SnapKV prefill selection:")
+            print(f"  total tokens: {kv_seq_len}")
+            print(f"  recent keep: {recent_keep}")
+            print(f"  prefix keep: {prefix_keep}")
+            print(f"  actual kept: {key_states_full.shape[2]}")
+
         return attn_output, None, past_key_value
 
     def _decode_with_diff_sparse(

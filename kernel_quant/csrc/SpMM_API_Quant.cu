@@ -16,6 +16,88 @@ constexpr int VALUE_TILE_CONFIG_TILE64 = 1;
 constexpr int VALUE_TILE_CONFIG_TILE128 = 2;
 constexpr int VALUE_TILE_CONFIG_FUSED = 3;
 
+template<int DequantMode>
+__global__ void Value_Kernel_Quant_DecodeN1(
+    const uint64_t* bmp,
+    const uint32_t* NZ_quant,
+    const uint32_t* tile_offsets,
+    const uint32_t* tile_counts,
+    const half* scales,
+    const half* zeros,
+    const half* score,
+    half* workspace,
+    const int M_Global,
+    const int K_Global,
+    int Split_K,
+    const int num_key_value_groups)
+{
+    const int batch_id = blockIdx.z;
+    const int group_id = batch_id / num_key_value_groups;
+    const int split_id = blockIdx.y;
+    const int col_tile = blockIdx.x;
+    const int lane_id = threadIdx.x;
+
+    const int output_dim = col_tile * 64 + lane_id;
+    if (output_dim >= M_Global) {
+        return;
+    }
+
+    const int tiles_per_token = M_Global / 64;
+    const int total_tiles_per_group = (M_Global * K_Global) / 64;
+    const uint64_t* bmp_group = bmp + group_id * total_tiles_per_group;
+    const uint32_t* offset_group = tile_offsets + group_id * total_tiles_per_group;
+    const uint32_t* count_group = tile_counts + group_id * total_tiles_per_group;
+    const half* scale_group = scales + group_id * total_tiles_per_group;
+    const half* zero_group = zeros + group_id * total_tiles_per_group;
+    const half* score_batch = score + batch_id * K_Global;
+
+    const int NumKBlock = K_Global / 64;
+    const int AverageNumKBlock = (NumKBlock - 1) / Split_K + 1;
+    const int RoundedKBlock = AverageNumKBlock * Split_K;
+    const int PaddingKBlock = RoundedKBlock - NumKBlock;
+    const int NumIter = (split_id == (Split_K - 1)) ? (AverageNumKBlock - PaddingKBlock) : AverageNumKBlock;
+    const int token_start = split_id * AverageNumKBlock * 64;
+    const int token_count = NumIter * 64;
+
+    float acc = 0.0f;
+
+    for (int tok = 0; tok < token_count; ++tok) {
+        const int global_token = token_start + tok;
+        const int tile_idx = global_token * tiles_per_token + col_tile;
+        const uint32_t nnz_tile = count_group[tile_idx];
+        if (nnz_tile == 0) {
+            continue;
+        }
+
+        const uint64_t bmp_val = bmp_group[tile_idx];
+        const uint64_t bit_mask = 0x8000000000000000ull >> lane_id;
+        if ((bmp_val & bit_mask) == 0ull) {
+            continue;
+        }
+
+        const uint64_t prefix_mask = (lane_id == 0) ? 0ull : (bmp_val >> (64 - lane_id));
+        const uint32_t rank = __popcll(prefix_mask);
+        const uint32_t tile_offset = offset_group[tile_idx];
+        const uint32_t packed = NZ_quant[tile_offset + (rank >> 4)];
+        const uint32_t q_value = (packed >> ((rank & 15) << 1)) & 0x3u;
+
+        float scale_f = __half2float(scale_group[tile_idx]);
+        float zero_f = __half2float(zero_group[tile_idx]);
+        float score_f = __half2float(score_batch[global_token]);
+
+        if constexpr (DequantMode == DEQUANT_MODE_MEMORY) {
+            half q_h = __int2half_rn(static_cast<int>(q_value));
+            half v_h = __hmul(__hsub(q_h, zero_group[tile_idx]), scale_group[tile_idx]);
+            acc += score_f * __half2float(v_h);
+        } else {
+            acc += score_f * ((static_cast<float>(q_value) - zero_f) * scale_f);
+        }
+    }
+
+    half* workspace_batch = workspace + batch_id * (M_Global * Split_K);
+    workspace_batch[split_id * M_Global + output_dim] = __float2half_rn(acc);
+}
+
 __device__ __forceinline__ uint64_t shfl_sync_u64(unsigned mask, uint64_t value, int src_lane)
 {
     uint32_t lo = static_cast<uint32_t>(value);
@@ -140,6 +222,8 @@ static void Key_SplitK_Kernel_Ex_Quant(
     const uint64_t* bmp, 
     const uint32_t* NZ_quant,  // 改为 uint32*
     const uint32_t* tile_offsets,
+    const uint32_t* tile_counts,
+    const uint32_t* tile_units,
     const half* scales,
     const half* zeros,
     const half*  B,
@@ -168,7 +252,7 @@ static void Key_SplitK_Kernel_Ex_Quant(
     dim3 BlockDim(WARP_SIZE * TilingConfig::BLOCK_WARPS, 1, 1);
 
     Key_Kernel_Quant<TilingConfig, SparseKernelConfig, Fast2Bit, DequantMode><<<GridDim, BlockDim, SHMEM_SZ, stream>>>(
-        A, bmp, NZ_quant, tile_offsets, scales, zeros,
+        A, bmp, NZ_quant, tile_offsets, tile_counts, tile_units, scales, zeros,
         B, Reduction_Workspace, M_Global, N_Global, K_Global, 1, 
         Batch_Size, num_key_value_groups, bit, capacity);
 }
@@ -182,6 +266,8 @@ cudaError_t Key_SplitK_API_Quant(
     const uint64_t* bmp, 
     const uint32_t* NZ_quant,  // 改为 uint32*
     const uint32_t* tile_offsets,
+    const uint32_t* tile_counts,
+    const uint32_t* tile_units,
     const half* scales,
     const half* zeros,
     const half*  B,
@@ -216,24 +302,24 @@ cudaError_t Key_SplitK_API_Quant(
             if (bit == 2 && capacity == 16) {
                 if (dequant_mode == DEQUANT_MODE_MEMORY) {
                     Key_SplitK_Kernel_Ex_Quant<TilingConfig<4, 1, 1, 1>, SparseKernelConfig<64>, true, DEQUANT_MODE_MEMORY>(
-                        stream, A, bmp, NZ_quant, tile_offsets, scales, zeros,
+                        stream, A, bmp, NZ_quant, tile_offsets, tile_counts, tile_units, scales, zeros,
                         B, SpMM_SplitK_OutputPTR, M_Global, N_Global, K_Global,
                         Split_K, Batch_Size, num_key_value_groups, bit, capacity);
                 } else {
                     Key_SplitK_Kernel_Ex_Quant<TilingConfig<4, 1, 1, 1>, SparseKernelConfig<64>, true, DEQUANT_MODE_SPEED>(
-                        stream, A, bmp, NZ_quant, tile_offsets, scales, zeros,
+                        stream, A, bmp, NZ_quant, tile_offsets, tile_counts, tile_units, scales, zeros,
                         B, SpMM_SplitK_OutputPTR, M_Global, N_Global, K_Global,
                         Split_K, Batch_Size, num_key_value_groups, bit, capacity);
                 }
             } else {
                 if (dequant_mode == DEQUANT_MODE_MEMORY) {
                     Key_SplitK_Kernel_Ex_Quant<TilingConfig<4, 1, 1, 1>, SparseKernelConfig<64>, false, DEQUANT_MODE_MEMORY>(
-                        stream, A, bmp, NZ_quant, tile_offsets, scales, zeros,
+                        stream, A, bmp, NZ_quant, tile_offsets, tile_counts, tile_units, scales, zeros,
                         B, SpMM_SplitK_OutputPTR, M_Global, N_Global, K_Global,
                         Split_K, Batch_Size, num_key_value_groups, bit, capacity);
                 } else {
                     Key_SplitK_Kernel_Ex_Quant<TilingConfig<4, 1, 1, 1>, SparseKernelConfig<64>, false, DEQUANT_MODE_SPEED>(
-                        stream, A, bmp, NZ_quant, tile_offsets, scales, zeros,
+                        stream, A, bmp, NZ_quant, tile_offsets, tile_counts, tile_units, scales, zeros,
                         B, SpMM_SplitK_OutputPTR, M_Global, N_Global, K_Global,
                         Split_K, Batch_Size, num_key_value_groups, bit, capacity);
                 }
@@ -432,5 +518,56 @@ cudaError_t Value_SplitK_API_Quant(
     SplitK_Reduction<<<GridDim, BlockDim, 0, stream>>>(
         C, Reduction_Workspace, M_Global, N_Global, Split_K, Batch_Size);
     
+    return cudaGetLastError();
+}
+
+cudaError_t Value_SplitK_API_Quant_DecodeN1(
+    cudaStream_t stream,
+    const uint64_t* bmp,
+    const uint32_t* NZ_quant,
+    const uint32_t* tile_offsets,
+    const uint32_t* tile_counts,
+    const uint32_t* tile_units,
+    const half* scales,
+    const half* zeros,
+    const half* score,
+    half* C,
+    half* Reduction_Workspace,
+    const int M_Global,
+    const int K_Global,
+    int Split_K,
+    const int Batch_Size,
+    const int num_key_value_groups,
+    int dequant_mode)
+{
+    const int max_split_k = max(1, K_Global / TILE_K);
+    if (Split_K < 1) {
+        Split_K = 1;
+    }
+    if (Split_K > max_split_k) {
+        Split_K = max_split_k;
+    }
+
+    dim3 GridDim(M_Global / 64, Split_K, Batch_Size);
+    dim3 BlockDim(64, 1, 1);
+
+    if (dequant_mode == DEQUANT_MODE_MEMORY) {
+        Value_Kernel_Quant_DecodeN1<DEQUANT_MODE_MEMORY><<<GridDim, BlockDim, 0, stream>>>(
+            bmp, NZ_quant, tile_offsets, tile_counts, scales, zeros,
+            score, Reduction_Workspace, M_Global, K_Global, Split_K, num_key_value_groups);
+    } else {
+        Value_Kernel_Quant_DecodeN1<DEQUANT_MODE_SPEED><<<GridDim, BlockDim, 0, stream>>>(
+            bmp, NZ_quant, tile_offsets, tile_counts, scales, zeros,
+            score, Reduction_Workspace, M_Global, K_Global, Split_K, num_key_value_groups);
+    }
+
+    cudaError_t Error = cudaGetLastError();
+    if (Error != cudaSuccess) {
+        return Error;
+    }
+
+    dim3 RedGrid((M_Global + 127) / 128, Batch_Size, 1);
+    dim3 RedBlock(128, 1, 1);
+    SplitK_Reduction_N1<<<RedGrid, RedBlock, 0, stream>>>(C, Reduction_Workspace, M_Global, Split_K, Batch_Size);
     return cudaGetLastError();
 }

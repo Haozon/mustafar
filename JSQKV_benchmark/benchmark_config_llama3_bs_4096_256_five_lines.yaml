@@ -1,0 +1,59 @@
+models:
+  llama3_8b:
+    path: "/home/zh/model/Meta-Llama-3-8B-Instruct"
+    input_length: 4096
+    output_length: 256
+    display_name: "Llama-3 8B Instruct"
+
+test_configs:
+  dense:
+    k_sparsity: 1.0
+    v_sparsity: 1.0
+    use_quant: false
+    display_name: "Dense"
+
+  sparse_50:
+    k_sparsity: 0.5
+    v_sparsity: 0.5
+    use_quant: false
+    display_name: "Sparse50"
+
+  sparse_70:
+    k_sparsity: 0.7
+    v_sparsity: 0.7
+    use_quant: false
+    display_name: "Sparse70"
+
+  sparse_50_quant_2bit:
+    k_sparsity: 0.5
+    v_sparsity: 0.5
+    use_quant: true
+    quant_bits: 2
+    quant_k_dequant_mode: 0
+    quant_v_dequant_mode: 0
+    quant_v_split_k: 4
+    quant_v_tile_config: 0
+    display_name: "Sparse50+2bit"
+
+  sparse_70_quant_2bit:
+    k_sparsity: 0.7
+    v_sparsity: 0.7
+    use_quant: true
+    quant_bits: 2
+    quant_k_dequant_mode: 0
+    quant_v_dequant_mode: 0
+    quant_v_split_k: 4
+    quant_v_tile_config: 0
+    display_name: "Sparse70+2bit"
+
+plot_schemes:
+  five_line:
+    name: "five_line_llama3_4096_256"
+    title: "Throughput comparison on Llama-3 8B"
+    configs: ["dense", "sparse_50", "sparse_70", "sparse_50_quant_2bit", "sparse_70_quant_2bit"]
+
+batch_sizes: [1, 2, 3, 4, 5, 6, 7, 8]
+num_repeats: 1
+warmup_tokens: 10
+group_size: 32
+residual_length: 256

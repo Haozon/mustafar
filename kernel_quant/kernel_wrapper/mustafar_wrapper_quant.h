@@ -18,6 +18,24 @@ torch::Tensor mustafar_key_formulation_quant(
     int dequant_mode = 0            // 0: speed, 1: memory
 );
 
+torch::Tensor mustafar_key_formulation_quant_meta(
+    torch::Tensor bmp,
+    torch::Tensor NZ_quant,
+    torch::Tensor tile_offsets,
+    torch::Tensor tile_counts,
+    torch::Tensor tile_units,
+    torch::Tensor scales,
+    torch::Tensor zeros,
+    torch::Tensor B,
+    int M_Global,
+    int K_Global,
+    int Batch_Size,
+    int num_key_value_groups,
+    int bit,
+    int capacity,
+    int dequant_mode = 0
+);
+
 torch::Tensor mustafar_value_formulation_quant(
     torch::Tensor bmp,
     torch::Tensor NZ_quant,
@@ -37,4 +55,24 @@ torch::Tensor mustafar_value_formulation_quant(
     int dequant_mode = 0,           // 0: speed, 1: memory
     int split_k = 1,
     int value_tile_config = 0
+);
+
+torch::Tensor mustafar_value_formulation_quant_decode_n1(
+    torch::Tensor bmp,
+    torch::Tensor NZ_quant,
+    torch::Tensor tile_offsets,
+    torch::Tensor tile_counts,
+    torch::Tensor tile_units,
+    torch::Tensor scales,
+    torch::Tensor zeros,
+    torch::Tensor score,
+    torch::Tensor Reduction_Workspace,
+    int M_Global,
+    int K_Global,
+    int Batch_Size,
+    int num_key_value_groups,
+    int bit,
+    int capacity,
+    int dequant_mode = 0,
+    int split_k = 1
 );

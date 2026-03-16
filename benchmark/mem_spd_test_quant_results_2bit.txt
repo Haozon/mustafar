@@ -10,8 +10,8 @@ Configuration:
   Output length: 8
 
 Results:
-  TTFT: 312.95 ms
-  TPOT: 40.30 ms
-  Total time: 595.07 ms
+  TTFT: 134.31 ms
+  TPOT: 35.71 ms
+  Total time: 384.30 ms
   Peak memory: 15.80 GB
-  Batch time: 620.92 ms
+  Batch time: 405.21 ms

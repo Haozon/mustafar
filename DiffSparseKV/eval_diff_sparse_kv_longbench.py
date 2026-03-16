@@ -227,6 +227,8 @@ def main():
                        help='DiffSparseKV 观察窗口大小')
     parser.add_argument('--limit', type=int, default=0,
                        help='每个数据集只评估前 N 条样本，0 表示全量')
+    parser.add_argument('--sample_seed', type=int, default=-1,
+                       help='当 limit > 0 时，>=0 表示随机抽样种子；-1 表示取前 N 条')
     parser.add_argument('--output_tag', type=str, default='',
                        help='附加到输出目录名的标签，便于保存多次实验')
     parser.add_argument('--debug_diff_sparse', action='store_true',
@@ -246,6 +248,9 @@ def main():
                        help='hybrid 聚合时 mean 的权重')
     parser.add_argument('--head_disagreement_ratio', type=float, default=-1.0,
                        help='若 max/mean 超过该阈值，则使用 max 保护 token；-1 禁用')
+    parser.add_argument('--selector_mode', type=str, default='diffsparse',
+                       choices=['diffsparse', 'snapkv'],
+                       help='token 选择模式')
     parser.add_argument('--target_budget', type=float, default=-1.0,
                        help='目标平均稀疏度预算；>=0 时将通过 budget generator 生成配置')
     parser.add_argument('--budget_template', type=str, default='default_3level',
@@ -304,6 +309,7 @@ def main():
                 head_aggregation_mode=args.head_aggregation_mode,
                 head_aggregation_alpha=args.head_aggregation_alpha,
                 head_disagreement_ratio=args.head_disagreement_ratio,
+                selector_mode=args.selector_mode,
             )
             
             model = LlamaForCausalLMDiffSparseKV.from_pretrained(
@@ -327,6 +333,7 @@ def main():
             print(f"  - Head aggregation mode: {args.head_aggregation_mode}")
             print(f"  - Head aggregation alpha: {args.head_aggregation_alpha}")
             print(f"  - Head disagreement ratio: {args.head_disagreement_ratio}")
+            print(f"  - Selector mode: {args.selector_mode}")
             
         except Exception as e:
             print(f"✗ Failed to load DiffSparseKV model: {e}")
@@ -475,8 +482,18 @@ def main():
             # 加载数据集
             data = load_dataset('THUDM/LongBench', dataset, split='test', trust_remote_code=True)
             if args.limit > 0:
-                data = data.select(range(min(args.limit, len(data))))
-                print(f"Using first {len(data)} samples for quick evaluation")
+                sample_count = min(args.limit, len(data))
+                if args.sample_seed >= 0:
+                    rng = np.random.default_rng(args.sample_seed)
+                    sampled_indices = sorted(rng.choice(len(data), size=sample_count, replace=False).tolist())
+                    data = data.select(sampled_indices)
+                    print(
+                        f"Using {len(data)} random samples for quick evaluation "
+                        f"(seed={args.sample_seed})"
+                    )
+                else:
+                    data = data.select(range(sample_count))
+                    print(f"Using first {len(data)} samples for quick evaluation")
             
             # 获取prompt格式和最大生成长度
             prompt_format = dataset2prompt.get(dataset, "{input}")
@@ -521,9 +538,11 @@ def main():
             "head_aggregation_mode": args.head_aggregation_mode,
             "head_aggregation_alpha": args.head_aggregation_alpha,
             "head_disagreement_ratio": args.head_disagreement_ratio,
+            "selector_mode": args.selector_mode,
             "target_budget": args.target_budget,
             "budget_template": args.budget_template,
             "limit": args.limit,
+            "sample_seed": args.sample_seed,
             "output_tag": args.output_tag,
         }
         

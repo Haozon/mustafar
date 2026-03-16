@@ -1,0 +1,55 @@
+models:
+  llama3_8b:
+    path: "/home/zh/model/Meta-Llama-3-8B-Instruct"
+    input_length: 4096
+    output_length: 4096
+    display_name: "Llama-3 8B Instruct"
+
+test_configs:
+  dense:
+    k_sparsity: 1.0
+    v_sparsity: 1.0
+    use_quant: false
+    display_name: "Dense"
+
+  sparse_70:
+    k_sparsity: 0.7
+    v_sparsity: 0.7
+    use_quant: false
+    display_name: "Sparse70"
+
+  sparse_70_quant_2bit:
+    k_sparsity: 0.7
+    v_sparsity: 0.7
+    use_quant: true
+    quant_bits: 2
+    quant_k_dequant_mode: 0
+    quant_v_dequant_mode: 0
+    quant_v_split_k: 4
+    quant_v_tile_config: 0
+    display_name: "Sparse70+2bit"
+
+plot_schemes:
+  figure7_like:
+    name: "figure7_like_llama3_bs"
+    title: "Throughput comparison to dense inference on Llama-3 8B"
+    configs: ["dense", "sparse_70", "sparse_70_quant_2bit"]
+    styles:
+      dense:
+        color: "#4C78A8"
+        marker: "^"
+        linestyle: "--"
+      sparse_70:
+        color: "#54A24B"
+        marker: "s"
+        linestyle: "-"
+      sparse_70_quant_2bit:
+        color: "#E45756"
+        marker: "o"
+        linestyle: "--"
+
+batch_sizes: [1, 2, 4, 6, 8]
+num_repeats: 1
+warmup_tokens: 10
+group_size: 32
+residual_length: 256

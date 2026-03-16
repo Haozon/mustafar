@@ -47,3 +47,18 @@ __global__ void SplitK_Reduction(half* C, half* Reduction_Workspace, int M_Globa
         C_BasePTR_ThisBlock[threadIdx.x * HALF_PER_128B + j] = __float2half_rn(Results[j]);
 }
 
+__global__ void SplitK_Reduction_N1(half* C, const half* Reduction_Workspace, int M_Global, int Split_K, int Batch_Size)
+{
+    int batch_id = blockIdx.y;
+    int dim = blockIdx.x * blockDim.x + threadIdx.x;
+    if (dim >= M_Global) {
+        return;
+    }
+
+    const half* workspace_ptr = Reduction_Workspace + (batch_id * M_Global * Split_K) + dim;
+    float result = 0.0f;
+    for (int split_id = 0; split_id < Split_K; ++split_id) {
+        result += __half2float(workspace_ptr[split_id * M_Global]);
+    }
+    C[batch_id * M_Global + dim] = __float2half_rn(result);
+}

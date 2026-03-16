@@ -156,15 +156,14 @@ def compress_key_batched(
     # 注意：虽然 buffer 是 int32，但位操作在 int32 和 uint32 上是等价的
     tl.atomic_or(packed_not_ptr + uint32_idx, value_to_write, mask=mask_valid)
 
-def convert_key_batched_quant(inputs: torch.Tensor):
+def convert_key_batched_quant(inputs: torch.Tensor, return_metadata: bool = False):
     """
     对 Key Cache 进行稀疏压缩并应用 2-bit per-token-head 量化（Triton kernel 实现打包）。
     返回：
-        bitmaps: [B, num_tiles_per_batch] int64
-        tile_offsets: [B, num_tiles_per_batch] int32 (uint32 偏移量)
-        packed_quant_values: uint32 一维数组（全局打包缓冲）
-        scales: [B, num_tiles_per_batch] float16 每个 tile 的缩放因子
-        zeros: [B, num_tiles_per_batch] float16 每个 tile 的零点
+        默认:
+            bitmaps, tile_offsets, packed_quant_values, scales, zeros
+        若 return_metadata=True:
+            bitmaps, tile_offsets, packed_quant_values, counts, units_per_tile, scales, zeros
     """
     # B: batch_size * num_kv_heads
     # M: seq_length
@@ -260,6 +259,8 @@ def convert_key_batched_quant(inputs: torch.Tensor):
             N=N
         )
 
+    if return_metadata:
+        return bitmaps, tile_offsets, packed_not_flat, counts, units_per_tile, scales, zeros
     return bitmaps, tile_offsets, packed_not_flat, scales, zeros
 
 

@@ -22,6 +22,8 @@ static void Key_SplitK_Kernel_Ex_Quant(
     const uint64_t* bmp, 
     const uint32_t* NZ_quant,
     const uint32_t* tile_offsets,
+    const uint32_t* tile_counts,
+    const uint32_t* tile_units,
     const half* scales,
     const half* zeros,
     const half*  B,
@@ -64,6 +66,8 @@ cudaError_t Key_SplitK_API_Quant(
     const uint64_t* bmp, 
     const uint32_t* NZ_quant,
     const uint32_t* tile_offsets,
+    const uint32_t* tile_counts,
+    const uint32_t* tile_units,
     const half* scales,
     const half* zeros,
     const half*  B,
@@ -150,5 +154,24 @@ cudaError_t Value_SplitK_API_Quant(
     int          capacity,
     int          dequant_mode,
     int          value_tile_config);
+
+cudaError_t Value_SplitK_API_Quant_DecodeN1(
+    cudaStream_t stream,
+    const uint64_t* bmp,
+    const uint32_t* NZ_quant,
+    const uint32_t* tile_offsets,
+    const uint32_t* tile_counts,
+    const uint32_t* tile_units,
+    const half* scales,
+    const half* zeros,
+    const half* score,
+    half* C,
+    half* Reduction_Workspace,
+    const int M_Global,
+    const int K_Global,
+    int Split_K,
+    const int Batch_Size,
+    const int num_key_value_groups,
+    int dequant_mode);
 
 #endif // SPMM_API_QUANT_CUH

@@ -2,7 +2,36 @@
 import torch
 import time
 
-def measure_throughput(model, tokenizer, batch_size, input_length, output_length, num_repeats=3, warmup_tokens=10):
+def build_fixed_length_inputs(tokenizer, batch_size, input_length, device="cuda"):
+    """
+    构造严格等长的输入，避免 tokenizer 后 token 数超出预期。
+    """
+    seed_text = ("apple bear " * max(input_length, 16)).strip()
+    encoded = tokenizer(seed_text, return_tensors="pt")
+    input_ids = encoded["input_ids"][:, :input_length].contiguous()
+    attention_mask = encoded.get("attention_mask", None)
+    if attention_mask is None:
+        attention_mask = torch.ones_like(input_ids)
+    else:
+        attention_mask = attention_mask[:, :input_length].contiguous()
+
+    input_ids = input_ids.repeat(batch_size, 1).to(device)
+    attention_mask = attention_mask.repeat(batch_size, 1).to(device)
+    return {
+        "input_ids": input_ids,
+        "attention_mask": attention_mask,
+    }
+
+def measure_throughput(
+    model,
+    tokenizer,
+    batch_size,
+    input_length,
+    output_length,
+    num_repeats=3,
+    warmup_tokens=10,
+    measure_token_metrics=True,
+):
     """
     测量模型吞吐量
     
@@ -22,13 +51,8 @@ def measure_throughput(model, tokenizer, batch_size, input_length, output_length
     torch.manual_seed(42)
     torch.cuda.manual_seed_all(42)
     
-    # 构造输入
-    context = []
-    for _ in range(batch_size):
-        string = 'apple bear' * (input_length // 2)
-        context.append(string[:-1])
-    
-    inputs = tokenizer(context, return_tensors="pt").to('cuda')
+    # 构造严格等长输入
+    inputs = build_fixed_length_inputs(tokenizer, batch_size, input_length, device='cuda')
     input_ids = inputs['input_ids']
     
     # Warmup
@@ -59,8 +83,11 @@ def measure_throughput(model, tokenizer, batch_size, input_length, output_length
     total_tokens = batch_size * output_length
     throughput = total_tokens / avg_batch_time
     
-    # 测量 TTFT 和 TPOT
-    ttft, tpot = measure_token_timing(model, inputs, output_length, num_repeats=1)
+    # 可选：测量 TTFT 和 TPOT。大规模 batch-size sweep 默认可关闭以节省时间。
+    if measure_token_metrics:
+        ttft, tpot = measure_token_timing(model, inputs, output_length, num_repeats=1)
+    else:
+        ttft, tpot = None, None
     
     results = {
         'throughput': throughput,  # tokens/second
@@ -76,6 +103,8 @@ def measure_throughput(model, tokenizer, batch_size, input_length, output_length
     
     print(f"    ✅ Throughput: {throughput:.2f} tokens/sec")
     print(f"    ✅ Peak Memory: {peak_memory:.2f} GB")
+    if ttft is not None and tpot is not None:
+        print(f"    ✅ TTFT: {ttft:.2f} ms, TPOT: {tpot:.2f} ms")
     
     return results
 

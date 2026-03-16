@@ -26,6 +26,26 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         "Quantized key formulation kernel (dequant_mode: 0=speed, 1=memory)"
     );
     m.def(
+        "mustafar_key_formulation_quant_meta",
+        &mustafar_key_formulation_quant_meta,
+        py::arg("bmp"),
+        py::arg("NZ_quant"),
+        py::arg("tile_offsets"),
+        py::arg("tile_counts"),
+        py::arg("tile_units"),
+        py::arg("scales"),
+        py::arg("zeros"),
+        py::arg("B"),
+        py::arg("M_Global"),
+        py::arg("K_Global"),
+        py::arg("Batch_Size"),
+        py::arg("num_key_value_groups"),
+        py::arg("bit"),
+        py::arg("capacity"),
+        py::arg("dequant_mode") = 0,
+        "Quantized key formulation kernel with counts/units metadata"
+    );
+    m.def(
         "mustafar_value_formulation_quant",
         &mustafar_value_formulation_quant,
         py::arg("bmp"),
@@ -48,6 +68,28 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         py::arg("value_tile_config") = 0,
         "Quantized value formulation kernel (dequant_mode: 0=speed, 1=memory)"
     );
+    m.def(
+        "mustafar_value_formulation_quant_decode_n1",
+        &mustafar_value_formulation_quant_decode_n1,
+        py::arg("bmp"),
+        py::arg("NZ_quant"),
+        py::arg("tile_offsets"),
+        py::arg("tile_counts"),
+        py::arg("tile_units"),
+        py::arg("scales"),
+        py::arg("zeros"),
+        py::arg("score"),
+        py::arg("Reduction_Workspace"),
+        py::arg("M_Global"),
+        py::arg("K_Global"),
+        py::arg("Batch_Size"),
+        py::arg("num_key_value_groups"),
+        py::arg("bit"),
+        py::arg("capacity"),
+        py::arg("dequant_mode") = 0,
+        py::arg("split_k") = 1,
+        "Quantized value formulation decode-only kernel (N=1)"
+    );
     
     // 添加别名以兼容模型代码
     m.def(
@@ -67,6 +109,26 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         py::arg("capacity"),
         py::arg("dequant_mode") = 0,
         "Quantized sparse forward (Key) - alias for mustafar_key_formulation_quant"
+    );
+    m.def(
+        "mustafar_quant_sparse_forward_meta",
+        &mustafar_key_formulation_quant_meta,
+        py::arg("bmp"),
+        py::arg("NZ_quant"),
+        py::arg("tile_offsets"),
+        py::arg("tile_counts"),
+        py::arg("tile_units"),
+        py::arg("scales"),
+        py::arg("zeros"),
+        py::arg("B"),
+        py::arg("M_Global"),
+        py::arg("K_Global"),
+        py::arg("Batch_Size"),
+        py::arg("num_key_value_groups"),
+        py::arg("bit"),
+        py::arg("capacity"),
+        py::arg("dequant_mode") = 0,
+        "Quantized sparse forward (Key) with counts/units metadata"
     );
     m.def(
         "mustafar_quant_sparse_value_forward",
@@ -90,5 +152,27 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         py::arg("split_k") = 1,
         py::arg("value_tile_config") = 0,
         "Quantized sparse value forward - alias for mustafar_value_formulation_quant"
+    );
+    m.def(
+        "mustafar_quant_sparse_value_forward_decode_n1",
+        &mustafar_value_formulation_quant_decode_n1,
+        py::arg("bmp"),
+        py::arg("NZ_quant"),
+        py::arg("tile_offsets"),
+        py::arg("tile_counts"),
+        py::arg("tile_units"),
+        py::arg("scales"),
+        py::arg("zeros"),
+        py::arg("score"),
+        py::arg("Reduction_Workspace"),
+        py::arg("M_Global"),
+        py::arg("K_Global"),
+        py::arg("Batch_Size"),
+        py::arg("num_key_value_groups"),
+        py::arg("bit"),
+        py::arg("capacity"),
+        py::arg("dequant_mode") = 0,
+        py::arg("split_k") = 1,
+        "Quantized sparse value forward decode-only kernel (N=1)"
     );
 }

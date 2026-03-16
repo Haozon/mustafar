@@ -276,6 +276,8 @@ Key_Kernel_Quant(const half*  A,
                  const uint64_t* bmp, 
                  const uint32_t* NZ_quant,     // 量化值 (uint32)
                  const uint32_t* tile_offsets, // tile uint32 偏移
+                 const uint32_t* tile_counts,
+                 const uint32_t* tile_units,
                  const half* scales,           // per-tile scale
                  const half* zeros,            // per-tile zero_point
                  const half*  B,
@@ -296,6 +298,8 @@ Key_Kernel_Quant(const half*  A,
     // tile_offsets 已经包含了全局 uint32 偏移信息
     const uint32_t* NZ_quant_batch = NZ_quant;
     const uint32_t* tile_offsets_batch = tile_offsets + mustafar_group_id * (M_Global * K_Global / 64);
+    const uint32_t* tile_counts_batch = tile_counts != nullptr ? tile_counts + mustafar_group_id * (M_Global * K_Global / 64) : nullptr;
+    const uint32_t* tile_units_batch = tile_units != nullptr ? tile_units + mustafar_group_id * (M_Global * K_Global / 64) : nullptr;
     const uint64_t* bmp_batch = bmp + mustafar_group_id * (M_Global * K_Global / 64);
     const half* scales_batch = scales + mustafar_group_id * (M_Global * K_Global / 64);
     const half* zeros_batch = zeros + mustafar_group_id * (M_Global * K_Global / 64);
@@ -359,8 +363,8 @@ Key_Kernel_Quant(const half*  A,
         NZ_quant_batch,
         bmp_batch,
         tile_offsets_batch,
-        nullptr,
-        nullptr,
+        tile_counts_batch,
+        tile_units_batch,
         scales_batch,
         zeros_batch,
         &nnz_tile0, 
@@ -434,8 +438,8 @@ Key_Kernel_Quant(const half*  A,
             NZ_quant_batch,
             bmp_batch,
             tile_offsets_batch,
-            nullptr,
-            nullptr,
+            tile_counts_batch,
+            tile_units_batch,
             scales_batch,
             zeros_batch,
             &nnz_tile0,

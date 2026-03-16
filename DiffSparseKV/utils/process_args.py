@@ -91,6 +91,10 @@ class ModelArguments:
         default=-1.0,
         metadata={"help": "If max/mean exceeds this ratio, force token protection via max score."},
     )
+    diff_sparse_selector_mode: Optional[str] = field(
+        default="diffsparse",
+        metadata={"help": "Token selector mode: diffsparse or snapkv."},
+    )
     diff_sparse_target_budget: Optional[float] = field(
         default=-1.0,
         metadata={"help": "Target average sparsity budget; >=0 enables budget generator."},
