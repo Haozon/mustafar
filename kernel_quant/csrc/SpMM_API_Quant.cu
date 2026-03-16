@@ -16,6 +16,7 @@ constexpr int VALUE_TILE_CONFIG_TILE64 = 1;
 constexpr int VALUE_TILE_CONFIG_TILE128 = 2;
 constexpr int VALUE_TILE_CONFIG_FUSED = 3;
 
+<<<<<<< HEAD
 template<int DequantMode>
 __global__ void Value_Kernel_Quant_DecodeN1(
     const uint64_t* bmp,
@@ -98,6 +99,8 @@ __global__ void Value_Kernel_Quant_DecodeN1(
     workspace_batch[split_id * M_Global + output_dim] = __float2half_rn(acc);
 }
 
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
 __device__ __forceinline__ uint64_t shfl_sync_u64(unsigned mask, uint64_t value, int src_lane)
 {
     uint32_t lo = static_cast<uint32_t>(value);
@@ -222,8 +225,11 @@ static void Key_SplitK_Kernel_Ex_Quant(
     const uint64_t* bmp, 
     const uint32_t* NZ_quant,  // 改为 uint32*
     const uint32_t* tile_offsets,
+<<<<<<< HEAD
     const uint32_t* tile_counts,
     const uint32_t* tile_units,
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     const half* scales,
     const half* zeros,
     const half*  B,
@@ -252,7 +258,11 @@ static void Key_SplitK_Kernel_Ex_Quant(
     dim3 BlockDim(WARP_SIZE * TilingConfig::BLOCK_WARPS, 1, 1);
 
     Key_Kernel_Quant<TilingConfig, SparseKernelConfig, Fast2Bit, DequantMode><<<GridDim, BlockDim, SHMEM_SZ, stream>>>(
+<<<<<<< HEAD
         A, bmp, NZ_quant, tile_offsets, tile_counts, tile_units, scales, zeros,
+=======
+        A, bmp, NZ_quant, tile_offsets, scales, zeros,
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
         B, Reduction_Workspace, M_Global, N_Global, K_Global, 1, 
         Batch_Size, num_key_value_groups, bit, capacity);
 }
@@ -266,8 +276,11 @@ cudaError_t Key_SplitK_API_Quant(
     const uint64_t* bmp, 
     const uint32_t* NZ_quant,  // 改为 uint32*
     const uint32_t* tile_offsets,
+<<<<<<< HEAD
     const uint32_t* tile_counts,
     const uint32_t* tile_units,
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     const half* scales,
     const half* zeros,
     const half*  B,
@@ -302,24 +315,40 @@ cudaError_t Key_SplitK_API_Quant(
             if (bit == 2 && capacity == 16) {
                 if (dequant_mode == DEQUANT_MODE_MEMORY) {
                     Key_SplitK_Kernel_Ex_Quant<TilingConfig<4, 1, 1, 1>, SparseKernelConfig<64>, true, DEQUANT_MODE_MEMORY>(
+<<<<<<< HEAD
                         stream, A, bmp, NZ_quant, tile_offsets, tile_counts, tile_units, scales, zeros,
+=======
+                        stream, A, bmp, NZ_quant, tile_offsets, scales, zeros,
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
                         B, SpMM_SplitK_OutputPTR, M_Global, N_Global, K_Global,
                         Split_K, Batch_Size, num_key_value_groups, bit, capacity);
                 } else {
                     Key_SplitK_Kernel_Ex_Quant<TilingConfig<4, 1, 1, 1>, SparseKernelConfig<64>, true, DEQUANT_MODE_SPEED>(
+<<<<<<< HEAD
                         stream, A, bmp, NZ_quant, tile_offsets, tile_counts, tile_units, scales, zeros,
+=======
+                        stream, A, bmp, NZ_quant, tile_offsets, scales, zeros,
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
                         B, SpMM_SplitK_OutputPTR, M_Global, N_Global, K_Global,
                         Split_K, Batch_Size, num_key_value_groups, bit, capacity);
                 }
             } else {
                 if (dequant_mode == DEQUANT_MODE_MEMORY) {
                     Key_SplitK_Kernel_Ex_Quant<TilingConfig<4, 1, 1, 1>, SparseKernelConfig<64>, false, DEQUANT_MODE_MEMORY>(
+<<<<<<< HEAD
                         stream, A, bmp, NZ_quant, tile_offsets, tile_counts, tile_units, scales, zeros,
+=======
+                        stream, A, bmp, NZ_quant, tile_offsets, scales, zeros,
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
                         B, SpMM_SplitK_OutputPTR, M_Global, N_Global, K_Global,
                         Split_K, Batch_Size, num_key_value_groups, bit, capacity);
                 } else {
                     Key_SplitK_Kernel_Ex_Quant<TilingConfig<4, 1, 1, 1>, SparseKernelConfig<64>, false, DEQUANT_MODE_SPEED>(
+<<<<<<< HEAD
                         stream, A, bmp, NZ_quant, tile_offsets, tile_counts, tile_units, scales, zeros,
+=======
+                        stream, A, bmp, NZ_quant, tile_offsets, scales, zeros,
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
                         B, SpMM_SplitK_OutputPTR, M_Global, N_Global, K_Global,
                         Split_K, Batch_Size, num_key_value_groups, bit, capacity);
                 }

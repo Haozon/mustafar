@@ -26,6 +26,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         "Quantized key formulation kernel (dequant_mode: 0=speed, 1=memory)"
     );
     m.def(
+<<<<<<< HEAD
         "mustafar_key_formulation_quant_meta",
         &mustafar_key_formulation_quant_meta,
         py::arg("bmp"),
@@ -46,6 +47,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         "Quantized key formulation kernel with counts/units metadata"
     );
     m.def(
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
         "mustafar_value_formulation_quant",
         &mustafar_value_formulation_quant,
         py::arg("bmp"),
@@ -68,6 +71,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         py::arg("value_tile_config") = 0,
         "Quantized value formulation kernel (dequant_mode: 0=speed, 1=memory)"
     );
+<<<<<<< HEAD
     m.def(
         "mustafar_value_formulation_quant_decode_n1",
         &mustafar_value_formulation_quant_decode_n1,
@@ -90,6 +94,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         py::arg("split_k") = 1,
         "Quantized value formulation decode-only kernel (N=1)"
     );
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     
     // 添加别名以兼容模型代码
     m.def(
@@ -111,6 +117,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         "Quantized sparse forward (Key) - alias for mustafar_key_formulation_quant"
     );
     m.def(
+<<<<<<< HEAD
         "mustafar_quant_sparse_forward_meta",
         &mustafar_key_formulation_quant_meta,
         py::arg("bmp"),
@@ -131,6 +138,8 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         "Quantized sparse forward (Key) with counts/units metadata"
     );
     m.def(
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
         "mustafar_quant_sparse_value_forward",
         &mustafar_value_formulation_quant,
         py::arg("bmp"),
@@ -153,6 +162,7 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         py::arg("value_tile_config") = 0,
         "Quantized sparse value forward - alias for mustafar_value_formulation_quant"
     );
+<<<<<<< HEAD
     m.def(
         "mustafar_quant_sparse_value_forward_decode_n1",
         &mustafar_value_formulation_quant_decode_n1,
@@ -175,4 +185,6 @@ PYBIND11_MODULE(TORCH_EXTENSION_NAME, m) {
         py::arg("split_k") = 1,
         "Quantized sparse value forward decode-only kernel (N=1)"
     );
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
 }

@@ -80,7 +80,10 @@ class LlamaDiffSparseKVAttention(nn.Module):
         self.head_aggregation_mode = getattr(config, 'head_aggregation_mode', 'mean')
         self.head_aggregation_alpha = getattr(config, 'head_aggregation_alpha', 0.5)
         self.head_disagreement_ratio = getattr(config, 'head_disagreement_ratio', -1.0)
+<<<<<<< HEAD
         self.selector_mode = getattr(config, 'selector_mode', 'diffsparse')
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
         
         # Validate observation window size
         if self.obs_window_size < self.window_size:
@@ -769,6 +772,7 @@ class LlamaDiffSparseKVAttention(nn.Module):
         # Expand aggregated scores back to [B, H_kv, seq_len] for compatibility
         importance_scores = importance_scores_aggregated.unsqueeze(1).expand_as(importance_scores_per_head)
         
+<<<<<<< HEAD
         if self.selector_mode == "snapkv":
             return self._prefill_with_snapkv(
                 attn_output=attn_output,
@@ -778,6 +782,8 @@ class LlamaDiffSparseKVAttention(nn.Module):
                 kv_seq_len=kv_seq_len,
             )
 
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
         # 4. Compute per-layer thresholds (based on aggregated importance)
         thresholds = self.threshold_manager.compute_per_layer_thresholds(
             importance_scores_aggregated.unsqueeze(1)  # [B, 1, seq_len] - treat as single head
@@ -857,6 +863,7 @@ class LlamaDiffSparseKVAttention(nn.Module):
         
         return attn_output, None, past_key_value
 
+<<<<<<< HEAD
     def _prefill_with_snapkv(
         self,
         attn_output: torch.Tensor,
@@ -907,6 +914,8 @@ class LlamaDiffSparseKVAttention(nn.Module):
 
         return attn_output, None, past_key_value
 
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     def _decode_with_diff_sparse(
         self,
         query_states: torch.Tensor,

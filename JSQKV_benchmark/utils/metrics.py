@@ -2,6 +2,7 @@
 import torch
 import time
 
+<<<<<<< HEAD
 def build_fixed_length_inputs(tokenizer, batch_size, input_length, device="cuda"):
     """
     构造严格等长的输入，避免 tokenizer 后 token 数超出预期。
@@ -32,6 +33,9 @@ def measure_throughput(
     warmup_tokens=10,
     measure_token_metrics=True,
 ):
+=======
+def measure_throughput(model, tokenizer, batch_size, input_length, output_length, num_repeats=3, warmup_tokens=10):
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     """
     测量模型吞吐量
     
@@ -51,8 +55,18 @@ def measure_throughput(
     torch.manual_seed(42)
     torch.cuda.manual_seed_all(42)
     
+<<<<<<< HEAD
     # 构造严格等长输入
     inputs = build_fixed_length_inputs(tokenizer, batch_size, input_length, device='cuda')
+=======
+    # 构造输入
+    context = []
+    for _ in range(batch_size):
+        string = 'apple bear' * (input_length // 2)
+        context.append(string[:-1])
+    
+    inputs = tokenizer(context, return_tensors="pt").to('cuda')
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     input_ids = inputs['input_ids']
     
     # Warmup
@@ -83,11 +97,16 @@ def measure_throughput(
     total_tokens = batch_size * output_length
     throughput = total_tokens / avg_batch_time
     
+<<<<<<< HEAD
     # 可选：测量 TTFT 和 TPOT。大规模 batch-size sweep 默认可关闭以节省时间。
     if measure_token_metrics:
         ttft, tpot = measure_token_timing(model, inputs, output_length, num_repeats=1)
     else:
         ttft, tpot = None, None
+=======
+    # 测量 TTFT 和 TPOT
+    ttft, tpot = measure_token_timing(model, inputs, output_length, num_repeats=1)
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     
     results = {
         'throughput': throughput,  # tokens/second
@@ -103,8 +122,11 @@ def measure_throughput(
     
     print(f"    ✅ Throughput: {throughput:.2f} tokens/sec")
     print(f"    ✅ Peak Memory: {peak_memory:.2f} GB")
+<<<<<<< HEAD
     if ttft is not None and tpot is not None:
         print(f"    ✅ TTFT: {ttft:.2f} ms, TPOT: {tpot:.2f} ms")
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     
     return results
 

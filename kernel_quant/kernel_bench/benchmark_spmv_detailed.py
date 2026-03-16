@@ -296,23 +296,35 @@ def test_quant_spmv(k_cache_sparse, query, config, dequant_mode):
     # 1. 预处理：压缩 + 量化（模拟 Prefill）
     print(f"\n[Step 1] Compression + Quantization (一次性)...")
     compress_result = benchmark_kernel(
+<<<<<<< HEAD
         lambda: compression_quant.convert_key_batched_quant(k_cache_sparse, return_metadata=True),
+=======
+        lambda: compression_quant.convert_key_batched_quant(k_cache_sparse),
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
         num_warmup=5,
         num_iters=10
     )
     print(f"  Time: {compress_result['avg']:.4f} ms")
     
     # 获取压缩数据
+<<<<<<< HEAD
     k_bmps, k_tile_offsets, k_packed_quant, k_counts, k_units, k_scales, k_zeros = \
         compression_quant.convert_key_batched_quant(k_cache_sparse, return_metadata=True)
+=======
+    k_bmps, k_tile_offsets, k_packed_quant, k_scales, k_zeros = \
+        compression_quant.convert_key_batched_quant(k_cache_sparse)
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     
     # 计算内存
     memory_mb = calculate_memory_mb({
         'bmps': k_bmps,
         'tile_offsets': k_tile_offsets,
         'packed_quant': k_packed_quant,
+<<<<<<< HEAD
         'counts': k_counts,
         'units': k_units,
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
         'scales': k_scales,
         'zeros': k_zeros,
     })
@@ -328,12 +340,19 @@ def test_quant_spmv(k_cache_sparse, query, config, dequant_mode):
     )
     
     single_spmv_result = benchmark_kernel(
+<<<<<<< HEAD
         lambda: mustafar_package_quant.mustafar_key_formulation_quant_meta(
             k_bmps,
             k_packed_quant,
             k_tile_offsets,
             k_counts,
             k_units,
+=======
+        lambda: mustafar_package_quant.mustafar_key_formulation_quant(
+            k_bmps,
+            k_packed_quant,
+            k_tile_offsets,
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
             k_scales,
             k_zeros,
             padded_query,
@@ -353,12 +372,19 @@ def test_quant_spmv(k_cache_sparse, query, config, dequant_mode):
     
     def batch_spmv():
         for _ in range(num_decode_steps):
+<<<<<<< HEAD
             mustafar_package_quant.mustafar_key_formulation_quant_meta(
                 k_bmps,
                 k_packed_quant,
                 k_tile_offsets,
                 k_counts,
                 k_units,
+=======
+            mustafar_package_quant.mustafar_key_formulation_quant(
+                k_bmps,
+                k_packed_quant,
+                k_tile_offsets,
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
                 k_scales,
                 k_zeros,
                 padded_query,

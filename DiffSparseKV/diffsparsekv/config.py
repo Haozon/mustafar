@@ -36,7 +36,10 @@ class DiffSparseKVConfig:
     head_aggregation_mode: str = "mean"
     head_aggregation_alpha: float = 0.5
     head_disagreement_ratio: float = -1.0
+<<<<<<< HEAD
     selector_mode: str = "diffsparse"
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     
     def __post_init__(self):
         if self.target_distribution is None:
@@ -62,9 +65,12 @@ class DiffSparseKVConfig:
         assert self.head_disagreement_ratio == -1.0 or self.head_disagreement_ratio >= 1.0, (
             "head_disagreement_ratio must be -1 (disabled) or >= 1.0"
         )
+<<<<<<< HEAD
         assert self.selector_mode in {"diffsparse", "snapkv"}, (
             "selector_mode must be 'diffsparse' or 'snapkv'"
         )
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     
     def get_expected_sparsity(self) -> float:
         """Calculate expected average sparsity."""
@@ -86,7 +92,10 @@ def create_diff_sparse_kv_config(
     head_aggregation_mode: str = "mean",
     head_aggregation_alpha: float = 0.5,
     head_disagreement_ratio: float = -1.0,
+<<<<<<< HEAD
     selector_mode: str = "diffsparse",
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
 ) -> LlamaConfig:
     """
     Create a LlamaConfig with DiffSparseKV settings.
@@ -123,7 +132,10 @@ def create_diff_sparse_kv_config(
     base_config.head_aggregation_mode = head_aggregation_mode
     base_config.head_aggregation_alpha = head_aggregation_alpha
     base_config.head_disagreement_ratio = head_disagreement_ratio
+<<<<<<< HEAD
     base_config.selector_mode = selector_mode
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     
     # Calculate expected sparsity
     expected_sparsity = sum(d * s for d, s in zip(target_distribution, sparsity_levels))

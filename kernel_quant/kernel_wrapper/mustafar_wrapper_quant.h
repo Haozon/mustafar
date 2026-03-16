@@ -16,6 +16,7 @@ torch::Tensor mustafar_key_formulation_quant(
     int bit,                        // 量化位宽
     int capacity,                   // 每字节容纳的量化值数
     int dequant_mode = 0            // 0: speed, 1: memory
+<<<<<<< HEAD
 );
 
 torch::Tensor mustafar_key_formulation_quant_meta(
@@ -34,6 +35,8 @@ torch::Tensor mustafar_key_formulation_quant_meta(
     int bit,
     int capacity,
     int dequant_mode = 0
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
 );
 
 torch::Tensor mustafar_value_formulation_quant(
@@ -55,6 +58,7 @@ torch::Tensor mustafar_value_formulation_quant(
     int dequant_mode = 0,           // 0: speed, 1: memory
     int split_k = 1,
     int value_tile_config = 0
+<<<<<<< HEAD
 );
 
 torch::Tensor mustafar_value_formulation_quant_decode_n1(
@@ -75,4 +79,6 @@ torch::Tensor mustafar_value_formulation_quant_decode_n1(
     int capacity,
     int dequant_mode = 0,
     int split_k = 1
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
 );

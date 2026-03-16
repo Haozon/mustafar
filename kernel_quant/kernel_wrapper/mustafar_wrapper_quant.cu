@@ -115,6 +115,7 @@ torch::Tensor mustafar_key_formulation_quant(
         bit,
         capacity,
         dequant_mode
+<<<<<<< HEAD
     );
 
     return C;
@@ -208,6 +209,8 @@ torch::Tensor mustafar_key_formulation_quant_meta(
         bit,
         capacity,
         dequant_mode
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     );
 
     return C;
@@ -357,6 +360,7 @@ torch::Tensor mustafar_value_formulation_quant(
         capacity,
         dequant_mode,
         value_tile_config
+<<<<<<< HEAD
     );
 
     return C;
@@ -451,6 +455,8 @@ torch::Tensor mustafar_value_formulation_quant_decode_n1(
         Batch_Size,
         num_key_value_groups,
         dequant_mode
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     );
 
     return C;

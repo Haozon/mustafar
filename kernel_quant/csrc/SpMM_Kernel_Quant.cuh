@@ -276,8 +276,11 @@ Key_Kernel_Quant(const half*  A,
                  const uint64_t* bmp, 
                  const uint32_t* NZ_quant,     // 量化值 (uint32)
                  const uint32_t* tile_offsets, // tile uint32 偏移
+<<<<<<< HEAD
                  const uint32_t* tile_counts,
                  const uint32_t* tile_units,
+=======
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
                  const half* scales,           // per-tile scale
                  const half* zeros,            // per-tile zero_point
                  const half*  B,
@@ -363,8 +366,13 @@ Key_Kernel_Quant(const half*  A,
         NZ_quant_batch,
         bmp_batch,
         tile_offsets_batch,
+<<<<<<< HEAD
         tile_counts_batch,
         tile_units_batch,
+=======
+        nullptr,
+        nullptr,
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
         scales_batch,
         zeros_batch,
         &nnz_tile0, 
@@ -438,8 +446,13 @@ Key_Kernel_Quant(const half*  A,
             NZ_quant_batch,
             bmp_batch,
             tile_offsets_batch,
+<<<<<<< HEAD
             tile_counts_batch,
             tile_units_batch,
+=======
+            nullptr,
+            nullptr,
+>>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
             scales_batch,
             zeros_batch,
             &nnz_tile0,
