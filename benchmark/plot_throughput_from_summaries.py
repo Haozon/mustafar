@@ -45,13 +45,31 @@ SUMMARY_FILES = {
     "sparse70_quant2bit": "quant70_summary.csv",
 }
 
+METRIC_META = {
+    "throughput_tps": {
+        "ylabel": "Throughput (tokens/s)",
+        "title": "Meta-Llama-3-8B-Instruct | input=4096, output=256 | Throughput vs Batch Size",
+        "note": "Hollow markers: throughput available, TTFT/TPOT incomplete",
+    },
+    "ttft_ms": {
+        "ylabel": "TTFT (ms)",
+        "title": "Meta-Llama-3-8B-Instruct | input=4096, output=256 | TTFT vs Batch Size",
+        "note": "Missing markers indicate unavailable TTFT under single-card memory limits",
+    },
+    "tpot_ms": {
+        "ylabel": "TPOT (ms/token)",
+        "title": "Meta-Llama-3-8B-Instruct | input=4096, output=256 | TPOT vs Batch Size",
+        "note": "Missing markers indicate unavailable TPOT under single-card memory limits",
+    },
+}
+
 
 def load_summary(path: str) -> List[dict]:
     with open(path, "r", encoding="utf-8") as f:
         return list(csv.DictReader(f))
 
 
-def build_records(summary_dir: str) -> Dict[str, List[dict]]:
+def build_records(summary_dir: str, metric_key: str) -> Dict[str, List[dict]]:
     records: Dict[str, List[dict]] = {}
     for cfg, filename in SUMMARY_FILES.items():
         path = os.path.join(summary_dir, filename)
@@ -59,13 +77,13 @@ def build_records(summary_dir: str) -> Dict[str, List[dict]]:
             continue
         rows = []
         for row in load_summary(path):
-            throughput = row.get("throughput_tps", "")
-            if not throughput:
+            raw = row.get(metric_key, "")
+            if not raw:
                 continue
             rows.append(
                 {
                     "batch_size": int(row["batch_size"]),
-                    "throughput": float(throughput),
+                    "value": float(raw),
                     "status": row.get("status", ""),
                 }
             )
@@ -74,7 +92,7 @@ def build_records(summary_dir: str) -> Dict[str, List[dict]]:
     return records
 
 
-def plot(records: Dict[str, List[dict]], out_png: str, out_pdf: str, title: str):
+def plot(records: Dict[str, List[dict]], out_png: str, out_pdf: str, title: str, ylabel: str, note: str):
     plt.figure(figsize=(9.2, 5.8))
     ax = plt.gca()
 
@@ -92,7 +110,7 @@ def plot(records: Dict[str, List[dict]], out_png: str, out_pdf: str, title: str)
             continue
         style = CONFIG_STYLES[cfg]
         xs = [row["batch_size"] for row in rows]
-        ys = [row["throughput"] for row in rows]
+        ys = [row["value"] for row in rows]
 
         ax.plot(
             xs,
@@ -109,7 +127,7 @@ def plot(records: Dict[str, List[dict]], out_png: str, out_pdf: str, title: str)
         if failed_rows:
             ax.scatter(
                 [row["batch_size"] for row in failed_rows],
-                [row["throughput"] for row in failed_rows],
+                [row["value"] for row in failed_rows],
                 s=85,
                 facecolors="none",
                 edgecolors=style["color"],
@@ -118,7 +136,7 @@ def plot(records: Dict[str, List[dict]], out_png: str, out_pdf: str, title: str)
             )
 
     ax.set_xlabel("Batch Size")
-    ax.set_ylabel("Throughput (tokens/s)")
+    ax.set_ylabel(ylabel)
     ax.set_title(title)
     ax.grid(True, linestyle="--", alpha=0.3)
     if all_bs:
@@ -127,7 +145,7 @@ def plot(records: Dict[str, List[dict]], out_png: str, out_pdf: str, title: str)
     ax.text(
         0.99,
         0.02,
-        "Hollow markers: throughput available, TTFT/TPOT incomplete",
+        note,
         transform=ax.transAxes,
         ha="right",
         va="bottom",
@@ -142,19 +160,26 @@ def plot(records: Dict[str, List[dict]], out_png: str, out_pdf: str, title: str)
 
 
 def main():
-    parser = argparse.ArgumentParser(description="Plot throughput vs BS from five summary CSV files.")
+    parser = argparse.ArgumentParser(description="Plot end-to-end metrics vs BS from summary CSV files.")
     parser.add_argument("summary_dir", help="Directory containing five *_summary.csv files")
     parser.add_argument(
-        "--title",
-        default="Meta-Llama-3-8B-Instruct | input=4096, output=256 | Throughput vs Batch Size",
+        "--metric",
+        choices=sorted(METRIC_META.keys()),
+        default="throughput_tps",
+        help="Metric to plot",
     )
-    parser.add_argument("--out-name", default="throughput_vs_bs_five_configs")
+    parser.add_argument("--title", default="", help="Override default title")
+    parser.add_argument("--out-name", default="", help="Override output filename stem")
     args = parser.parse_args()
 
-    records = build_records(args.summary_dir)
-    out_png = os.path.join(args.summary_dir, args.out_name + ".png")
-    out_pdf = os.path.join(args.summary_dir, args.out_name + ".pdf")
-    plot(records, out_png, out_pdf, args.title)
+    meta = METRIC_META[args.metric]
+    title = args.title or meta["title"]
+    out_name = args.out_name or args.metric.replace("_", "") + "_vs_bs_five_configs"
+
+    records = build_records(args.summary_dir, args.metric)
+    out_png = os.path.join(args.summary_dir, out_name + ".png")
+    out_pdf = os.path.join(args.summary_dir, out_name + ".pdf")
+    plot(records, out_png, out_pdf, title, meta["ylabel"], meta["note"])
     print(out_png)
     print(out_pdf)
 

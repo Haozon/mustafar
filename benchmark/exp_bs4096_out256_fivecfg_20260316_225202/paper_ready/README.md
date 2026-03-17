@@ -17,6 +17,12 @@
 - `end_to_end_batchsize_section.tex`
 - `end_to_end_batchsize_section_compact.tex`
 
+图文件：
+
+- `../throughput_vs_bs_five_configs_quant_tuned_v3.pdf`
+- `../ttft_vs_bs_five_configs_quant_tuned_v3.pdf`
+- `../tpot_vs_bs_five_configs_quant_tuned_v3.pdf`
+
 说明：
 
 - 吞吐量基于完整 `output_length=256` 的生成过程统计。
