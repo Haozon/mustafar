@@ -1,0 +1,14 @@
+config,batch_size,status,ttft_ms,tpot_ms,total_ms,peak_gb,batch_ms,throughput_tps,log_file
+sparse70_quant2bit,1,ok,1304.22,40.44,11616.37,15.89,11080.67,23.10,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant70/quant70_bs1.txt
+sparse70_quant2bit,2,ok,2817.61,49.30,15388.50,16.82,12704.50,40.30,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant70/quant70_bs2.txt
+sparse70_quant2bit,3,ok,3758.11,41.17,6351.79,16.85,14309.56,53.67,ad_hoc_tuned_quant70_bs3
+sparse70_quant2bit,4,ok,5070.94,46.28,7986.67,17.48,16951.77,60.41,ad_hoc_tuned_quant70_bs4
+sparse70_quant2bit,5,ok,4979.90,51.29,8211.48,18.11,18129.23,70.60,ad_hoc_tuned_quant70_bs5_final
+sparse70_quant2bit,6,ok,6095.39,56.06,9627.31,18.74,20649.01,74.39,ad_hoc_tuned_quant70_bs6_final
+sparse70_quant2bit,7,ok,8948.75,61.70,12835.66,19.37,24979.73,71.74,ad_hoc_rerun_quant70_bs7
+sparse70_quant2bit,8,ok,10298.53,66.96,14517.20,19.99,27754.98,73.79,ad_hoc_rerun_quant70_bs8
+sparse70_quant2bit,9,failed(1),,,,21.98,30970.18,74.39,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant70/quant70_bs9.txt
+sparse70_quant2bit,10,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant70/quant70_bs10.txt
+sparse70_quant2bit,12,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant70/quant70_bs12.txt
+sparse70_quant2bit,14,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant70/quant70_bs14.txt
+sparse70_quant2bit,16,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant70/quant70_bs16.txt

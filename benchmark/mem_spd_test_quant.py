@@ -4,11 +4,14 @@ import os
 import sys
 from transformers import LlamaConfig, AutoTokenizer
 import time
+import gc
 
 # 添加项目根目录到 Python 路径
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, PROJECT_ROOT)
+
+from benchmark.low_memory_generation import forward_last_logits, greedy_generate
 
 '''
 量化稀疏 KV Cache 性能测评
@@ -22,9 +25,11 @@ K_SPARSITY = 0.7
 V_SPARSITY = 0.7
 QUANT_BITS = 2        # 2-bit 量化
 QUANT_K_DEQUANT_MODE = 0
+QUANT_K_USE_META = False
 QUANT_V_DEQUANT_MODE = 0
 QUANT_V_SPLIT_K = 4
 QUANT_V_TILE_CONFIG = 0
+QUANT_V_DECODE_N1 = False
 GROUP_SIZE = 32
 RESIDUAL_LENGTH = 256
 BATCH_SIZE = 8
@@ -36,6 +41,7 @@ QUANT_MODE = True     # True: 使用量化稀疏, False: 使用标准 Mustafar
 PROMPT_LENGTH = 4096
 OUTPUT_LENGTH = 1024
 NUM_REPEATS = 3
+TOKEN_TIMING_STEPS = 64
 
 def _get_env_int(name: str, default: int) -> int:
     value = os.getenv(name)
@@ -63,16 +69,30 @@ K_SPARSITY = _get_env_float("K_SPARSITY", K_SPARSITY)
 V_SPARSITY = _get_env_float("V_SPARSITY", V_SPARSITY)
 QUANT_BITS = _get_env_int("QUANT_BITS", QUANT_BITS)
 QUANT_K_DEQUANT_MODE = _get_env_int("QUANT_K_DEQUANT_MODE", QUANT_K_DEQUANT_MODE)
+QUANT_K_USE_META = _get_env_bool("QUANT_K_USE_META", QUANT_K_USE_META)
 QUANT_V_DEQUANT_MODE = _get_env_int("QUANT_V_DEQUANT_MODE", QUANT_V_DEQUANT_MODE)
 QUANT_V_SPLIT_K = _get_env_int("QUANT_V_SPLIT_K", QUANT_V_SPLIT_K)
 QUANT_V_TILE_CONFIG = _get_env_int("QUANT_V_TILE_CONFIG", QUANT_V_TILE_CONFIG)
+QUANT_V_DECODE_N1 = _get_env_bool("QUANT_V_DECODE_N1", QUANT_V_DECODE_N1)
 GROUP_SIZE = _get_env_int("GROUP_SIZE", GROUP_SIZE)
 RESIDUAL_LENGTH = _get_env_int("RESIDUAL_LENGTH", RESIDUAL_LENGTH)
 BATCH_SIZE = _get_env_int("BATCH_SIZE", BATCH_SIZE)
 PROMPT_LENGTH = _get_env_int("PROMPT_LENGTH", PROMPT_LENGTH)
 OUTPUT_LENGTH = _get_env_int("OUTPUT_LENGTH", OUTPUT_LENGTH)
 NUM_REPEATS = _get_env_int("NUM_REPEATS", NUM_REPEATS)
+TOKEN_TIMING_STEPS = _get_env_int("TOKEN_TIMING_STEPS", TOKEN_TIMING_STEPS)
 QUANT_MODE = _get_env_bool("QUANT_MODE", QUANT_MODE)
+
+auto_tuned_quant_v = False
+if os.getenv("QUANT_V_SPLIT_K") is None and os.getenv("QUANT_V_TILE_CONFIG") is None:
+    if PROMPT_LENGTH >= 4096 and V_SPARSITY >= 0.65 and BATCH_SIZE >= 3:
+        QUANT_V_SPLIT_K = 8
+        QUANT_V_TILE_CONFIG = 1
+        auto_tuned_quant_v = True
+    elif PROMPT_LENGTH >= 4096 and V_SPARSITY <= 0.55 and 3 <= BATCH_SIZE <= 6:
+        QUANT_V_SPLIT_K = 8
+        QUANT_V_TILE_CONFIG = 1
+        auto_tuned_quant_v = True
 
 os.environ["CUDA_VISIBLE_DEVICES"] = os.getenv("CUDA_VISIBLE_DEVICES", "0")
 
@@ -94,17 +114,23 @@ if QUANT_MODE:
     print(f"   - V Sparsity: {V_SPARSITY*100}%")
     print(f"   - Quantization: {QUANT_BITS}-bit")
     print(f"   - K Dequant Mode: {QUANT_K_DEQUANT_MODE}")
+    print(f"   - K Use Meta: {QUANT_K_USE_META}")
     print(f"   - V Dequant Mode: {QUANT_V_DEQUANT_MODE}")
     print(f"   - V Split-K: {QUANT_V_SPLIT_K}")
     print(f"   - V Tile Config: {QUANT_V_TILE_CONFIG}")
+    print(f"   - V Decode N1: {QUANT_V_DECODE_N1}")
+    if auto_tuned_quant_v:
+        print("   - V Tuning: auto-selected for long-context decode")
     print(f"   - Expected Memory Compression: ~{16/(2**(QUANT_BITS-1))}x")
     print("="*60)
     
     config.quant_bits = QUANT_BITS
     config.quant_k_dequant_mode = QUANT_K_DEQUANT_MODE
+    config.quant_k_use_meta = QUANT_K_USE_META
     config.quant_v_dequant_mode = QUANT_V_DEQUANT_MODE
     config.quant_v_split_k = QUANT_V_SPLIT_K
     config.quant_v_tile_config = QUANT_V_TILE_CONFIG
+    config.quant_v_decode_n1 = QUANT_V_DECODE_N1
     model = LlamaForCausalLM_MUSTAFAR_QUANT.from_pretrained(
         pretrained_model_name_or_path=model_name_or_path,
         config=config,
@@ -151,8 +177,11 @@ def benchmark_with_token_timing(model, inputs, model_name, max_tokens=600, num_r
     print("⏳ Running token-level warmup...")
     with torch.no_grad():
         torch.cuda.synchronize()
-        _ = model.generate(**inputs, max_new_tokens=10, eos_token_id=None)
+        warmup_outputs = greedy_generate(model, inputs, max_new_tokens=min(10, max_tokens))
         torch.cuda.synchronize()
+    del warmup_outputs
+    gc.collect()
+    torch.cuda.empty_cache()
     
     all_ttft_times = []
     all_tpot_times = []
@@ -175,21 +204,17 @@ def benchmark_with_token_timing(model, inputs, model_name, max_tokens=600, num_r
                 
                 # Generate next token
                 if past_key_values is None:
-                    # First token - full forward pass with all input tokens
-                    current_input = {'input_ids': input_ids}
-                    if attention_mask is not None:
-                        current_input['attention_mask'] = attention_mask
+                    current_input_ids = input_ids
                 else:
-                    # Subsequent tokens - only the last generated token
-                    current_input = {'input_ids': input_ids[:, -1:]}
-                
-                current_input['past_key_values'] = past_key_values
-                current_input['use_cache'] = True
-                
-                outputs = model(**current_input)
-                
-                # Get next token
-                next_token = torch.argmax(outputs.logits[:, -1, :], dim=-1, keepdim=True)
+                    current_input_ids = input_ids[:, -1:]
+
+                logits, past_key_values = forward_last_logits(
+                    model,
+                    current_input_ids,
+                    attention_mask=attention_mask,
+                    past_key_values=past_key_values,
+                )
+                next_token = torch.argmax(logits[:, -1, :], dim=-1, keepdim=True)
                 
                 torch.cuda.synchronize()
                 token_time = (time.time() - token_start) * 1000  # ms
@@ -203,7 +228,6 @@ def benchmark_with_token_timing(model, inputs, model_name, max_tokens=600, num_r
                 input_ids = torch.cat([input_ids, next_token], dim=-1)
                 if attention_mask is not None:
                     attention_mask = torch.cat([attention_mask, torch.ones_like(next_token)], dim=-1)
-                past_key_values = outputs.past_key_values
         
         if len(token_times) > 0:
             ttft = token_times[0]
@@ -260,8 +284,11 @@ print(f"{'='*60}")
 print("\n⏳ Running warmup iteration...")
 with torch.no_grad():
     torch.cuda.synchronize()
-    outputs = model.generate(**inputs, max_new_tokens=output_length, eos_token_id=None)
+    outputs = greedy_generate(model, inputs, max_new_tokens=output_length)
     torch.cuda.synchronize()
+del outputs
+gc.collect()
+torch.cuda.empty_cache()
 
 # ==================== Batch Generation Test ====================
 print(f"\n{'='*60}")
@@ -274,7 +301,7 @@ with torch.no_grad():
     st = time.time()
     for i in range(num_repeats):
         print(f"   Batch repeat {i+1}/{num_repeats}...")
-        outputs = model.generate(**inputs, max_new_tokens=output_length, eos_token_id=None)
+        outputs = greedy_generate(model, inputs, max_new_tokens=output_length)
     torch.cuda.synchronize()
     batch_time = (time.time() - st) / num_repeats * 1000
     used_mem = torch.cuda.max_memory_allocated()
@@ -283,11 +310,14 @@ with torch.no_grad():
     print(f"   Average time: {batch_time:.2f} ms")
     print(f"   Peak memory: {used_mem / 1024 ** 3:.2f} GB")
     print(f"   Throughput: {batch_size * output_length / (batch_time / 1000):.2f} tokens/sec")
+del outputs
+gc.collect()
+torch.cuda.empty_cache()
 
 # ==================== Token-level Timing Test ====================
 model_name = f"Mustafar-Quant-{QUANT_BITS}bit" if QUANT_MODE else f"Mustafar-Sparse"
 ttft, tpot, total_time, peak_mem = benchmark_with_token_timing(
-    model, inputs, model_name, max_tokens=output_length, num_repeats=num_repeats
+    model, inputs, model_name, max_tokens=min(output_length, TOKEN_TIMING_STEPS), num_repeats=num_repeats
 )
 
 # ==================== Final Summary ====================

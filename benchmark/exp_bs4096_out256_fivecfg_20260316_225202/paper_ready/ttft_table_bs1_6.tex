@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering
+\caption{Llama-3 8B 在不同 batch size 下的 TTFT 对比（input=4096, output=256, 单位：ms）}
+\label{tab:end2end-ttft-bs}
+\begin{tabular}{cccccc}
+\toprule
+Batch Size & Dense & Sparse50 & Sparse70 & Sparse50+2bit & Sparse70+2bit \\
+\midrule
+1 & 1022.64 & 1386.12 & 1338.65 & 1278.96 & 1304.22 \\
+2 & 2031.28 & 3054.69 & 2766.96 & 2711.33 & 2817.61 \\
+3 & 2953.99 & 4317.12 & 4232.79 & 2988.88 & 3758.11 \\
+4 & -- & 5458.77 & 5287.41 & 4026.40 & 5070.94 \\
+5 & -- & -- & 6931.11 & 5022.85 & 4979.90 \\
+6 & -- & -- & 7917.80 & 6128.55 & 6095.39 \\
+\bottomrule
+\end{tabular}
+\end{table}

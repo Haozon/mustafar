@@ -1,12 +1,11 @@
 #setup.py 
 
-from torch.utils.cpp_extension import BuildExtension, CUDAExtension, CppExtension
+from torch.utils.cpp_extension import BuildExtension, CUDAExtension
 from setuptools import find_packages, setup
 import torch.utils.cpp_extension
 import os
 import torch
 import site
-import sys
 
 # Get the current Python's site-packages directory
 site_packages = site.getsitepackages()[0]
@@ -18,7 +17,13 @@ torch_lib_path = os.path.join(site_packages, 'torch', 'lib')
 if not os.path.exists(torch_lib_path):
     raise RuntimeError(f"Could not find torch lib directory at {torch_lib_path}")
 
-os.environ["TORCH_CUDA_ARCH_LIST"] = "Ada"  
+# Build for the local GPU by default and allow override for portability.
+if "TORCH_CUDA_ARCH_LIST" not in os.environ:
+    if torch.cuda.is_available():
+        major, minor = torch.cuda.get_device_capability()
+        os.environ["TORCH_CUDA_ARCH_LIST"] = f"{major}.{minor}"
+    else:
+        os.environ["TORCH_CUDA_ARCH_LIST"] = "8.6"
 
 setup(
     name='mustafar_batched_spmv_package', #pip package name
@@ -28,7 +33,10 @@ setup(
             name='mustafar_package', #import module name
             sources=['pybind.cpp', 'mustafar_wrapper.cu'], 
             extra_objects=['../build/SpMM_API.o'],          
-            include_dirs=torch.utils.cpp_extension.include_paths() + [os.path.abspath('../build')],
+            include_dirs=torch.utils.cpp_extension.include_paths() + [
+                os.path.abspath('../build'),
+                os.path.abspath('../csrc'),
+            ],
             extra_link_args=[f"-L{torch_lib_path}", "-lc10"],
         )
     ],

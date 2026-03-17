@@ -1,0 +1,14 @@
+config,batch_size,status,ttft_ms,tpot_ms,total_ms,peak_gb,batch_ms,throughput_tps,log_file
+sparse70,1,ok,1338.65,42.39,12148.38,16.19,11454.38,22.35,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs1.txt
+sparse70,2,ok,2766.96,50.39,15615.80,17.41,14102.69,36.31,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs2.txt
+sparse70,3,ok,4232.79,55.93,18494.99,18.63,14486.97,53.01,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs3.txt
+sparse70,4,ok,5287.41,46.10,17043.53,19.85,17007.23,60.21,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs4.txt
+sparse70,5,ok,6931.11,50.29,19754.07,21.07,19048.56,67.20,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs5.txt
+sparse70,6,ok,7917.80,62.59,11860.93,19.32,22800.63,67.37,ad_hoc_rerun_sparse70_bs6
+sparse70,7,failed(1),,,,21.82,25848.86,69.33,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs7.txt
+sparse70,8,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs8.txt
+sparse70,9,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs9.txt
+sparse70,10,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs10.txt
+sparse70,12,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs12.txt
+sparse70,14,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs14.txt
+sparse70,16,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_sparse70/sparse70_bs16.txt

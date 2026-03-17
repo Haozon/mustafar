@@ -1,0 +1,17 @@
+\begin{table}[t]
+\centering
+\caption{Llama-3 8B 在不同 batch size 下的 TPOT 对比（input=4096, output=256, 单位：ms/token）}
+\label{tab:end2end-tpot-bs}
+\begin{tabular}{cccccc}
+\toprule
+Batch Size & Dense & Sparse50 & Sparse70 & Sparse50+2bit & Sparse70+2bit \\
+\midrule
+1 & 31.68 & 44.86 & 42.39 & 41.82 & 40.44 \\
+2 & 40.57 & 54.16 & 50.39 & 49.36 & 49.30 \\
+3 & 49.65 & 51.19 & 55.93 & 42.59 & 41.17 \\
+4 & -- & 50.29 & 46.10 & 48.22 & 46.28 \\
+5 & -- & -- & 50.29 & 54.03 & 51.29 \\
+6 & -- & -- & 62.59 & 59.08 & 56.06 \\
+\bottomrule
+\end{tabular}
+\end{table}

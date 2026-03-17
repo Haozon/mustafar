@@ -1,0 +1,14 @@
+config,batch_size,status,ttft_ms,tpot_ms,total_ms,peak_gb,batch_ms,throughput_tps,log_file
+sparse50_quant2bit,1,ok,1278.96,41.82,11942.87,15.92,11407.42,22.44,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant50/quant50_bs1.txt
+sparse50_quant2bit,2,ok,2711.33,49.36,15297.40,16.88,13359.44,38.32,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant50/quant50_bs2.txt
+sparse50_quant2bit,3,ok,2988.88,42.59,5672.13,16.88,13950.03,55.05,ad_hoc_tuned_quant50_bs3
+sparse50_quant2bit,4,ok,4026.40,48.22,7064.35,17.52,16354.38,62.61,ad_hoc_tuned_quant50_bs4
+sparse50_quant2bit,5,ok,5022.85,54.03,8426.62,18.16,18847.50,67.91,ad_hoc_tuned_quant50_bs5
+sparse50_quant2bit,6,ok,6128.55,59.08,9850.53,18.80,21325.17,72.03,ad_hoc_tuned_quant50_bs6
+sparse50_quant2bit,7,ok,8872.10,65.31,12986.77,19.44,25709.65,69.70,ad_hoc_rerun_quant50_bs7
+sparse50_quant2bit,8,failed(1),,,,21.38,29209.10,70.12,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant50/quant50_bs8.txt
+sparse50_quant2bit,9,failed(1),,,,22.18,31473.35,73.20,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant50/quant50_bs9.txt
+sparse50_quant2bit,10,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant50/quant50_bs10.txt
+sparse50_quant2bit,12,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant50/quant50_bs12.txt
+sparse50_quant2bit,14,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant50/quant50_bs14.txt
+sparse50_quant2bit,16,failed(1),,,,,,,benchmark/exp_bs4096_out256_fivecfg_20260316_225202/logs_quant50/quant50_bs16.txt

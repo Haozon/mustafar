@@ -4,11 +4,14 @@ import os
 import sys
 from transformers import LlamaConfig, AutoTokenizer
 import time
+import gc
 
 # 添加项目根目录到 Python 路径
 SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
 PROJECT_ROOT = os.path.dirname(SCRIPT_DIR)
 sys.path.insert(0, PROJECT_ROOT)
+
+from benchmark.low_memory_generation import forward_last_logits, greedy_generate
 
 '''
 一些信息：
@@ -28,6 +31,7 @@ MUSTAFAR_MODE = True
 PROMPT_LENGTH = 4096
 OUTPUT_LENGTH = 1024
 NUM_REPEATS = 3
+TOKEN_TIMING_STEPS = 64
 
 def _get_env_int(name: str, default: int) -> int:
     value = os.getenv(name)
@@ -58,6 +62,7 @@ BATCH_SIZE = _get_env_int("BATCH_SIZE", BATCH_SIZE)
 PROMPT_LENGTH = _get_env_int("PROMPT_LENGTH", PROMPT_LENGTH)
 OUTPUT_LENGTH = _get_env_int("OUTPUT_LENGTH", OUTPUT_LENGTH)
 NUM_REPEATS = _get_env_int("NUM_REPEATS", NUM_REPEATS)
+TOKEN_TIMING_STEPS = _get_env_int("TOKEN_TIMING_STEPS", TOKEN_TIMING_STEPS)
 MUSTAFAR_MODE = _get_env_bool("MUSTAFAR_MODE", MUSTAFAR_MODE)
 
 os.environ["CUDA_VISIBLE_DEVICES"] = os.getenv("CUDA_VISIBLE_DEVICES", "0")
@@ -112,8 +117,11 @@ def benchmark_with_token_timing(model, inputs, model_name, max_tokens=600, num_r
     print("Running token-level warmup...")
     with torch.no_grad():
         torch.cuda.synchronize()
-        _ = model.generate(**inputs, max_new_tokens=10, eos_token_id=None)
+        warmup_outputs = greedy_generate(model, inputs, max_new_tokens=min(10, max_tokens))
         torch.cuda.synchronize()
+    del warmup_outputs
+    gc.collect()
+    torch.cuda.empty_cache()
     
     all_ttft_times = []
     all_tpot_times = []
@@ -136,21 +144,17 @@ def benchmark_with_token_timing(model, inputs, model_name, max_tokens=600, num_r
                 
                 # Generate next token
                 if past_key_values is None:
-                    # First token - full forward pass with all input tokens
-                    current_input = {'input_ids': input_ids}
-                    if attention_mask is not None:
-                        current_input['attention_mask'] = attention_mask
+                    current_input_ids = input_ids
                 else:
-                    # Subsequent tokens - only the last generated token
-                    current_input = {'input_ids': input_ids[:, -1:]}
-                
-                current_input['past_key_values'] = past_key_values
-                current_input['use_cache'] = True
-                
-                outputs = model(**current_input)
-                
-                # Get next token
-                next_token = torch.argmax(outputs.logits[:, -1, :], dim=-1, keepdim=True)
+                    current_input_ids = input_ids[:, -1:]
+
+                logits, past_key_values = forward_last_logits(
+                    model,
+                    current_input_ids,
+                    attention_mask=attention_mask,
+                    past_key_values=past_key_values,
+                )
+                next_token = torch.argmax(logits[:, -1, :], dim=-1, keepdim=True)
                 
                 torch.cuda.synchronize()
                 token_time = (time.time() - token_start) * 1000  # ms
@@ -160,7 +164,6 @@ def benchmark_with_token_timing(model, inputs, model_name, max_tokens=600, num_r
                 input_ids = torch.cat([input_ids, next_token], dim=-1)
                 if attention_mask is not None:
                     attention_mask = torch.cat([attention_mask, torch.ones_like(next_token)], dim=-1)
-                past_key_values = outputs.past_key_values
         
         if len(token_times) > 0:
             ttft = token_times[0]
@@ -203,8 +206,11 @@ input_ids = inputs['input_ids']
 print("Running warmup iteration...")
 with torch.no_grad():
     torch.cuda.synchronize()
-    outputs = model.generate(**inputs, max_new_tokens=output_length, eos_token_id=None)
+    outputs = greedy_generate(model, inputs, max_new_tokens=output_length)
     torch.cuda.synchronize()
+del outputs
+gc.collect()
+torch.cuda.empty_cache()
     
 print(f"bs: {batch_size}, seqlen: {input_ids.shape[1]}+{output_length}\nmodel:{model_name_or_path}")
 
@@ -214,18 +220,22 @@ with torch.no_grad():
     torch.cuda.synchronize()
     st = time.time()
     for i in range(num_repeats):
-        outputs = model.generate(**inputs, max_new_tokens=output_length, eos_token_id=None)
+        outputs = greedy_generate(model, inputs, max_new_tokens=output_length)
     torch.cuda.synchronize()
     batch_time = (time.time() - st) / num_repeats * 1000
     used_mem = torch.cuda.max_memory_allocated()
     print(f'\n=== Original Batch Generation Results ===')
     print(f'Batch generation time: {batch_time:.2f} ms')
     print(f'Peak mem: {used_mem / 1024 ** 3:.2f} GB')
+    print(f'Throughput: {batch_size * output_length / (batch_time / 1000):.2f} tokens/sec')
+del outputs
+gc.collect()
+torch.cuda.empty_cache()
 
 # Token-level timing test
 model_name = "Mustafar" if MUSTAFAR_MODE else "Naive"
 ttft, tpot, total_time, peak_mem = benchmark_with_token_timing(
-    model, inputs, model_name, max_tokens=output_length, num_repeats=num_repeats
+    model, inputs, model_name, max_tokens=min(output_length, TOKEN_TIMING_STEPS), num_repeats=num_repeats
 )
 
 print(f'\n=== Final Results Summary ===')
