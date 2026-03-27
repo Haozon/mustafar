@@ -1,0 +1,18 @@
+{
+  "model_name_or_path": "/mnt/home/zh/model/Meta-Llama-3-8B-Instruct",
+  "max_length": 8192,
+  "datasets": [
+    "trec",
+    "triviaqa",
+    "passage_count",
+    "qasper"
+  ],
+  "limit": 3,
+  "quant_cfg": {
+    "enable_hadamard": false,
+    "k_bits": 2,
+    "v_bits": 2,
+    "quant_granularity": "per-token",
+    "tile_size": null
+  }
+}

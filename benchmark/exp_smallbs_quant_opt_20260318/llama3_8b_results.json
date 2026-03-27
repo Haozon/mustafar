@@ -1,0 +1,748 @@
+{
+  "dense": {
+    "1": {
+      "throughput": 28.551070696126978,
+      "avg_batch_time": 8.966388781865438,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 18.432490825653076,
+      "batch_size": 1,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 256,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "2": {
+      "throughput": 39.807983879599426,
+      "avg_batch_time": 12.861741542816162,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 21.89947271347046,
+      "batch_size": 2,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 512,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "3": {
+      "throughput": 49.15466639463856,
+      "avg_batch_time": 15.624152421951294,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 25.366454601287842,
+      "batch_size": 3,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 768,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "4": {
+      "throughput": 55.83317176039366,
+      "avg_batch_time": 18.340351581573486,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 28.833436489105225,
+      "batch_size": 4,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1024,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "5": {
+      "throughput": 56.67348659675603,
+      "avg_batch_time": 22.585517088572185,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 32.30041837692261,
+      "batch_size": 5,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1280,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "6": {
+      "throughput": 56.811241583388316,
+      "avg_batch_time": 27.0369025071462,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 35.76740026473999,
+      "batch_size": 6,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1536,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "7": {
+      "throughput": 59.690894453504605,
+      "avg_batch_time": 30.021329323450725,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 39.23438215255737,
+      "batch_size": 7,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1792,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "8": {
+      "throughput": 62.79879557182703,
+      "avg_batch_time": 32.61209042867025,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 42.701364040374756,
+      "batch_size": 8,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 2048,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    }
+  },
+  "sparse_50": {
+    "1": {
+      "throughput": 17.156761177008637,
+      "avg_batch_time": 14.921231190363565,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 18.264721870422363,
+      "batch_size": 1,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 256,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "2": {
+      "throughput": 31.74875246041769,
+      "avg_batch_time": 16.126617908477783,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 21.5638689994812,
+      "batch_size": 2,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 512,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "3": {
+      "throughput": 45.15358661051149,
+      "avg_batch_time": 17.008615652720135,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 24.875441074371338,
+      "batch_size": 3,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 768,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "4": {
+      "throughput": 53.795545485327594,
+      "avg_batch_time": 19.035033305486042,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 28.16986083984375,
+      "batch_size": 4,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1024,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "5": {
+      "throughput": 66.93102631093691,
+      "avg_batch_time": 19.124165137608845,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 31.483981132507324,
+      "batch_size": 5,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1280,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "6": {
+      "throughput": 77.17387979508595,
+      "avg_batch_time": 19.903107166290283,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 34.787808418273926,
+      "batch_size": 6,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1536,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "7": {
+      "throughput": 86.51925821791582,
+      "avg_batch_time": 20.712151686350506,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 38.095314025878906,
+      "batch_size": 7,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1792,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "8": {
+      "throughput": 94.51339711748888,
+      "avg_batch_time": 21.668885707855225,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 41.382113456726074,
+      "batch_size": 8,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 2048,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    }
+  },
+  "sparse_70": {
+    "1": {
+      "throughput": 16.84257827424659,
+      "avg_batch_time": 15.199573119481405,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 18.17243719100952,
+      "batch_size": 1,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 256,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "2": {
+      "throughput": 30.555168489382705,
+      "avg_batch_time": 16.75657590230306,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 21.379294872283936,
+      "batch_size": 2,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 512,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "3": {
+      "throughput": 46.17757250220795,
+      "avg_batch_time": 16.631450255711872,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 24.621022701263428,
+      "batch_size": 3,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 768,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "4": {
+      "throughput": 57.62736594843459,
+      "avg_batch_time": 17.769335508346558,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 27.800729274749756,
+      "batch_size": 4,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1024,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "5": {
+      "throughput": 65.96446248181476,
+      "avg_batch_time": 19.40438763300578,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 31.023696422576904,
+      "batch_size": 5,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1280,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "6": {
+      "throughput": 78.00952812059559,
+      "avg_batch_time": 19.689902464548748,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 34.23408603668213,
+      "batch_size": 6,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1536,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "7": {
+      "throughput": 83.53351975658776,
+      "avg_batch_time": 21.452466090520222,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 37.44972848892212,
+      "batch_size": 7,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1792,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    },
+    "8": {
+      "throughput": 96.42778357727148,
+      "avg_batch_time": 21.238692045211792,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 40.64382743835449,
+      "batch_size": 8,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 2048,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default"
+      }
+    }
+  },
+  "sparse_50_quant_2bit": {
+    "1": {
+      "throughput": 23.238287397354974,
+      "avg_batch_time": 11.016302347183228,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 18.086452960968018,
+      "batch_size": 1,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 256,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default",
+        "updated_modules": 32
+      }
+    },
+    "2": {
+      "throughput": 42.76186938647457,
+      "avg_batch_time": 11.973283847173056,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 21.257110118865967,
+      "batch_size": 2,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 512,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default",
+        "updated_modules": 32
+      }
+    },
+    "3": {
+      "throughput": 55.45241800291586,
+      "avg_batch_time": 13.849711656570435,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 24.341269493103027,
+      "batch_size": 3,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 768,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 8,
+        "quant_v_tile_config": 1,
+        "quant_v_decode_n1": false,
+        "auto_tuned": true,
+        "reason": "explicit-override@bs=3",
+        "updated_modules": 32
+      }
+    },
+    "4": {
+      "throughput": 64.70327703879394,
+      "avg_batch_time": 15.826091766357422,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 27.452677726745605,
+      "batch_size": 4,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1024,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 8,
+        "quant_v_tile_config": 1,
+        "quant_v_decode_n1": false,
+        "auto_tuned": true,
+        "reason": "explicit-override@bs=4",
+        "updated_modules": 32
+      }
+    },
+    "5": {
+      "throughput": 72.01818750256803,
+      "avg_batch_time": 17.773288170496624,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 30.59754991531372,
+      "batch_size": 5,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1280,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default",
+        "updated_modules": 32
+      }
+    },
+    "6": {
+      "throughput": 76.80207219946477,
+      "avg_batch_time": 19.999460379282635,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 33.720030307769775,
+      "batch_size": 6,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1536,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 8,
+        "quant_v_tile_config": 1,
+        "quant_v_decode_n1": false,
+        "auto_tuned": true,
+        "reason": "explicit-override@bs=6",
+        "updated_modules": 32
+      }
+    },
+    "7": {
+      "throughput": 80.47468505076093,
+      "avg_batch_time": 22.26787217458089,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 36.848923683166504,
+      "batch_size": 7,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1792,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 8,
+        "quant_v_tile_config": 1,
+        "quant_v_decode_n1": false,
+        "auto_tuned": true,
+        "reason": "explicit-override@bs=7",
+        "updated_modules": 32
+      }
+    },
+    "8": {
+      "throughput": 86.98049109937249,
+      "avg_batch_time": 23.545509735743206,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 39.958165645599365,
+      "batch_size": 8,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 2048,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default",
+        "updated_modules": 32
+      }
+    }
+  },
+  "sparse_70_quant_2bit": {
+    "1": {
+      "throughput": 23.377898572147277,
+      "avg_batch_time": 10.95051376024882,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 18.076090335845947,
+      "batch_size": 1,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 256,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default",
+        "updated_modules": 32
+      }
+    },
+    "2": {
+      "throughput": 42.36792045647614,
+      "avg_batch_time": 12.084614833196005,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 21.186655521392822,
+      "batch_size": 2,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 512,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 0,
+        "quant_v_decode_n1": false,
+        "auto_tuned": false,
+        "reason": "yaml-default",
+        "updated_modules": 32
+      }
+    },
+    "3": {
+      "throughput": 57.80626651798043,
+      "avg_batch_time": 13.285756826400757,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 24.30696153640747,
+      "batch_size": 3,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 768,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 8,
+        "quant_v_tile_config": 1,
+        "quant_v_decode_n1": false,
+        "auto_tuned": true,
+        "reason": "explicit-override@bs=3",
+        "updated_modules": 32
+      }
+    },
+    "4": {
+      "throughput": 66.41589062874647,
+      "avg_batch_time": 15.417996962865194,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 27.442445278167725,
+      "batch_size": 4,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1024,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 8,
+        "quant_v_tile_config": 1,
+        "quant_v_decode_n1": false,
+        "auto_tuned": true,
+        "reason": "explicit-override@bs=4",
+        "updated_modules": 32
+      }
+    },
+    "5": {
+      "throughput": 74.21536834681604,
+      "avg_batch_time": 17.24710162480672,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 30.57582712173462,
+      "batch_size": 5,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1280,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 4,
+        "quant_v_tile_config": 1,
+        "quant_v_decode_n1": false,
+        "auto_tuned": true,
+        "reason": "explicit-override@bs=5",
+        "updated_modules": 32
+      }
+    },
+    "6": {
+      "throughput": 80.38126730526415,
+      "avg_batch_time": 19.108929872512817,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 33.68278789520264,
+      "batch_size": 6,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1536,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 8,
+        "quant_v_tile_config": 1,
+        "quant_v_decode_n1": false,
+        "auto_tuned": true,
+        "reason": "explicit-override@bs=6",
+        "updated_modules": 32
+      }
+    },
+    "7": {
+      "throughput": 84.06452258619116,
+      "avg_batch_time": 21.316959222157795,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 36.80169486999512,
+      "batch_size": 7,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 1792,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 8,
+        "quant_v_tile_config": 1,
+        "quant_v_decode_n1": false,
+        "auto_tuned": true,
+        "reason": "explicit-override@bs=7",
+        "updated_modules": 32
+      }
+    },
+    "8": {
+      "throughput": 87.12455177339335,
+      "avg_batch_time": 23.506577173868816,
+      "ttft": null,
+      "tpot": null,
+      "peak_memory": 39.89074516296387,
+      "batch_size": 8,
+      "input_length": 4096,
+      "output_length": 256,
+      "total_tokens": 2048,
+      "quant_runtime_tuning": {
+        "quant_v_split_k": 8,
+        "quant_v_tile_config": 1,
+        "quant_v_decode_n1": false,
+        "auto_tuned": true,
+        "reason": "explicit-override@bs=8",
+        "updated_modules": 32
+      }
+    }
+  }
+}

@@ -1,0 +1,12 @@
+{
+  "dataset_count": 7,
+  "layers": [
+    0,
+    10,
+    20
+  ],
+  "vectors_per_layer": 3780,
+  "layer0_median_cv_percent": 3.3732195104987297,
+  "layer10_median_cv_percent": 1.8306644734157502,
+  "layer20_median_cv_percent": 0.9938699972234533
+}

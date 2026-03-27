@@ -1,4 +1,5 @@
 import math
+import time
 import warnings
 from typing import List, Optional, Tuple
 
@@ -191,6 +192,7 @@ class LlamaAttention_MUSTAFAR(nn.Module):
         #self.key_score_accumulator = None
         #self.value_score_accumulator = None
         #self.generation_count = None
+        self.latest_compression_stats = None
 
     def _shape(self, tensor: torch.Tensor, seq_len: int, bsz: int):
         return tensor.view(bsz, seq_len, self.num_heads, self.head_dim).transpose(1, 2).contiguous()
@@ -609,6 +611,7 @@ class LlamaFlashAttention_MUSTAFAR(LlamaAttention_MUSTAFAR):
             )
             # 压缩前统计：原始 KV 的总内存
             original_kv_memory = calculate_memory_usage(key_states) + calculate_memory_usage(value_states)
+            compression_start = time.time()
             # print(f"[Prefill] Original KV Memory: {original_kv_memory / 1e6:.2f} MB")
             # ((4098 - 32) // 256) * 256 = 3840 
             compressed_length = max(((kv_seq_len - self.residual_length) // 256) * 256, 0)
@@ -633,6 +636,18 @@ class LlamaFlashAttention_MUSTAFAR(LlamaAttention_MUSTAFAR):
         attn_output = attn_output.reshape(bsz, q_len, self.hidden_size)
         # 压缩后统计：past_key_value 的总内存（KV Cache 大小）
         compressed_kv_memory = calculate_memory_usage(past_key_value)
+        if past_key_value is not None and self.generation_count == 0:
+            compression_time_ms = (time.time() - compression_start) * 1000.0
+            ratio = (original_kv_memory / compressed_kv_memory) if compressed_kv_memory else 0.0
+            saving = 1.0 - (compressed_kv_memory / original_kv_memory) if original_kv_memory else 0.0
+            self.latest_compression_stats = {
+                "original_kv_bytes": int(original_kv_memory),
+                "compressed_kv_bytes": int(compressed_kv_memory),
+                "compression_ratio": float(ratio),
+                "memory_saving_ratio": float(saving),
+                "compression_time_ms": float(compression_time_ms),
+                "compressed_length": int(compressed_length),
+            }
         # try:
         #     print(f"[Prefill] Compressed KV Cache Memory: {compressed_kv_memory / 1e6:.2f} MB")
         #     print(f"[Prefill] Memory Savings: {(original_kv_memory - compressed_kv_memory) / original_kv_memory * 100:.2f}%")

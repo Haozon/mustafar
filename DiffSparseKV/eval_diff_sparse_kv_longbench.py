@@ -11,8 +11,9 @@ import json
 import torch
 import argparse
 import numpy as np
+import glob
 from tqdm import tqdm
-from datasets import load_dataset
+from datasets import Dataset, load_dataset
 from transformers import AutoTokenizer, LlamaConfig
 from typing import Dict, List
 import sys
@@ -141,6 +142,18 @@ class KVCacheSparsityWrapper:
         return self.stats.copy()
 
 
+def load_longbench_dataset(dataset_name: str):
+    """Load LongBench from local cache first, then fall back to HF datasets."""
+    cache_pattern = (
+        f"/home/zh/.cache/huggingface/datasets/THUDM___long_bench/"
+        f"{dataset_name}/1.0.0/*/long_bench-test.arrow"
+    )
+    matches = sorted(glob.glob(cache_pattern))
+    if matches:
+        return Dataset.from_file(matches[-1])
+    return load_dataset('THUDM/LongBench', dataset_name, split='test', trust_remote_code=True)
+
+
 def get_pred(model, tokenizer, data, max_length, max_gen, prompt_format, dataset, device, model_name,
              kv_sparsity_wrapper=None):
     """获取模型预测结果"""
@@ -227,11 +240,10 @@ def main():
                        help='DiffSparseKV 观察窗口大小')
     parser.add_argument('--limit', type=int, default=0,
                        help='每个数据集只评估前 N 条样本，0 表示全量')
-<<<<<<< HEAD
     parser.add_argument('--sample_seed', type=int, default=-1,
                        help='当 limit > 0 时，>=0 表示随机抽样种子；-1 表示取前 N 条')
-=======
->>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
+    parser.add_argument('--sample_indices_file', type=str, default='',
+                       help='可选的样本索引文件；可为 list 或 dataset->indices 的 dict')
     parser.add_argument('--output_tag', type=str, default='',
                        help='附加到输出目录名的标签，便于保存多次实验')
     parser.add_argument('--debug_diff_sparse', action='store_true',
@@ -251,18 +263,23 @@ def main():
                        help='hybrid 聚合时 mean 的权重')
     parser.add_argument('--head_disagreement_ratio', type=float, default=-1.0,
                        help='若 max/mean 超过该阈值，则使用 max 保护 token；-1 禁用')
-<<<<<<< HEAD
     parser.add_argument('--selector_mode', type=str, default='diffsparse',
                        choices=['diffsparse', 'snapkv'],
                        help='token 选择模式')
-=======
->>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
+    parser.add_argument('--protected_heavy_ratio', type=float, default=0.0,
+                       help='动态压缩时在 Window A 中强制保留为 dense 的 heavy hitter 比例')
+    parser.add_argument('--protected_recent_ratio', type=float, default=1.0,
+                       help='Window B 中始终保护的 recent token 比例')
     parser.add_argument('--target_budget', type=float, default=-1.0,
                        help='目标平均稀疏度预算；>=0 时将通过 budget generator 生成配置')
     parser.add_argument('--budget_template', type=str, default='default_3level',
                        help='budget generator 使用的模板名称')
     
     args = parser.parse_args()
+    sample_indices_spec = None
+    if args.sample_indices_file:
+        with open(args.sample_indices_file, 'r', encoding='utf-8') as f:
+            sample_indices_spec = json.load(f)
     if args.target_budget >= 0.0:
         from diffsparsekv import resolve_budget_config
         resolved_budget = resolve_budget_config(args.target_budget, args.budget_template)
@@ -315,10 +332,9 @@ def main():
                 head_aggregation_mode=args.head_aggregation_mode,
                 head_aggregation_alpha=args.head_aggregation_alpha,
                 head_disagreement_ratio=args.head_disagreement_ratio,
-<<<<<<< HEAD
                 selector_mode=args.selector_mode,
-=======
->>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
+                protected_heavy_ratio=args.protected_heavy_ratio,
+                protected_recent_ratio=args.protected_recent_ratio,
             )
             
             model = LlamaForCausalLMDiffSparseKV.from_pretrained(
@@ -342,10 +358,9 @@ def main():
             print(f"  - Head aggregation mode: {args.head_aggregation_mode}")
             print(f"  - Head aggregation alpha: {args.head_aggregation_alpha}")
             print(f"  - Head disagreement ratio: {args.head_disagreement_ratio}")
-<<<<<<< HEAD
             print(f"  - Selector mode: {args.selector_mode}")
-=======
->>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
+            print(f"  - Protected heavy ratio: {args.protected_heavy_ratio}")
+            print(f"  - Protected recent ratio: {args.protected_recent_ratio}")
             
         except Exception as e:
             print(f"✗ Failed to load DiffSparseKV model: {e}")
@@ -492,9 +507,16 @@ def main():
         
         try:
             # 加载数据集
-            data = load_dataset('THUDM/LongBench', dataset, split='test', trust_remote_code=True)
-            if args.limit > 0:
-<<<<<<< HEAD
+            data = load_longbench_dataset(dataset)
+            if sample_indices_spec is not None:
+                if isinstance(sample_indices_spec, dict):
+                    selected_indices = sample_indices_spec.get(dataset, [])
+                else:
+                    selected_indices = sample_indices_spec
+                selected_indices = [int(i) for i in selected_indices]
+                data = data.select(selected_indices)
+                print(f"Using {len(data)} explicit samples from sample_indices_file")
+            elif args.limit > 0:
                 sample_count = min(args.limit, len(data))
                 if args.sample_seed >= 0:
                     rng = np.random.default_rng(args.sample_seed)
@@ -507,10 +529,6 @@ def main():
                 else:
                     data = data.select(range(sample_count))
                     print(f"Using first {len(data)} samples for quick evaluation")
-=======
-                data = data.select(range(min(args.limit, len(data))))
-                print(f"Using first {len(data)} samples for quick evaluation")
->>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
             
             # 获取prompt格式和最大生成长度
             prompt_format = dataset2prompt.get(dataset, "{input}")
@@ -555,17 +573,13 @@ def main():
             "head_aggregation_mode": args.head_aggregation_mode,
             "head_aggregation_alpha": args.head_aggregation_alpha,
             "head_disagreement_ratio": args.head_disagreement_ratio,
-<<<<<<< HEAD
             "selector_mode": args.selector_mode,
+            "protected_heavy_ratio": args.protected_heavy_ratio,
+            "protected_recent_ratio": args.protected_recent_ratio,
             "target_budget": args.target_budget,
             "budget_template": args.budget_template,
             "limit": args.limit,
             "sample_seed": args.sample_seed,
-=======
-            "target_budget": args.target_budget,
-            "budget_template": args.budget_template,
-            "limit": args.limit,
->>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
             "output_tag": args.output_tag,
         }
         

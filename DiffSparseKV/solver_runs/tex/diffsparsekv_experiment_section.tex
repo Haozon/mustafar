@@ -1,0 +1,160 @@
+% DiffSparseKV thesis-ready experiment snippets
+% Generated from solver_runs/per_task_results_manifest.json on 2026-03-27
+
+\subsubsection{基于配置生成器的任务特定稀疏配置搜索}
+
+为避免直接采用固定的三级占比配置，本文实现了一个轻量级的
+\textbf{配置生成器（configuration generator）}，用于在给定平均稀疏预算下自动生成并筛选候选稀疏模板。
+设目标平均稀疏率为 $S$，三级稀疏模板的稀疏度记为
+\(
+[0,\rho_1,1]
+\)，对应词元占比为
+\(
+[p_0,p_1,p_2]
+\)，则有如下约束：
+\begin{equation}
+p_0 + p_1 + p_2 = 1,
+\qquad
+p_1 \rho_1 + p_2 = S .
+\end{equation}
+在实际实现中，本文将 $p_0$ 与 $\rho_1$ 作为显式搜索变量，
+并通过解析方式得到
+\begin{equation}
+p_1 = \frac{1-p_0-S}{1-\rho_1},
+\qquad
+p_2 = 1-p_0-p_1 ,
+\end{equation}
+仅保留满足 $p_0,p_1,p_2 \in [0,1]$ 的候选模板。
+
+除预算模板外，配置生成器还会联合考虑 token 重要性估计与保护策略。
+对于基础 per-task 搜索，本文使用固定的重要性设置：
+\texttt{importance\_mode=value\_aware}、
+\texttt{head\_aggregation\_mode=max}、
+\texttt{value\_sink\_keep=2}，
+并在代表任务上搜索三级占比与中间层稀疏度。
+对于初始结果仍不理想的任务，本文进一步进行 rescue search，
+将搜索空间扩展为：
+\texttt{importance\_mode \(\in\) \{attention\_only, value\_aware\}}、
+\texttt{head\_aggregation\_mode \(\in\) \{mean, max, hybrid, top2\_mean\}}、
+\texttt{value\_sink\_keep \(\in\) \{0,2,4\}}、
+\texttt{level\_2\_mode \(\in\) \{evict, zero\}}，
+从而共同搜索“谁更重要”与“如何分配预算”。
+
+在实验 protocol 上，本文对每个任务构造\textbf{互不重叠}的 calibration / validation 子集。
+其中，calibration split 大小为 8，validation split 大小为 20，
+并使用固定随机种子 17 与 29 生成索引。
+配置生成器首先在 calibration split 上比较 uniform 稀疏与所有候选差分配置，
+选取 calibration 分数最高的候选；
+随后在 validation split 上重新评估该候选，以判断其是否真正优于 uniform。
+对于 validation 上保持非负收益或具有明显正向信号的任务，
+本文进一步在 full task set 上进行正式验证。
+
+\subsubsection{代表任务上的阶段性结果}
+
+表~\ref{tab:diffsparsekv-task-stages} 汇总了六个代表任务在
+calibration、validation 以及 full task set 上的结果。
+其中，\texttt{lcc} 与 \texttt{trec} 为稳定正例；
+\texttt{qasper}、\texttt{multifieldqa\_en} 与 \texttt{hotpotqa}
+在 full task set 上均获得了非负收益；
+\texttt{narrativeqa} 则最终回退到 uniform。
+
+\begin{table*}[t]
+\centering
+\caption{DiffSparseKV 在代表任务上的分阶段结果汇总}
+\label{tab:diffsparsekv-task-stages}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lcccccccc}
+\toprule
+任务 & Uniform-Calib & Best-Calib & $\Delta$ & Uniform-Val & Best-Val & $\Delta$ & Full Uniform & Full Best / $\Delta$ \\
+\midrule
+\texttt{lcc} & 55.62 & 60.38 & +4.76 & 57.85 & 63.95 & +6.10 & 54.12 & 55.45 / +1.33 \\
+\texttt{trec} & 62.50 & 75.00 & +12.50 & 50.00 & 55.00 & +5.00 & 70.00 & 72.50 / +2.50 \\
+\texttt{qasper} & 49.08 & 58.07 & +8.99 & 39.02 & 38.91 & -0.11 & 40.89 & 41.03 / +0.14 \\
+\texttt{multifieldqa\_en} & 41.16 & 42.41 & +1.25 & 39.53 & 38.14 & -1.39 & 40.91 & 41.61 / +0.70 \\
+\texttt{hotpotqa} & 34.38 & 34.38 & +0.00 & 46.17 & 46.17 & +0.00 & 44.93 & 45.12 / +0.19 \\
+\texttt{narrativeqa} & 9.50 & 8.76 & -0.74 & 29.81 & 29.55 & -0.26 & 23.94 & 23.94 / +0.00 \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+从结果可以看出，DiffSparseKV 的收益具有显著的任务相关性。
+\texttt{lcc} 与 \texttt{trec} 在小规模验证和 full task set 上均稳定优于 uniform，
+说明这类任务中“重要 token 与非重要 token 的分离度”较高，
+差分配置能够有效提升预算利用效率。
+\texttt{qasper} 与 \texttt{multifieldqa\_en} 虽然在初始小 validation split 上未表现为正收益，
+但在扩大搜索空间并采用 rescue search 后，其 full task set 结果分别达到
+$+0.14$ 与 $+0.70$，说明这两类任务并非完全不适合差分配置，
+而是对具体配置更敏感。
+\texttt{hotpotqa} 在小规模验证中几乎持平，但在 full task set 上仍取得了
+$+0.19$ 的弱正收益；
+\texttt{narrativeqa} 则在多轮搜索及 SnapKV-style 对照后仍未超过 uniform，
+因此最终采用 fallback-to-uniform 策略。
+
+\subsubsection{任务特定的最终配置}
+
+表~\ref{tab:diffsparsekv-task-configs} 给出了当前各代表任务的最终配置或最终策略。
+其中，\texttt{lcc}、\texttt{trec} 与 \texttt{hotpotqa}
+直接采用基础 per-task 搜索得到的最优模板；
+\texttt{qasper} 与 \texttt{multifieldqa\_en}
+采用 rescue search 后在 full task set 上验证通过的配置；
+\texttt{narrativeqa} 则不再继续使用差分模板，而是直接回退到 uniform。
+
+\begin{table*}[t]
+\centering
+\caption{代表任务的任务特定配置表}
+\label{tab:diffsparsekv-task-configs}
+\small
+\setlength{\tabcolsep}{4pt}
+\begin{tabular}{lccccccccc}
+\toprule
+任务 & 最终策略 & $p_0$ & $p_1$ & $p_2$ & $\rho_1$ & Importance & Head Agg. & Sink Keep & Level-2 \\
+\midrule
+\texttt{lcc} & diff & 0.00 & 0.75 & 0.25 & 0.60 & value\_aware & max & 2 & evict \\
+\texttt{trec} & diff & 0.00 & 0.75 & 0.25 & 0.60 & value\_aware & max & 2 & evict \\
+\texttt{hotpotqa} & diff & 0.00 & 0.75 & 0.25 & 0.60 & value\_aware & max & 2 & evict \\
+\texttt{narrativeqa} & uniform fallback & -- & -- & -- & -- & -- & -- & -- & -- \\
+\texttt{qasper} & diff & 0.00 & 0.857143 & 0.142857 & 0.65 & value\_aware & mean & 4 & evict \\
+\texttt{multifieldqa\_en} & diff & 0.02 & 0.80 & 0.18 & 0.65 & value\_aware & max & 4 & evict \\
+\bottomrule
+\end{tabular}
+\end{table*}
+
+\subsubsection{NarrativeQA 上的反例分析}
+
+为进一步分析 \texttt{narrativeqa} 的失效原因，本文在同一个 calibration split 上，
+额外进行了 uniform-like diff 配置和 SnapKV-style 对照实验。
+结果如表~\ref{tab:diffsparsekv-narrative-snapkv} 所示。
+可以看到，真正的 uniform 基线达到 9.50，而无论是 uniform-like 的 diff 配置，
+还是最小化的 SnapKV-style 变体，都未能超过该结果。
+这说明 \texttt{narrativeqa} 上的问题并不只是预算模板没有搜索到位，
+而更可能来自任务本身对 observation-window 驱动压缩的低适配性。
+
+\begin{table}[t]
+\centering
+\caption{NarrativeQA 上的 uniform-like 与 SnapKV-style 对照}
+\label{tab:diffsparsekv-narrative-snapkv}
+\small
+\begin{tabular}{lc}
+\toprule
+方法 & Calibration 分数 \\
+\midrule
+Uniform 70\% & 9.50 \\
+Diff uniform-like & 8.76 \\
+SnapKV-style (mean) & 5.64 \\
+SnapKV-style (max) & 8.76 \\
+SnapKV-style (top2\_mean) & 8.76 \\
+SnapKV-style (hybrid) & 5.64 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\subsubsection{实验结论}
+
+综上，DiffSparseKV 并不是在所有任务上均优于 uniform 稀疏，而是表现出明显的任务相关性。
+从当前 full task set 结果看，\texttt{lcc}、\texttt{trec} 为稳定正例，
+\texttt{qasper}、\texttt{multifieldqa\_en} 与 \texttt{hotpotqa}
+在 full task set 上也均获得了非负收益，其中前两者属于通过 rescue search 从弱负例转化而来的任务。
+相比之下，\texttt{narrativeqa} 是当前唯一明确需要回退到 uniform 的任务。
+这一结果表明，配置生成器对于提升 DiffSparseKV 的实用性是必要的：
+它不仅用于寻找更优预算模板，也用于识别哪些任务适合差分稀疏、哪些任务应退回到更稳健的 uniform 路径。

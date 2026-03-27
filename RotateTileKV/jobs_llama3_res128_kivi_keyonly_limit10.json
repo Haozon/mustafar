@@ -1,0 +1,188 @@
+[
+  {
+    "name": "llama3_res128_kivi_keyonly_4bit",
+    "log_path": "/mnt/home/zh/mustafar/RotateTileKV/bg_logs/llama3_res128_kivi_keyonly_4bit.log",
+    "cmd": [
+      "env", "PYTHONUNBUFFERED=1", "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+      "python", "/mnt/home/zh/mustafar/RotateTileKV/run_longbench.py",
+      "--model-name-or-path", "/mnt/home/zh/model/Meta-Llama-3-8B-Instruct",
+      "--datasets", "trec,triviaqa,passage_count,qasper",
+      "--limit", "10",
+      "--k-bits", "4", "--v-bits", "16",
+      "--quant-impl", "kivi",
+      "--k-quant-scheme", "kivi-channel",
+      "--v-quant-scheme", "per-token-head",
+      "--group-size", "128",
+      "--quant-granularity", "per-token-tile",
+      "--residual-length", "128",
+      "--output-dir", "/mnt/home/zh/mustafar/RotateTileKV/exp_llama3_8b_res128_l10/kivi_keyonly_4bit"
+    ]
+  },
+  {
+    "name": "llama3_res128_kivi_keyonly_4bit_fullhad",
+    "log_path": "/mnt/home/zh/mustafar/RotateTileKV/bg_logs/llama3_res128_kivi_keyonly_4bit_fullhad.log",
+    "cmd": [
+      "env", "PYTHONUNBUFFERED=1", "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+      "python", "/mnt/home/zh/mustafar/RotateTileKV/run_longbench.py",
+      "--model-name-or-path", "/mnt/home/zh/model/Meta-Llama-3-8B-Instruct",
+      "--datasets", "trec,triviaqa,passage_count,qasper",
+      "--limit", "10",
+      "--k-bits", "4", "--v-bits", "16",
+      "--quant-impl", "kivi",
+      "--k-quant-scheme", "kivi-channel",
+      "--v-quant-scheme", "per-token-head",
+      "--group-size", "128",
+      "--quant-granularity", "per-token-tile",
+      "--residual-length", "128",
+      "--enable-hadamard",
+      "--hadamard-mode", "full",
+      "--output-dir", "/mnt/home/zh/mustafar/RotateTileKV/exp_llama3_8b_res128_l10/kivi_keyonly_4bit_fullhad"
+    ]
+  },
+  {
+    "name": "llama3_res128_kivi_keyonly_4bit_tilehad64",
+    "log_path": "/mnt/home/zh/mustafar/RotateTileKV/bg_logs/llama3_res128_kivi_keyonly_4bit_tilehad64.log",
+    "cmd": [
+      "env", "PYTHONUNBUFFERED=1", "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+      "python", "/mnt/home/zh/mustafar/RotateTileKV/run_longbench.py",
+      "--model-name-or-path", "/mnt/home/zh/model/Meta-Llama-3-8B-Instruct",
+      "--datasets", "trec,triviaqa,passage_count,qasper",
+      "--limit", "10",
+      "--k-bits", "4", "--v-bits", "16",
+      "--quant-impl", "kivi",
+      "--k-quant-scheme", "kivi-channel",
+      "--v-quant-scheme", "per-token-head",
+      "--group-size", "128",
+      "--quant-granularity", "per-token-tile",
+      "--residual-length", "128",
+      "--enable-hadamard",
+      "--hadamard-mode", "tile",
+      "--hadamard-group-size", "64",
+      "--output-dir", "/mnt/home/zh/mustafar/RotateTileKV/exp_llama3_8b_res128_l10/kivi_keyonly_4bit_tilehad64"
+    ]
+  },
+  {
+    "name": "llama3_res128_kivi_keyonly_3bit",
+    "log_path": "/mnt/home/zh/mustafar/RotateTileKV/bg_logs/llama3_res128_kivi_keyonly_3bit.log",
+    "cmd": [
+      "env", "PYTHONUNBUFFERED=1", "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+      "python", "/mnt/home/zh/mustafar/RotateTileKV/run_longbench.py",
+      "--model-name-or-path", "/mnt/home/zh/model/Meta-Llama-3-8B-Instruct",
+      "--datasets", "trec,triviaqa,passage_count,qasper",
+      "--limit", "10",
+      "--k-bits", "3", "--v-bits", "16",
+      "--quant-impl", "kivi",
+      "--k-quant-scheme", "kivi-channel",
+      "--v-quant-scheme", "per-token-head",
+      "--group-size", "128",
+      "--quant-granularity", "per-token-tile",
+      "--residual-length", "128",
+      "--output-dir", "/mnt/home/zh/mustafar/RotateTileKV/exp_llama3_8b_res128_l10/kivi_keyonly_3bit"
+    ]
+  },
+  {
+    "name": "llama3_res128_kivi_keyonly_3bit_fullhad",
+    "log_path": "/mnt/home/zh/mustafar/RotateTileKV/bg_logs/llama3_res128_kivi_keyonly_3bit_fullhad.log",
+    "cmd": [
+      "env", "PYTHONUNBUFFERED=1", "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+      "python", "/mnt/home/zh/mustafar/RotateTileKV/run_longbench.py",
+      "--model-name-or-path", "/mnt/home/zh/model/Meta-Llama-3-8B-Instruct",
+      "--datasets", "trec,triviaqa,passage_count,qasper",
+      "--limit", "10",
+      "--k-bits", "3", "--v-bits", "16",
+      "--quant-impl", "kivi",
+      "--k-quant-scheme", "kivi-channel",
+      "--v-quant-scheme", "per-token-head",
+      "--group-size", "128",
+      "--quant-granularity", "per-token-tile",
+      "--residual-length", "128",
+      "--enable-hadamard",
+      "--hadamard-mode", "full",
+      "--output-dir", "/mnt/home/zh/mustafar/RotateTileKV/exp_llama3_8b_res128_l10/kivi_keyonly_3bit_fullhad"
+    ]
+  },
+  {
+    "name": "llama3_res128_kivi_keyonly_3bit_tilehad64",
+    "log_path": "/mnt/home/zh/mustafar/RotateTileKV/bg_logs/llama3_res128_kivi_keyonly_3bit_tilehad64.log",
+    "cmd": [
+      "env", "PYTHONUNBUFFERED=1", "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+      "python", "/mnt/home/zh/mustafar/RotateTileKV/run_longbench.py",
+      "--model-name-or-path", "/mnt/home/zh/model/Meta-Llama-3-8B-Instruct",
+      "--datasets", "trec,triviaqa,passage_count,qasper",
+      "--limit", "10",
+      "--k-bits", "3", "--v-bits", "16",
+      "--quant-impl", "kivi",
+      "--k-quant-scheme", "kivi-channel",
+      "--v-quant-scheme", "per-token-head",
+      "--group-size", "128",
+      "--quant-granularity", "per-token-tile",
+      "--residual-length", "128",
+      "--enable-hadamard",
+      "--hadamard-mode", "tile",
+      "--hadamard-group-size", "64",
+      "--output-dir", "/mnt/home/zh/mustafar/RotateTileKV/exp_llama3_8b_res128_l10/kivi_keyonly_3bit_tilehad64"
+    ]
+  },
+  {
+    "name": "llama3_res128_kivi_keyonly_2bit",
+    "log_path": "/mnt/home/zh/mustafar/RotateTileKV/bg_logs/llama3_res128_kivi_keyonly_2bit.log",
+    "cmd": [
+      "env", "PYTHONUNBUFFERED=1", "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+      "python", "/mnt/home/zh/mustafar/RotateTileKV/run_longbench.py",
+      "--model-name-or-path", "/mnt/home/zh/model/Meta-Llama-3-8B-Instruct",
+      "--datasets", "trec,triviaqa,passage_count,qasper",
+      "--limit", "10",
+      "--k-bits", "2", "--v-bits", "16",
+      "--quant-impl", "kivi",
+      "--k-quant-scheme", "kivi-channel",
+      "--v-quant-scheme", "per-token-head",
+      "--group-size", "128",
+      "--quant-granularity", "per-token-tile",
+      "--residual-length", "128",
+      "--output-dir", "/mnt/home/zh/mustafar/RotateTileKV/exp_llama3_8b_res128_l10/kivi_keyonly_2bit"
+    ]
+  },
+  {
+    "name": "llama3_res128_kivi_keyonly_2bit_fullhad",
+    "log_path": "/mnt/home/zh/mustafar/RotateTileKV/bg_logs/llama3_res128_kivi_keyonly_2bit_fullhad.log",
+    "cmd": [
+      "env", "PYTHONUNBUFFERED=1", "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+      "python", "/mnt/home/zh/mustafar/RotateTileKV/run_longbench.py",
+      "--model-name-or-path", "/mnt/home/zh/model/Meta-Llama-3-8B-Instruct",
+      "--datasets", "trec,triviaqa,passage_count,qasper",
+      "--limit", "10",
+      "--k-bits", "2", "--v-bits", "16",
+      "--quant-impl", "kivi",
+      "--k-quant-scheme", "kivi-channel",
+      "--v-quant-scheme", "per-token-head",
+      "--group-size", "128",
+      "--quant-granularity", "per-token-tile",
+      "--residual-length", "128",
+      "--enable-hadamard",
+      "--hadamard-mode", "full",
+      "--output-dir", "/mnt/home/zh/mustafar/RotateTileKV/exp_llama3_8b_res128_l10/kivi_keyonly_2bit_fullhad"
+    ]
+  },
+  {
+    "name": "llama3_res128_kivi_keyonly_2bit_tilehad64",
+    "log_path": "/mnt/home/zh/mustafar/RotateTileKV/bg_logs/llama3_res128_kivi_keyonly_2bit_tilehad64.log",
+    "cmd": [
+      "env", "PYTHONUNBUFFERED=1", "PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True",
+      "python", "/mnt/home/zh/mustafar/RotateTileKV/run_longbench.py",
+      "--model-name-or-path", "/mnt/home/zh/model/Meta-Llama-3-8B-Instruct",
+      "--datasets", "trec,triviaqa,passage_count,qasper",
+      "--limit", "10",
+      "--k-bits", "2", "--v-bits", "16",
+      "--quant-impl", "kivi",
+      "--k-quant-scheme", "kivi-channel",
+      "--v-quant-scheme", "per-token-head",
+      "--group-size", "128",
+      "--quant-granularity", "per-token-tile",
+      "--residual-length", "128",
+      "--enable-hadamard",
+      "--hadamard-mode", "tile",
+      "--hadamard-group-size", "64",
+      "--output-dir", "/mnt/home/zh/mustafar/RotateTileKV/exp_llama3_8b_res128_l10/kivi_keyonly_2bit_tilehad64"
+    ]
+  }
+]

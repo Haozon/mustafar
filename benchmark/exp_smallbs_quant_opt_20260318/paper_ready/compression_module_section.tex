@@ -1,0 +1,36 @@
+\subsubsection{压缩模块时间与压缩率}
+
+为了在与端到端实验相同的工作负载下评估压缩模块本身的行为，本文进一步在 `Meta-Llama-3-8B-Instruct` 上对 prompt-side KV Cache 压缩过程进行了统计。实验设置保持与前文一致，即 `input=4096, output=256, BS=1..8`，并在 `Sparse50`、`Sparse70`、`Sparse50+2bit` 与 `Sparse70+2bit` 四条路径上记录每次 prefill 后的原始 KV 大小、压缩后 KV 大小以及压缩阶段的总耗时。由于该统计直接插入到真实模型的 prefill 压缩路径中，因此其结果能够反映压缩模块在端到端工作负载下的实际开销，而不是脱离推理场景的独立 microbenchmark。
+
+实验结果如图~\ref{fig:smallbs-compression-stats} 和表~\ref{tab:smallbs-compression-summary} 所示。首先，从压缩率来看，量化路径相较 sparse-only 路径具有显著优势，而且这一优势在不同 batch size 下基本稳定：`Sparse50` 的压缩率约为 `1.51\times`，`Sparse70` 为 `2.09\times`；引入 2bit 量化后，`Sparse50+2bit` 提升到 `3.25\times`，`Sparse70+2bit` 进一步提升到 `3.48\times`。以 `BS=8` 为例，原始 KV Cache 总大小约为 `4096` MB，`Sparse50` 可压缩到 `2720.16` MB，而 `Sparse50+2bit` 可进一步压缩到 `1261.16` MB；对应地，`Sparse70` 与 `Sparse70+2bit` 则分别压缩到 `1964.29` MB 与 `1176.25` MB。也就是说，在真实长上下文设置下，2bit 量化相较 sparse-only 版本仍然带来了额外的 KV Cache 存储压缩收益。
+
+其次，从压缩模块时间来看，四条路径的压缩时间都随 batch size 增长近似线性上升，但量化版本在同一 sparsity 下始终更快。对于 50\% 稀疏路径，`Sparse50` 的压缩时间从 `BS=1` 的 `740.80` ms 增长到 `BS=8` 的 `5688.23` ms，而 `Sparse50+2bit` 则从 `545.18` ms 增长到 `4317.88` ms；对于 70\% 稀疏路径，`Sparse70` 的压缩时间从 `716.30` ms 增长到 `5411.29` ms，而 `Sparse70+2bit` 则从 `552.86` ms 增长到 `4293.18` ms。可见，量化路径不仅压缩率更高，而且在 prompt-side 压缩阶段本身也没有引入额外的大额时间惩罚，反而由于压缩后布局更紧凑，整体压缩耗时略低于 sparse-only 版本。
+
+综合来看，这组结果说明：量化路径在当前工作负载下同时提供了更高的 KV Cache 压缩率与更低的 prompt-side 压缩时间。其中，`Sparse70+2bit` 在四条压缩路径中始终取得最高压缩率，而两条 2bit 路径在压缩时间上的优势则说明，量化方法的端到端收益并不仅来自后续 decode 阶段的访存节省，也来自压缩模块本身更高效的表示与写回方式。
+
+\begin{table}[t]
+    \centering
+    \caption{代表性 batch size 下的 KV Cache 压缩率与压缩时间（input=4096）}
+    \label{tab:smallbs-compression-summary}
+    \input{compression_summary_table_bs1_4_8.tex}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \begin{minipage}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/compression_time_vs_bs.pdf}
+        
+        \vspace{2mm}
+        \small (a) Prompt-side compression time
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/compression_ratio_vs_bs.pdf}
+        
+        \vspace{2mm}
+        \small (b) KV Cache compression ratio
+    \end{minipage}
+    \caption{小 batch 工作负载下压缩模块的时间与压缩率统计。左图展示 prompt-side 压缩时间随 batch size 的变化；右图展示压缩率（原始 KV 大小 / 压缩后 KV 大小）随 batch size 的变化。}
+    \label{fig:smallbs-compression-stats}
+\end{figure}

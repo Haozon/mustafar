@@ -1,0 +1,19 @@
+{
+  "model_path": "/home/zh/model/Meta-Llama-3-8B-Instruct",
+  "datasets": [
+    "wikitext2",
+    "gsm8k",
+    "qasper",
+    "multifieldqa_en",
+    "narrativeqa",
+    "hotpotqa",
+    "musique"
+  ],
+  "layers": [
+    10,
+    20
+  ],
+  "num_samples": 10,
+  "max_length": 192,
+  "output_dir": "/mnt/home/zh/mustafar/DiffSparseKV/AttnScoreThreshold/normalized_attention_threshold_llama3_8b"
+}

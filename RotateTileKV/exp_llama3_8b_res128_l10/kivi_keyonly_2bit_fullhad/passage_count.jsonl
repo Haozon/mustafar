@@ -1,0 +1,10 @@
+{"pred": "After removing duplicates, there are 40 paragraphs in total.", "answers": ["8"], "all_classes": null, "length": 11221}
+{"pred": "After removing duplicates, there are 27 unique paragraphs.", "answers": ["11"], "all_classes": null, "length": 9921}
+{"pred": "After removing duplicates, there are 20 unique paragraphs.", "answers": ["13"], "all_classes": null, "length": 6578}
+{"pred": "After removing duplicates, there are 47 unique paragraphs.", "answers": ["44"], "all_classes": null, "length": 16346}
+{"pred": "After removing duplicates, there are 2 unique paragraphs.", "answers": ["2"], "all_classes": null, "length": 22099}
+{"pred": "After removing duplicates, there are 30 unique paragraphs.", "answers": ["7"], "all_classes": null, "length": 8383}
+{"pred": "After removing duplicates, there are 8 unique paragraphs.", "answers": ["7"], "all_classes": null, "length": 4974}
+{"pred": "After removing duplicates, there are 9 unique paragraphs.", "answers": ["45"], "all_classes": null, "length": 13970}
+{"pred": "After removing duplicates, there are 8 unique paragraphs.", "answers": ["4"], "all_classes": null, "length": 14086}
+{"pred": "After removing duplicates, there are 42 unique paragraphs.", "answers": ["31"], "all_classes": null, "length": 12357}

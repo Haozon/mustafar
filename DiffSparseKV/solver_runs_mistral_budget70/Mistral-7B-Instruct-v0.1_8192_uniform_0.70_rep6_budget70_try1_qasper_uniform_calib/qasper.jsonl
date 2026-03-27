@@ -1,0 +1,8 @@
+{"pred": "The source domain is the domain from which the model is trained, and the target domain is the domain for which the model is tested.", "answers": ["Book, electronics, beauty, music, IMDB, Yelp, cell phone, baby, DVDs, kitchen", "we use set 1 of the source domain as the only source with sentiment label information during training, and we evaluate the trained model on set 1 of the target domain, Book (BK), Electronics (E), Beauty (BT), and Music (M)"], "all_classes": null, "length": 5061}
+{"pred": "Word embeddings.", "answers": ["Skip–gram, CBOW", "integrated vector-res, vector-faith, Skip–gram, CBOW"], "all_classes": null, "length": 4259}
+{"pred": "Unanswerable", "answers": ["Individuals with legal training", "Yes"], "all_classes": null, "length": 3846}
+{"pred": "They used the CSAT dataset for customer satisfaction prediction, the 20 newsgroups dataset for topic identification, and the Fisher Phase 1 corpus for topic identification.", "answers": ["CSAT dataset, 20 newsgroups, Fisher Phase 1 corpus", "CSAT dataset , 20 newsgroups, Fisher Phase 1 corpus"], "all_classes": null, "length": 2652}
+{"pred": "Our model combines a sentiment reward and a content reward for reinforcement learning.", "answers": ["irony accuracy, sentiment preservation", " irony accuracy and sentiment preservation"], "all_classes": null, "length": 4592}
+{"pred": "No.", "answers": ["Yes", "Unanswerable"], "all_classes": null, "length": 6169}
+{"pred": "Galatasaray and Fenerbahçe.", "answers": ["Galatasaray, Fenerbahçe", "Galatasaray , Fenerbahçe "], "all_classes": null, "length": 2234}
+{"pred": "unanswerable", "answers": ["0.5115", "0.6103"], "all_classes": null, "length": 6810}

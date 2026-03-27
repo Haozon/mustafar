@@ -1,0 +1,10 @@
+p0,p1,p2,rho1,target_budget,expected_budget,calib_average,delta_vs_uniform,output_dir
+0.05,0.750075,0.199925,0.6667,0.7,0.7000000025,44.09,1.6700000000000017,/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_budget70_pilotA_cand2
+0.1,0.60006,0.29994,0.6667,0.7,0.700000002,44.04,1.6199999999999974,/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_budget70_pilotA_cand5
+0.15,0.450045,0.399955,0.6667,0.7,0.7000000015,43.89,1.4699999999999989,/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_budget70_pilotA_cand8
+0.05,0.625,0.325,0.6,0.7,0.7,42.17,-0.25,/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_budget70_pilotA_cand1
+0.1,0.5,0.4,0.6,0.7,0.7,41.94,-0.480000000000004,/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_budget70_pilotA_cand4
+0.15,0.375,0.475,0.6,0.7,0.7,41.89,-0.5300000000000011,/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_budget70_pilotA_cand7
+0.1,0.700035,0.199965,0.7143,0.7,0.7000000005,41.48,-0.9400000000000048,/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_budget70_pilotA_cand6
+0.05,0.875044,0.074956,0.7143,0.7,0.6999999292000001,41.01,-1.4100000000000037,/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_budget70_pilotA_cand3
+0.15,0.525026,0.324974,0.7143,0.7,0.7000000718,40.11,-2.3100000000000023,/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_budget70_pilotA_cand9

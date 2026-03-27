@@ -15,7 +15,7 @@ import torch
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.config_loader import load_config, validate_config
-from utils.model_loader import load_model
+from utils.model_loader import apply_quant_runtime_tuning, load_model
 from utils.metrics import measure_throughput
 
 
@@ -37,6 +37,18 @@ def run_model_config(model_name, model_config, config_name, test_config, global_
             print(f"Benchmarking BS={batch_size}")
             print(f"{'-' * 70}")
             try:
+                # Reduce allocator carry-over across batch sizes when one model is reused.
+                torch.cuda.empty_cache()
+                tuning = apply_quant_runtime_tuning(model, model_config, test_cfg, batch_size)
+                if test_cfg.get("use_quant", False):
+                    print(
+                        "Runtime quant tuning: "
+                        f"split_k={tuning['quant_v_split_k']}, "
+                        f"tile={tuning['quant_v_tile_config']}, "
+                        f"decode_n1={tuning['quant_v_decode_n1']}, "
+                        f"auto_tuned={tuning['auto_tuned']}, "
+                        f"reason={tuning['reason']}"
+                    )
                 metrics = measure_throughput(
                     model=model,
                     tokenizer=tokenizer,
@@ -47,6 +59,7 @@ def run_model_config(model_name, model_config, config_name, test_config, global_
                     warmup_tokens=global_config.get("warmup_tokens", 10),
                     measure_token_metrics=measure_token_metrics,
                 )
+                metrics["quant_runtime_tuning"] = tuning
                 results[batch_size] = metrics
                 print(
                     f"✅ {model_name} | {config_name} | BS={batch_size}: "

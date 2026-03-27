@@ -128,6 +128,39 @@ class SparsityClassifierApplier:
         self._update_classification_stats(sparsity_levels)
         
         return pruned_keys, pruned_values
+
+    def apply_preclassified_sparsity(
+        self,
+        level_assignments: torch.Tensor,
+        key_states: torch.Tensor,
+        value_states: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        """
+        Apply sparsity using precomputed token-level assignments.
+        """
+        if level_assignments.dim() != 3:
+            raise ValueError(f"level_assignments must be 3D [B, H, T], got {level_assignments.dim()}D")
+        if key_states.dim() != 4 or value_states.dim() != 4:
+            raise ValueError("key_states and value_states must be 4D [B, H, T, D]")
+
+        B, H, T = level_assignments.shape
+        if key_states.shape[:3] != (B, H, T) or value_states.shape[:3] != (B, H, T):
+            raise ValueError("Shape mismatch between level assignments and KV tensors")
+
+        highest_level = len(self.sparsity_levels) - 1
+        highest_level_count = (level_assignments == highest_level).sum().item()
+
+        if self.sparsity_levels[highest_level] >= 1.0 and highest_level_count > 0 and self.level_2_mode == "evict":
+            pruned_keys, pruned_values = self._apply_token_eviction(
+                key_states, value_states, level_assignments
+            )
+        else:
+            pruned_keys, pruned_values = self._apply_magnitude_pruning(
+                key_states, value_states, level_assignments
+            )
+
+        self._update_classification_stats(level_assignments)
+        return pruned_keys, pruned_values
     
     def _classify_tokens(self, importance_scores: torch.Tensor, 
                         thresholds: List[float]) -> torch.Tensor:

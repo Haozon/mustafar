@@ -1,0 +1,101 @@
+\subsection{性能评估}
+\label{sec:exp:jsqkv:performance}
+
+\subsubsection{端到端吞吐量}
+
+为了验证本文量化稀疏 KV Cache 计算核心在真实推理场景中的有效性，本文在 `Meta-Llama-3-8B-Instruct` 模型上进行了端到端吞吐量测试。实验中输入长度固定为 `4096`，输出长度固定为 `256`，批大小 `Batch Size` 取 `1--8`。对比配置包括 `Dense` 基线、`Sparse50`、`Sparse70` 以及对应的 `2-bit` 量化版本。量化路径采用本文最终确定的运行时优化配置，其中 `Key` 路径启用 `quant_k_use_meta=true`，并针对不同 batch size 对 `Value` 路径的 `split_k` 与 `tile` 参数进行调优。
+
+实验结果如表~\ref{tab:smallbs-quant-opt-throughput} 与图~\ref{fig:smallbs-quant-opt-throughput} 所示。整体来看，在极小 batch 场景下，`Dense` 基线仍然保持最优；从 `Batch Size = 2` 开始，量化路径开始表现出明显优势，并在小到中等 batch 区间内取得更高吞吐量。不过，当 batch size 继续增大到 `7` 和 `8` 时，sparse-only 配置重新取得最优，说明量化方法的收益主要集中在小到中等 batch 区间，而并非在全区间内单调扩大。
+
+具体而言，在 `Batch Size = 1` 时，`Dense` 的吞吐量最高，为 `28.55` tokens/s，而其余四种压缩配置均低于该值。这说明在极小 batch 场景下，GPU 并行度不足，压缩 KV Cache 所带来的访存收益尚未被充分放大，额外的索引管理、量化解码以及元数据访问开销仍占主导。
+
+从图~\ref{fig:smallbs-quant-opt-throughput}(a) 可以看到，`Sparse50+2bit` 在 `BS=1..5` 区间内均高于对应的 `Sparse50` 基线。例如，在 `Batch Size = 2` 时，其吞吐量达到 `42.76` tokens/s，高于 `Sparse50` 的 `31.75` tokens/s；在 `Batch Size = 4` 时进一步提升到 `64.70` tokens/s，高于 `Sparse50` 的 `53.80` tokens/s；在 `Batch Size = 5` 时仍保持 `72.02` tokens/s，对应 `Sparse50` 为 `66.93` tokens/s。这表明在小到中等 batch 场景下，`2-bit` 量化能够有效改善 `50\%` 稀疏路径的端到端吞吐表现。不过，当 batch size 继续增大时，这一优势开始收敛：在 `BS=6` 时，`Sparse50+2bit` 与 `Sparse50` 已基本持平；到 `BS=7` 和 `BS=8` 时，`Sparse50` 分别以 `86.52` 和 `94.51` tokens/s 重新超过 `Sparse50+2bit` 的 `80.47` 和 `86.98` tokens/s。
+
+从图~\ref{fig:smallbs-quant-opt-throughput}(b) 可以看到，`Sparse70+2bit` 的收益比 `Sparse50+2bit` 更稳定。在 `Batch Size = 2` 时，其吞吐量达到 `42.37` tokens/s，已经同时超过 `Dense` 的 `39.81` tokens/s 和 `Sparse70` 的 `30.56` tokens/s；在 `Batch Size = 3` 到 `6` 的区间内，`Sparse70+2bit` 进一步成为整体最优配置，吞吐量分别达到 `57.81`、`66.42`、`74.22` 和 `80.38` tokens/s。即便在 `BS=7` 时，`Sparse70+2bit` 仍略高于 `Sparse70`。不过在 `BS=8` 时，`Sparse70` 以 `96.43` tokens/s 重新超过 `Sparse70+2bit` 的 `87.12` tokens/s，说明在更大 batch 条件下，sparse-only 路径的扩展能力开始抵消量化带来的额外收益。
+
+综合来看，这组结果说明，当前的量化路径优化已经能够显著提升 `BS=2..6` 区间内的端到端性能。其中，`BS=2` 时最优配置为 `Sparse50+2bit`，吞吐量为 `42.76` tokens/s；`BS=3..6` 时最优配置均为 `Sparse70+2bit`，吞吐量分别达到 `57.81`、`66.42`、`74.22` 和 `80.38` tokens/s。与此同时，`BS=7` 和 `BS=8` 时最优配置又分别回到 `Sparse50` 与 `Sparse70`。这表明量化 KV Cache 的收益主要集中在小到中等 batch 区间，后续若希望在更大 batch 条件下继续保持领先，仍需进一步压缩量化路径自身的附加开销。
+
+\begin{table}[t]
+    \centering
+    \caption{Meta-Llama-3-8B 在不同 Batch Size 下的端到端吞吐量对比（input=4096, output=256）}
+    \label{tab:smallbs-quant-opt-throughput}
+    \input{throughput_table_bs1_8.tex}
+\end{table}
+
+\begin{table}[t]
+    \centering
+    \caption{优化后量化路径在小 batch 区间的代表性表现}
+    \label{tab:smallbs-quant-opt-best}
+    \begin{tabular}{ccccc}
+        \toprule
+        Batch Size & 最优配置 & 吞吐量 & 备注 & 说明 \\
+        \midrule
+        1 & Dense & 28.55 & 小 batch 极限点 & Dense 仍保持最高吞吐量 \\
+        2 & Sparse50+2bit & 42.76 & 量化反超起点 & 量化路径首次成为整体最优配置 \\
+        4 & Sparse70+2bit & 66.42 & 关键优化点 & 量化在小到中等 batch 区间收益最明显 \\
+        6 & Sparse70+2bit & 80.38 & 量化领先末端 & 这是量化仍保持全局最优的最后一个 batch 点 \\
+        8 & Sparse70 & 96.43 & 大 batch 回切点 & sparse-only 在更大 batch 下重新取得最优 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \begin{minipage}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/throughput_vs_bs_dense_sparse50_quant50.pdf}
+        
+        \vspace{2mm}
+        \small (a) Dense / Sparse50 / Sparse50+2bit
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/throughput_vs_bs_dense_sparse70_quant70.pdf}
+        
+        \vspace{2mm}
+        \small (b) Dense / Sparse70 / Sparse70+2bit
+    \end{minipage}
+    \caption{Meta-Llama-3-8B 在不同 Batch Size 下的端到端吞吐量对比。左图展示 Dense、Sparse50 与 Sparse50+2bit；右图展示 Dense、Sparse70 与 Sparse70+2bit。}
+    \label{fig:smallbs-quant-opt-throughput}
+\end{figure}
+
+\subsubsection{压缩模块时间与压缩率}
+
+为了进一步分析压缩模块本身对系统性能的影响，本文在与端到端实验相同的工作负载下，对 prompt-side KV Cache 压缩过程进行了统计。实验设置与前文保持一致，即 `input=4096, output=256, BS=1..8`，并在 `Sparse50`、`Sparse70`、`Sparse50+2bit` 与 `Sparse70+2bit` 四条路径上记录 prefill 结束后原始 KV 大小、压缩后 KV 大小以及压缩阶段总耗时。由于这些统计直接插入真实模型的 prefill 压缩路径中，因此能够反映压缩模块在真实推理工作负载下的实际行为。
+
+实验结果如表~\ref{tab:smallbs-compression-summary} 与图~\ref{fig:smallbs-compression-stats} 所示。首先，从压缩率来看，量化路径相较 sparse-only 路径具有显著优势，而且这种优势在不同 batch size 下基本保持稳定。对于 sparse-only 路径，`Sparse50` 的压缩率约为 `1.51\times`，`Sparse70` 提升到 `2.09\times`；引入 `2-bit` 量化后，`Sparse50+2bit` 进一步提高到 `3.25\times`，`Sparse70+2bit` 则达到 `3.48\times`。这说明在相同长上下文条件下，量化版本不仅继承了稀疏表示的压缩收益，还能进一步减少非零值存储带来的显存占用。
+
+以代表性的 `BS=8` 为例，原始 KV Cache 总大小约为 `4096` MB。经过 `Sparse50` 压缩后，KV Cache 大小降低到 `2720.16` MB；而采用 `Sparse50+2bit` 后，则可进一步降低到 `1261.16` MB。类似地，`Sparse70` 与 `Sparse70+2bit` 分别可将 KV Cache 压缩到 `1964.29` MB 与 `1176.25` MB。由此可见，在真实长序列推理场景下，`2-bit` 量化相较 sparse-only 版本仍能带来额外的显存压缩收益。
+
+其次，从压缩模块时间来看，四条路径的压缩时间都随 batch size 的增大近似线性上升，但量化路径在同一 sparsity 下始终更快。对于 `50\%` 稀疏路径，`Sparse50` 的压缩时间从 `BS=1` 的 `740.80` ms 增长到 `BS=8` 的 `5688.23` ms，而 `Sparse50+2bit` 则从 `545.18` ms 增长到 `4317.88` ms；对于 `70\%` 稀疏路径，`Sparse70` 的压缩时间从 `716.30` ms 增长到 `5411.29` ms，而 `Sparse70+2bit` 则从 `552.86` ms 增长到 `4293.18` ms。换言之，量化路径不仅压缩率更高，而且在 prompt-side 压缩阶段本身也没有引入额外的大额时间惩罚。
+
+从趋势上看，`Sparse70` 相比 `Sparse50` 在 sparse-only 路径上的时间优势并不十分突出，这与前文端到端结果中的现象是一致的。其原因在于，更高稀疏率虽然减少了非零值数量，但压缩模块仍需承担索引构建、位图组织、偏移更新和数据拼接等固定管理开销，因此稀疏率提升并不会线性转化为时间收益。相比之下，量化路径由于采用更紧凑的打包表示，写回字节数更少，压缩结果布局也更加规整，因此能够在保持更高压缩率的同时，将压缩时间控制在低于 sparse-only 的水平。
+
+综合来看，这组结果说明，量化路径在当前工作负载下同时提供了更高的 KV Cache 压缩率与更低的 prompt-side 压缩时间。其中，`Sparse70+2bit` 始终取得四条路径中最高的压缩率，而两条 `2-bit` 路径在压缩时间上的稳定优势则表明，量化方法的端到端收益并不仅来自后续 decode 阶段的访存节省，也来自压缩模块本身更高效的表示与写回方式。
+
+\begin{table}[t]
+    \centering
+    \caption{代表性 batch size 下的 KV Cache 压缩率与压缩时间（input=4096）}
+    \label{tab:smallbs-compression-summary}
+    \input{compression_summary_table_bs1_4_8.tex}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \begin{minipage}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/compression_time_vs_bs.pdf}
+        
+        \vspace{2mm}
+        \small (a) Prompt-side compression time
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/compression_ratio_vs_bs.pdf}
+        
+        \vspace{2mm}
+        \small (b) KV Cache compression ratio
+    \end{minipage}
+    \caption{小 batch 工作负载下压缩模块的时间与压缩率统计。左图展示 prompt-side 压缩时间随 batch size 的变化；右图展示压缩率（原始 KV 大小 / 压缩后 KV 大小）随 batch size 的变化。}
+    \label{fig:smallbs-compression-stats}
+\end{figure}

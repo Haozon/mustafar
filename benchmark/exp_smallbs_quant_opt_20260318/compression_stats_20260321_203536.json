@@ -1,0 +1,636 @@
+{
+  "llama3_8b": {
+    "sparse_50": {
+      "1": {
+        "batch_size": 1,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 536870912,
+        "compressed_kv_bytes": 356529888,
+        "compression_ratio": 1.5058230181252013,
+        "memory_saving_ratio": 0.3359113335609436,
+        "compression_time_ms": 740.7979965209961,
+        "compressed_length_tokens": 3840
+      },
+      "2": {
+        "batch_size": 2,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 1073741824,
+        "compressed_kv_bytes": 713054848,
+        "compression_ratio": 1.5058334250326844,
+        "memory_saving_ratio": 0.3359159231185913,
+        "compression_time_ms": 1471.936305363973,
+        "compressed_length_tokens": 3840
+      },
+      "3": {
+        "batch_size": 3,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 1610612736,
+        "compressed_kv_bytes": 1069589664,
+        "compression_ratio": 1.5058230181252013,
+        "memory_saving_ratio": 0.3359113335609436,
+        "compression_time_ms": 2173.259178797404,
+        "compressed_length_tokens": 3840
+      },
+      "4": {
+        "batch_size": 4,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 2147483648,
+        "compressed_kv_bytes": 1426119552,
+        "compression_ratio": 1.5058230181252013,
+        "memory_saving_ratio": 0.3359113335609436,
+        "compression_time_ms": 3094.6999390920005,
+        "compressed_length_tokens": 3840
+      },
+      "5": {
+        "batch_size": 5,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 2684354560,
+        "compressed_kv_bytes": 1782649440,
+        "compression_ratio": 1.5058230181252013,
+        "memory_saving_ratio": 0.3359113335609436,
+        "compression_time_ms": 3653.6688009897866,
+        "compressed_length_tokens": 3840
+      },
+      "6": {
+        "batch_size": 6,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 3221225472,
+        "compressed_kv_bytes": 2139164544,
+        "compression_ratio": 1.5058334250326844,
+        "memory_saving_ratio": 0.3359159231185913,
+        "compression_time_ms": 4335.715691248576,
+        "compressed_length_tokens": 3840
+      },
+      "7": {
+        "batch_size": 7,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 3758096384,
+        "compressed_kv_bytes": 2495754576,
+        "compression_ratio": 1.5057956499966363,
+        "memory_saving_ratio": 0.3358992636203766,
+        "compression_time_ms": 4522.5725173950195,
+        "compressed_length_tokens": 3840
+      },
+      "8": {
+        "batch_size": 8,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 4294967296,
+        "compressed_kv_bytes": 2852290944,
+        "compression_ratio": 1.5057956499966363,
+        "memory_saving_ratio": 0.3358992636203766,
+        "compression_time_ms": 5688.229878743489,
+        "compressed_length_tokens": 3840
+      }
+    },
+    "sparse_70": {
+      "1": {
+        "batch_size": 1,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 536870912,
+        "compressed_kv_bytes": 257459280,
+        "compression_ratio": 2.085265335939726,
+        "memory_saving_ratio": 0.5204447209835052,
+        "compression_time_ms": 716.3035869598389,
+        "compressed_length_tokens": 3840
+      },
+      "2": {
+        "batch_size": 2,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 1073741824,
+        "compressed_kv_bytes": 514918656,
+        "compression_ratio": 2.085264947168665,
+        "memory_saving_ratio": 0.5204446315765381,
+        "compression_time_ms": 1419.3016688028972,
+        "compressed_length_tokens": 3840
+      },
+      "3": {
+        "batch_size": 3,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 1610612736,
+        "compressed_kv_bytes": 772377840,
+        "compression_ratio": 2.085265335939726,
+        "memory_saving_ratio": 0.5204447209835052,
+        "compression_time_ms": 2022.5991408030193,
+        "compressed_length_tokens": 3840
+      },
+      "4": {
+        "batch_size": 4,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 2147483648,
+        "compressed_kv_bytes": 1029837120,
+        "compression_ratio": 2.085265335939726,
+        "memory_saving_ratio": 0.5204447209835052,
+        "compression_time_ms": 2890.291770299276,
+        "compressed_length_tokens": 3840
+      },
+      "5": {
+        "batch_size": 5,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 2684354560,
+        "compressed_kv_bytes": 1287296400,
+        "compression_ratio": 2.085265335939726,
+        "memory_saving_ratio": 0.5204447209835052,
+        "compression_time_ms": 3655.9225718180337,
+        "compressed_length_tokens": 3840
+      },
+      "6": {
+        "batch_size": 6,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 3221225472,
+        "compressed_kv_bytes": 1544755968,
+        "compression_ratio": 2.085264947168665,
+        "memory_saving_ratio": 0.5204446315765381,
+        "compression_time_ms": 4330.132404963176,
+        "compressed_length_tokens": 3840
+      },
+      "7": {
+        "batch_size": 7,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 3758096384,
+        "compressed_kv_bytes": 1802241056,
+        "compression_ratio": 2.085235141818898,
+        "memory_saving_ratio": 0.5204377770423889,
+        "compression_time_ms": 4748.534361521403,
+        "compressed_length_tokens": 3840
+      },
+      "8": {
+        "batch_size": 8,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default"
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 4294967296,
+        "compressed_kv_bytes": 2059704064,
+        "compression_ratio": 2.085235141818898,
+        "memory_saving_ratio": 0.5204377770423889,
+        "compression_time_ms": 5411.28945350647,
+        "compressed_length_tokens": 3840
+      }
+    },
+    "sparse_50_quant_2bit": {
+      "1": {
+        "batch_size": 1,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 536870912,
+        "compressed_kv_bytes": 165301524,
+        "compression_ratio": 3.247827963159009,
+        "memory_saving_ratio": 0.6921019181609154,
+        "compression_time_ms": 545.1787312825521,
+        "compressed_length_tokens": 3840
+      },
+      "2": {
+        "batch_size": 2,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 1073741824,
+        "compressed_kv_bytes": 330601712,
+        "compression_ratio": 3.247841088009853,
+        "memory_saving_ratio": 0.6921031624078751,
+        "compression_time_ms": 1078.4533818562825,
+        "compressed_length_tokens": 3840
+      },
+      "3": {
+        "batch_size": 3,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 8,
+          "quant_v_tile_config": 1,
+          "quant_v_decode_n1": false,
+          "auto_tuned": true,
+          "reason": "explicit-override@bs=3",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 1610612736,
+        "compressed_kv_bytes": 495904572,
+        "compression_ratio": 3.247827963159009,
+        "memory_saving_ratio": 0.6921019181609154,
+        "compression_time_ms": 1618.6671257019043,
+        "compressed_length_tokens": 3840
+      },
+      "4": {
+        "batch_size": 4,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 8,
+          "quant_v_tile_config": 1,
+          "quant_v_decode_n1": false,
+          "auto_tuned": true,
+          "reason": "explicit-override@bs=4",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 2147483648,
+        "compressed_kv_bytes": 661206096,
+        "compression_ratio": 3.247827963159009,
+        "memory_saving_ratio": 0.6921019181609154,
+        "compression_time_ms": 2121.9568252563477,
+        "compressed_length_tokens": 3840
+      },
+      "5": {
+        "batch_size": 5,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 2684354560,
+        "compressed_kv_bytes": 826507620,
+        "compression_ratio": 3.247827963159009,
+        "memory_saving_ratio": 0.6921019181609154,
+        "compression_time_ms": 2671.0970401763916,
+        "compressed_length_tokens": 3840
+      },
+      "6": {
+        "batch_size": 6,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 8,
+          "quant_v_tile_config": 1,
+          "quant_v_decode_n1": false,
+          "auto_tuned": true,
+          "reason": "explicit-override@bs=6",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 3221225472,
+        "compressed_kv_bytes": 991805136,
+        "compression_ratio": 3.247841088009853,
+        "memory_saving_ratio": 0.6921031624078751,
+        "compression_time_ms": 3201.7974058787026,
+        "compressed_length_tokens": 3840
+      },
+      "7": {
+        "batch_size": 7,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 8,
+          "quant_v_tile_config": 1,
+          "quant_v_decode_n1": false,
+          "auto_tuned": true,
+          "reason": "explicit-override@bs=7",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 3758096384,
+        "compressed_kv_bytes": 1157121980,
+        "compression_ratio": 3.2477962124615423,
+        "memory_saving_ratio": 0.6920989081263542,
+        "compression_time_ms": 3794.3188349405923,
+        "compressed_length_tokens": 3840
+      },
+      "8": {
+        "batch_size": 8,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 4294967296,
+        "compressed_kv_bytes": 1322425120,
+        "compression_ratio": 3.2477962124615423,
+        "memory_saving_ratio": 0.6920989081263542,
+        "compression_time_ms": 4317.879517873128,
+        "compressed_length_tokens": 3840
+      }
+    },
+    "sparse_70_quant_2bit": {
+      "1": {
+        "batch_size": 1,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 536870912,
+        "compressed_kv_bytes": 154172128,
+        "compression_ratio": 3.482282556286698,
+        "memory_saving_ratio": 0.7128320336341858,
+        "compression_time_ms": 552.8637568155924,
+        "compressed_length_tokens": 3840
+      },
+      "2": {
+        "batch_size": 2,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 0,
+          "quant_v_decode_n1": false,
+          "auto_tuned": false,
+          "reason": "yaml-default",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 1073741824,
+        "compressed_kv_bytes": 308344096,
+        "compression_ratio": 3.482284363245924,
+        "memory_saving_ratio": 0.7128321826457977,
+        "compression_time_ms": 976.0392506917318,
+        "compressed_length_tokens": 3840
+      },
+      "3": {
+        "batch_size": 3,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 8,
+          "quant_v_tile_config": 1,
+          "quant_v_decode_n1": false,
+          "auto_tuned": true,
+          "reason": "explicit-override@bs=3",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 1610612736,
+        "compressed_kv_bytes": 462516384,
+        "compression_ratio": 3.482282556286698,
+        "memory_saving_ratio": 0.7128320336341858,
+        "compression_time_ms": 1612.5202178955078,
+        "compressed_length_tokens": 3840
+      },
+      "4": {
+        "batch_size": 4,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 8,
+          "quant_v_tile_config": 1,
+          "quant_v_decode_n1": false,
+          "auto_tuned": true,
+          "reason": "explicit-override@bs=4",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 2147483648,
+        "compressed_kv_bytes": 616688512,
+        "compression_ratio": 3.482282556286698,
+        "memory_saving_ratio": 0.7128320336341858,
+        "compression_time_ms": 2125.584840774536,
+        "compressed_length_tokens": 3840
+      },
+      "5": {
+        "batch_size": 5,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 4,
+          "quant_v_tile_config": 1,
+          "quant_v_decode_n1": false,
+          "auto_tuned": true,
+          "reason": "explicit-override@bs=5",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 2684354560,
+        "compressed_kv_bytes": 770860640,
+        "compression_ratio": 3.482282556286698,
+        "memory_saving_ratio": 0.7128320336341858,
+        "compression_time_ms": 2662.116607030233,
+        "compressed_length_tokens": 3840
+      },
+      "6": {
+        "batch_size": 6,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 8,
+          "quant_v_tile_config": 1,
+          "quant_v_decode_n1": false,
+          "auto_tuned": true,
+          "reason": "explicit-override@bs=6",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 3221225472,
+        "compressed_kv_bytes": 925032288,
+        "compression_ratio": 3.482284363245924,
+        "memory_saving_ratio": 0.7128321826457977,
+        "compression_time_ms": 3193.0060386657715,
+        "compressed_length_tokens": 3840
+      },
+      "7": {
+        "batch_size": 7,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 8,
+          "quant_v_tile_config": 1,
+          "quant_v_decode_n1": false,
+          "auto_tuned": true,
+          "reason": "explicit-override@bs=7",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 3758096384,
+        "compressed_kv_bytes": 1079214444,
+        "compression_ratio": 3.482251747920453,
+        "memory_saving_ratio": 0.7128294929862022,
+        "compression_time_ms": 3761.345545450846,
+        "compressed_length_tokens": 3840
+      },
+      "8": {
+        "batch_size": 8,
+        "input_length": 4096,
+        "output_length": 256,
+        "quant_runtime_tuning": {
+          "quant_v_split_k": 8,
+          "quant_v_tile_config": 1,
+          "quant_v_decode_n1": false,
+          "auto_tuned": true,
+          "reason": "explicit-override@bs=8",
+          "updated_modules": 32
+        },
+        "layer_count": 32,
+        "original_kv_bytes": 4294967296,
+        "compressed_kv_bytes": 1233387936,
+        "compression_ratio": 3.482251747920453,
+        "memory_saving_ratio": 0.7128294929862022,
+        "compression_time_ms": 4293.180863062541,
+        "compressed_length_tokens": 3840
+      }
+    }
+  }
+}

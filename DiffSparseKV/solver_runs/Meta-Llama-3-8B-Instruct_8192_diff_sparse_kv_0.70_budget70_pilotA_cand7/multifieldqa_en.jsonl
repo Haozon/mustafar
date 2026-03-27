@@ -1,0 +1,10 @@
+{"pred": "90 μg", "answers": ["90 μg for women and 120 μg for men."], "all_classes": null, "length": 7142}
+{"pred": "Flexibility", "answers": ["Flexibility."], "all_classes": null, "length": 7565}
+{"pred": "Develop a robust and flexible research infrastructure to conduct a large-scale cross-sectional study.", "answers": ["Verifying other meta-information such as patient's gender, age, race, etc."], "all_classes": null, "length": 2947}
+{"pred": "February 15, 2010", "answers": ["KSTP switched to a sports radio format on February 15, 2010."], "all_classes": null, "length": 1810}
+{"pred": "Spanish BERT base", "answers": ["The best performing model for the Spanish language in Track-1 was Spanish BERT."], "all_classes": null, "length": 2409}
+{"pred": "XLM-RoBERTa, BERT, RoBERTa, ELECTRA, GPT-2", "answers": ["BERT, RoBERTa, ELECTRA, GPT-2, and XLM-RoBERTa."], "all_classes": null, "length": 2397}
+{"pred": "October 2001", "answers": ["October 2001."], "all_classes": null, "length": 3590}
+{"pred": "$\\Gamma_e = \\frac{e^2}{4\\pi \\epsilon_0 a_{ws}}\\frac{1}{k_B T_e}$", "answers": ["It is the ratio of the average unscreened electron-electron potential energy to kinetic energy."], "all_classes": null, "length": 5086}
+{"pred": "Open-shell and closed-shell states.", "answers": ["Open-shell π-diradical state and closed-shell state with a para-quinodimethane moiety."], "all_classes": null, "length": 5514}
+{"pred": "Romance novels", "answers": ["Romance novels and women's fiction."], "all_classes": null, "length": 1193}

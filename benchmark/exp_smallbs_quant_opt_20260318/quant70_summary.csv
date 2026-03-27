@@ -1,0 +1,9 @@
+config,batch_size,status,ttft_ms,tpot_ms,total_ms,peak_gb,batch_ms,throughput_tps,log_file
+sparse70_quant2bit_opt,1,ok,,,,18.08,10950.51,23.38,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+sparse70_quant2bit_opt,2,ok,,,,21.19,12084.61,42.37,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+sparse70_quant2bit_opt,3,ok,,,,24.31,13285.76,57.81,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+sparse70_quant2bit_opt,4,ok,,,,27.44,15418.00,66.42,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+sparse70_quant2bit_opt,5,ok,,,,30.58,17247.10,74.22,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+sparse70_quant2bit_opt,6,ok,,,,33.68,19108.93,80.38,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+sparse70_quant2bit_opt,7,ok,,,,36.80,21316.96,84.06,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+sparse70_quant2bit_opt,8,ok,,,,39.89,23506.58,87.12,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json

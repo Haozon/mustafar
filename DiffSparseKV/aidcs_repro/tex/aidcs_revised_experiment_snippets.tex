@@ -1,0 +1,111 @@
+% Auto-generated revision notes for the AIDCS chapter.
+% These snippets are intended to replace the most fragile empirical claims.
+
+\subsection{Transformer模型的输入特征稀疏性}
+
+为验证不同类型全连接层对输入激活稀疏化的敏感性，我们在 \texttt{Llama2-7B}
+上进行了离线复现实验。实验直接对线性层输入激活施加逐向量 TopK 稀疏，
+分别考察 Attention 中的 \texttt{qkv}、\texttt{o\_proj} 以及 MLP 中的
+\texttt{up/gate}、\texttt{down} 四类位置。评测使用 WikiText-2
+validation 集和本地缓存的 RedPajama English sample，各取 8 个样本，
+最大长度设为 256 token。表~\ref{tab:ppl-k-repro} 给出了困惑度结果。
+
+\begin{table}[t]
+\scriptsize
+\centering
+\caption{Llama2-7B 在不同层类型施加输入 TopK 稀疏时的困惑度（真实复现实验）}
+\label{tab:ppl-k-repro}
+\begin{tabular}{c|cccccccc}
+\toprule
+\makecell{Sparsity \\ \(\diagdown\) Type-Dataset} & qkv-wkt2 & qkv-rp & out-wkt2 & out-rp & up-wkt2 & up-rp & down-wkt2 & down-rp \\
+\midrule
+\textbf{baseline} & 6.879 & 6.725 & 6.879 & 6.725 & 6.879 & 6.725 & 6.879 & 6.725 \\
+40\% & 7.013 & 6.796 & 6.927 & 6.743 & 7.007 & 6.900 & 6.925 & 6.741 \\
+50\% & 7.192 & 6.933 & 6.958 & 6.762 & 7.602 & 7.298 & 6.931 & 6.775 \\
+55\% & 7.414 & 7.072 & 6.989 & 6.773 & 8.034 & 7.592 & 6.974 & 6.786 \\
+60\% & 7.751 & 7.315 & 7.031 & 6.796 & 8.709 & 8.276 & 6.965 & 6.821 \\
+65\% & 8.350 & 7.798 & 7.094 & 6.823 & 10.595 & 9.880 & 7.069 & 6.866 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+从表~\ref{tab:ppl-k-repro} 可以看到，不同层类型对输入激活稀疏化的敏感性差异显著，
+且真实趋势与原始草稿中的定量结论并不一致。总体上，\texttt{qkv} 与
+\texttt{up/gate} 是最敏感的两类层：在 WikiText-2 上，仅施加 40\% 稀疏时，
+\texttt{qkv} 的困惑度已上升约 1.95\%，\texttt{up/gate} 则上升约 1.86\%。
+相比之下，\texttt{o\_proj} 与 \texttt{down\_proj} 更为稳健，在两组数据上
+分别可承受约 40\%--55\% 的稀疏度而将困惑度上升控制在 1\% 左右。
+
+因此，更稳妥的结论应表述为：\emph{Transformer 全连接层输入确实存在可利用的
+冗余，但“保留 50\% 特征几乎不影响性能”并不是对所有层类型都成立的统一规律。}
+更准确的现象是，输出投影类层（尤其 \texttt{o\_proj} 与 \texttt{down\_proj}）
+对输入激活稀疏更为鲁棒，而输入投影类层（尤其 \texttt{qkv} 与 \texttt{up/gate}）
+对该类稀疏化更敏感。
+
+\subsubsection{跨数据集稳定性分析与阈值分布特性}
+
+为分析阈值分布在不同数据集之间的稳定性，我们进一步在 7 个本地可离线复现的数据集上
+统计了第 0、10、20 层 \texttt{qkv} 输入激活在 50\% 稀疏目标下对应的阈值分布。
+这些数据集包括 WikiText-2、GSM8K、Qasper、MultiFieldQA-English、NarrativeQA、
+HotpotQA 和 MuSiQue。实验总计统计了 3780 个 token 向量。
+
+\begin{table}[t]
+\centering
+\caption{不同层 qkv 输入阈值在 7 个数据集上的跨数据集稳定性摘要}
+\label{tab:threshold-stability-repro}
+\begin{tabular}{lccc}
+\toprule
+层号 & 中位数范围 & 中位数变异系数 & 均值范围 \\
+\midrule
+0  & 0.00568--0.00637 & 3.37\% & 0.00514--0.00581 \\
+10 & 0.20575--0.21649 & 1.83\% & 0.20044--0.21055 \\
+20 & 0.27344--0.28223 & 0.99\% & 0.26712--0.27552 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+表~\ref{tab:threshold-stability-repro} 表明，不同层的阈值尺度明显不同：浅层阈值
+整体更小，而中深层阈值明显更高。更重要的是，跨数据集的中位数波动随层数加深而减小，
+说明中深层的阈值统计量在不同数据分布之间更稳定。需要指出的是，这一结论主要体现在
+数据集间的\emph{统计量稳定性}上，而不是意味着每层内部的阈值分布没有长尾或离群值。
+因此，更合理的表述应为：\emph{中深层阈值的跨数据集中位数较稳定，适合作为全局阈值
+方法的经验依据，但仍需保留对长尾 token 的保护机制。}
+
+\subsection{注意力感知的大激活词元保护机制}
+
+为了验证大激活词元是否具有更强的自关注特征，我们基于 \texttt{Llama2-7B}
+在 GSM8K 上做了一个可复现的小规模统计实验。实验共使用 12 个测试样本，
+总计覆盖 2032 个 token。仍采用 \(\max_j |h^l_{i,j}| \ge 100\) 作为大激活词元的判据，
+并统计 Massive token 与普通 token 的平均自注意力对角值。
+
+\begin{table}[t]
+\centering
+\caption{GSM8K 上大激活词元与普通词元的自注意力对角值对比（真实复现实验）}
+\label{tab:gsm8k_diag_repro}
+\begin{tabular}{lcccc}
+\toprule
+层 & Massive 比例 & Massive 对角均值 & Normal 对角均值 & 分离倍率 \\
+\midrule
+2  & 1.18\% & 0.5680 & 0.0142 & 39.93$\times$ \\
+3  & 1.18\% & 0.6183 & 0.0101 & 61.50$\times$ \\
+4  & 1.18\% & 0.6686 & 0.0151 & 44.42$\times$ \\
+10 & 1.18\% & 0.6838 & 0.0437 & 15.66$\times$ \\
+20 & 1.18\% & 0.7129 & 0.0273 & 26.08$\times$ \\
+31 & 1.28\% & 0.5190 & 0.0650 & 7.98$\times$ \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+表~\ref{tab:gsm8k_diag_repro} 表明，大激活词元在多个层上的自注意力对角值均显著高于
+普通词元，并且这一差异从前层一直延续到后层。与原始草稿中的表格不同，
+这里直接给出 Massive token 与普通 token 的对角均值以及分离倍率，
+从而避免“前一层/当前层/提升比例”定义不清导致的数值矛盾。
+
+此外，复现实验得到的大激活词元比例约为 1.18\%--1.28\%，明显高于原始草稿中
+“0.4\%--0.6\%”的说法。这说明保护机制带来的真实稀疏度回退幅度应按
+约 1\% 量级来估计，而不能继续沿用更小的经验数字。
+
+% Revision note:
+% The current multi-model PPL table, downstream task table, and performance section
+% have not yet been reproduced from available code and should be treated as pending.
+

@@ -1,0 +1,29 @@
+{
+  "input_files": {
+    "formal_csv": "DiffSparseKV/aidcs_repro/results/threshold_stability_formal/threshold_stability.csv",
+    "formal_raw_values": "DiffSparseKV/aidcs_repro/results/threshold_stability_formal/threshold_stability_raw_values.json",
+    "formal_json": "DiffSparseKV/aidcs_repro/results/threshold_stability_formal/threshold_stability.json"
+  },
+  "generated_figures": [
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/figures/cross_dataset_threshold_overview.pdf",
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/figures/cross_dataset_threshold_overview.png",
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/figures/cross_dataset_threshold_profiles.pdf",
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/figures/cross_dataset_threshold_profiles.png"
+  ],
+  "generated_paper_main": [
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/paper_main/paper_fig1_cross_dataset_boxplots.pdf",
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/paper_main/paper_fig1_cross_dataset_boxplots.png",
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/paper_main/paper_fig2_cross_dataset_profiles.pdf",
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/paper_main/paper_fig2_cross_dataset_profiles.png"
+  ],
+  "generated_tables": [
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/tables/cross_dataset_medians_by_layer.csv",
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/tables/cross_dataset_medians_by_layer.tex",
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/tables/cross_dataset_stability_summary.csv",
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/tables/cross_dataset_stability_summary.tex"
+  ],
+  "generated_text": [
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/text/cross_dataset_captions.md",
+    "DiffSparseKV/AttnScoreThreshold/outputs_cross_dataset/text/cross_dataset_summary.md"
+  ]
+}

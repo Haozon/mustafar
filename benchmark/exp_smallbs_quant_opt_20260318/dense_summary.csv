@@ -1,0 +1,9 @@
+config,batch_size,status,ttft_ms,tpot_ms,total_ms,peak_gb,batch_ms,throughput_tps,log_file
+dense,1,ok,,,,18.43,8966.39,28.55,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+dense,2,ok,,,,21.90,12861.74,39.81,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+dense,3,ok,,,,25.37,15624.15,49.15,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+dense,4,ok,,,,28.83,18340.35,55.83,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+dense,5,ok,,,,32.30,22585.52,56.67,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+dense,6,ok,,,,35.77,27036.90,56.81,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+dense,7,ok,,,,39.23,30021.33,59.69,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json
+dense,8,ok,,,,42.70,32612.09,62.80,/mnt/home/zh/mustafar/benchmark/exp_smallbs_quant_opt_20260318/llama3_8b_results.json

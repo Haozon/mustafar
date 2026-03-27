@@ -1,0 +1,67 @@
+{
+  "model_path": "/home/zh/model/Meta-Llama-3-8B-Instruct",
+  "target_budget": 0.7,
+  "calib_datasets": [
+    "narrativeqa",
+    "qasper",
+    "multifieldqa_en"
+  ],
+  "calib_limit": 10,
+  "calib_seed": 42,
+  "val_datasets": [
+    "narrativeqa",
+    "qasper",
+    "multifieldqa_en",
+    "hotpotqa",
+    "trec",
+    "lcc"
+  ],
+  "val_limit": 30,
+  "val_seed": 42,
+  "importance_mode": "value_aware",
+  "head_aggregation_mode": "max",
+  "value_sink_keep": 2,
+  "uniform_calibration": {
+    "multifieldqa_en": 50.75,
+    "narrativeqa": 25.67,
+    "qasper": 50.83,
+    "average": 42.42
+  },
+  "best_candidate": {
+    "p0": 0.05,
+    "p1": 0.750075,
+    "p2": 0.199925,
+    "rho1": 0.6667,
+    "target_budget": 0.7
+  },
+  "best_candidate_calibration": {
+    "multifieldqa_en": 50.75,
+    "narrativeqa": 28.52,
+    "qasper": 53.01,
+    "average": 44.09
+  },
+  "uniform_validation": {
+    "lcc": 49.47,
+    "multifieldqa_en": 40.58,
+    "trec": 60.0,
+    "narrativeqa": 30.65,
+    "hotpotqa": 51.24,
+    "qasper": 43.23,
+    "average": 45.86
+  },
+  "best_candidate_validation": {
+    "lcc": 47.43,
+    "multifieldqa_en": 42.21,
+    "trec": 63.33,
+    "narrativeqa": 30.79,
+    "hotpotqa": 51.24,
+    "qasper": 43.26,
+    "average": 46.38
+  },
+  "calibration_delta_vs_uniform": 1.6700000000000017,
+  "validation_delta_vs_uniform": 0.5200000000000031,
+  "search_csv": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/budget70_pilotA_calibration_results.csv",
+  "uniform_calibration_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_uniform_0.70_budget70_pilotA_uniform_calib",
+  "uniform_validation_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_uniform_0.70_budget70_pilotA_uniform_val",
+  "diff_validation_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_budget70_pilotA_bestdiff_val"
+}

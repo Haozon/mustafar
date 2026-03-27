@@ -80,10 +80,9 @@ class LlamaDiffSparseKVAttention(nn.Module):
         self.head_aggregation_mode = getattr(config, 'head_aggregation_mode', 'mean')
         self.head_aggregation_alpha = getattr(config, 'head_aggregation_alpha', 0.5)
         self.head_disagreement_ratio = getattr(config, 'head_disagreement_ratio', -1.0)
-<<<<<<< HEAD
         self.selector_mode = getattr(config, 'selector_mode', 'diffsparse')
-=======
->>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
+        self.protected_heavy_ratio = getattr(config, 'protected_heavy_ratio', 0.0)
+        self.protected_recent_ratio = getattr(config, 'protected_recent_ratio', 1.0)
         
         # Validate observation window size
         if self.obs_window_size < self.window_size:
@@ -231,6 +230,108 @@ class LlamaDiffSparseKVAttention(nn.Module):
         
         return attn_weights_kv
 
+    def _aggregate_head_scores(self, scores: torch.Tensor) -> torch.Tensor:
+        """Aggregate per-head token scores into one token score per batch item."""
+        mean_scores = scores.mean(dim=1)
+        max_scores = scores.max(dim=1).values
+        if self.head_aggregation_mode == "mean":
+            aggregated = mean_scores
+        elif self.head_aggregation_mode == "max":
+            aggregated = max_scores
+        elif self.head_aggregation_mode == "hybrid":
+            alpha = self.head_aggregation_alpha
+            aggregated = alpha * mean_scores + (1.0 - alpha) * max_scores
+        elif self.head_aggregation_mode == "top2_mean":
+            topk = min(2, scores.shape[1])
+            aggregated = scores.topk(topk, dim=1).values.mean(dim=1)
+        else:
+            raise ValueError(f"Unsupported head_aggregation_mode: {self.head_aggregation_mode}")
+
+        if self.head_disagreement_ratio >= 0.0:
+            peak_ratio = max_scores / mean_scores.clamp_min(1e-6)
+            aggregated = torch.where(
+                peak_ratio >= self.head_disagreement_ratio,
+                max_scores,
+                aggregated,
+            )
+        return aggregated
+
+    def _solve_level_counts(self, num_tokens: int, target_budget: float) -> List[int]:
+        """
+        Solve a small discrete allocation problem for one window.
+        Returns counts per sparsity level whose weighted sum matches the target
+        budget as closely as possible.
+        """
+        levels = list(self.sparsity_levels)
+        target_proportions = list(self.target_distribution)
+        best_counts = None
+        best_error = float("inf")
+        best_tiebreak = float("inf")
+
+        def dfs(level_idx: int, remaining_tokens: int, current_counts: List[int], current_budget: float):
+            nonlocal best_counts, best_error, best_tiebreak
+            if level_idx == len(levels) - 1:
+                counts = current_counts + [remaining_tokens]
+                budget = current_budget + remaining_tokens * levels[level_idx]
+                error = abs(budget - target_budget)
+                target_counts = [p * num_tokens for p in target_proportions]
+                tiebreak = sum(abs(c - tc) for c, tc in zip(counts, target_counts))
+                if error < best_error - 1e-9 or (
+                    abs(error - best_error) <= 1e-9 and tiebreak < best_tiebreak
+                ):
+                    best_counts = counts
+                    best_error = error
+                    best_tiebreak = tiebreak
+                return
+
+            for count in range(remaining_tokens + 1):
+                dfs(
+                    level_idx + 1,
+                    remaining_tokens - count,
+                    current_counts + [count],
+                    current_budget + count * levels[level_idx],
+                )
+
+        dfs(0, num_tokens, [], 0.0)
+        return best_counts if best_counts is not None else [num_tokens] + [0] * (len(levels) - 1)
+
+    def _build_budgeted_levels(
+        self,
+        aggregated_scores: torch.Tensor,
+        protected_mask: torch.Tensor,
+        target_avg_sparsity: float,
+    ) -> torch.Tensor:
+        """
+        Build token level assignments under an exact average sparsity budget.
+        Protected tokens are forced into level 0 and excluded from the budget
+        allocation over the remaining tokens.
+        """
+        B, T = aggregated_scores.shape
+        device = aggregated_scores.device
+        highest_level = len(self.sparsity_levels) - 1
+        levels = torch.full((B, T), highest_level, dtype=torch.long, device=device)
+
+        for b in range(B):
+            levels[b, protected_mask[b]] = 0
+            remaining_indices = torch.nonzero(~protected_mask[b], as_tuple=False).squeeze(-1)
+            remaining_count = remaining_indices.numel()
+            if remaining_count == 0:
+                continue
+
+            target_budget = target_avg_sparsity * T
+            counts = self._solve_level_counts(remaining_count, target_budget)
+            sorted_remaining = remaining_indices[torch.argsort(aggregated_scores[b, remaining_indices], descending=True)]
+
+            start = 0
+            for level_idx, count in enumerate(counts):
+                if count <= 0:
+                    continue
+                chunk = sorted_remaining[start : start + count]
+                levels[b, chunk] = level_idx
+                start += count
+
+        return levels
+
     def initialize_dual_window_after_prefill(self, prefill_keys: torch.Tensor, prefill_values: torch.Tensor):
         """
         Initialize dual-window state after prefill stage.
@@ -277,6 +378,16 @@ class LlamaDiffSparseKVAttention(nn.Module):
         window_b_keys = None
         window_b_values = None
         window_b_size = 0
+        compressed_indices = (
+            torch.arange(0, max(0, N - W), device=prefill_keys.device, dtype=torch.long)
+            if N >= W else torch.empty(0, device=prefill_keys.device, dtype=torch.long)
+        )
+        window_a_indices = (
+            torch.arange(max(0, N - W), N, device=prefill_keys.device, dtype=torch.long)
+            if N > 0 else torch.empty(0, device=prefill_keys.device, dtype=torch.long)
+        )
+        window_b_indices = torch.empty(0, device=prefill_keys.device, dtype=torch.long)
+        protected_indices = torch.empty(0, device=prefill_keys.device, dtype=torch.long)
         
         # Initialize accumulators (note: H_kv, not num_heads)
         accumulator = torch.zeros(B, H_kv, W, device=prefill_keys.device, dtype=torch.float32)
@@ -292,6 +403,10 @@ class LlamaDiffSparseKVAttention(nn.Module):
             'window_b_keys': window_b_keys,
             'window_b_values': window_b_values,
             'window_b_size': window_b_size,
+            'compressed_indices': compressed_indices,
+            'window_a_indices': window_a_indices,
+            'window_b_indices': window_b_indices,
+            'protected_indices': protected_indices,
             'accumulator': accumulator,
             'token_observation_count': token_observation_count
         }
@@ -346,20 +461,62 @@ class LlamaDiffSparseKVAttention(nn.Module):
                 print(f"  Max: {normalized_attention.max().item():.6f}")
                 print(f"  Mean: {normalized_attention.mean().item():.6f}")
             
-            # 2. Check thresholds
+            # 2. Aggregate scores across heads. This keeps decode-time token
+            # ranking consistent with the shared token-exit assumption.
+            normalized_attention_aggregated = self._aggregate_head_scores(normalized_attention)
+
+            # 3. Check thresholds
             if not self.thresholds_computed or self.diff_sparse_thresholds is None:
                 raise RuntimeError("Thresholds not computed. Must run prefill first.")
             
+            protected_mask = torch.zeros_like(normalized_attention_aggregated, dtype=torch.bool)
+            if self.protected_heavy_ratio > 0.0:
+                protected_count = min(
+                    W,
+                    max(1, int(round(self.protected_heavy_ratio * W)))
+                )
+                if protected_count > 0:
+                    protected_idx = torch.topk(
+                        normalized_attention_aggregated,
+                        k=protected_count,
+                        dim=-1,
+                        largest=True,
+                    ).indices
+                    max_value = normalized_attention_aggregated.max(dim=-1, keepdim=True).values + 1.0
+                    normalized_attention_aggregated.scatter_(
+                        -1,
+                        protected_idx,
+                        max_value.expand(-1, protected_idx.shape[-1]),
+                    )
+                    protected_mask.scatter_(1, protected_idx, True)
+                    ws['protected_indices'] = torch.unique(
+                        ws['window_a_indices'][protected_idx[0]].to(ws['window_a_indices'].dtype),
+                        sorted=True,
+                    )
+
             if DEBUG:
                 print(f"Using thresholds: {self.diff_sparse_thresholds}")
-            
-            # 3. Apply sparsification
-            compressed_keys, compressed_values = self.sparsity_applier.classify_and_apply_sparsity(
-                importance_scores=normalized_attention,
-                key_states=ws['window_a_keys'],
-                value_states=ws['window_a_values'],
-                thresholds=self.diff_sparse_thresholds
-            )
+
+            if self.protected_heavy_ratio > 0.0:
+                level_assignments = self._build_budgeted_levels(
+                    aggregated_scores=normalized_attention_aggregated,
+                    protected_mask=protected_mask,
+                    target_avg_sparsity=self.config.expected_sparsity,
+                )
+                expanded_levels = level_assignments.unsqueeze(1).expand(-1, normalized_attention.shape[1], -1)
+                compressed_keys, compressed_values = self.sparsity_applier.apply_preclassified_sparsity(
+                    level_assignments=expanded_levels,
+                    key_states=ws['window_a_keys'],
+                    value_states=ws['window_a_values'],
+                )
+            else:
+                normalized_attention = normalized_attention_aggregated.unsqueeze(1).expand_as(normalized_attention)
+                compressed_keys, compressed_values = self.sparsity_applier.classify_and_apply_sparsity(
+                    importance_scores=normalized_attention,
+                    key_states=ws['window_a_keys'],
+                    value_states=ws['window_a_values'],
+                    thresholds=self.diff_sparse_thresholds
+                )
             
             if DEBUG:
                 k_sparsity = self.calculate_sparsity(compressed_keys)
@@ -370,6 +527,7 @@ class LlamaDiffSparseKVAttention(nn.Module):
             if ws['compressed_keys'] is None:
                 ws['compressed_keys'] = compressed_keys
                 ws['compressed_values'] = compressed_values
+                ws['compressed_indices'] = ws['window_a_indices'].clone()
             else:
                 ws['compressed_keys'] = torch.cat([
                     ws['compressed_keys'], compressed_keys
@@ -377,6 +535,9 @@ class LlamaDiffSparseKVAttention(nn.Module):
                 ws['compressed_values'] = torch.cat([
                     ws['compressed_values'], compressed_values
                 ], dim=2)
+                ws['compressed_indices'] = torch.cat([
+                    ws['compressed_indices'], ws['window_a_indices']
+                ], dim=0)
             
             if DEBUG:
                 total_compressed = ws['compressed_keys'].shape[2]
@@ -386,12 +547,14 @@ class LlamaDiffSparseKVAttention(nn.Module):
         ws['window_a_keys'] = ws['window_b_keys']
         ws['window_a_values'] = ws['window_b_values']
         ws['window_a_size'] = ws['window_b_size']
+        ws['window_a_indices'] = ws['window_b_indices']
         
         # 6. Reset Window B
         ws['window_b_keys'] = None
         ws['window_b_values'] = None
         ws['window_b_size'] = 0
-        
+        ws['window_b_indices'] = ws['window_b_indices'].new_empty((0,), dtype=torch.long)
+
         # 7. Reset accumulators
         ws['accumulator'].zero_()
         ws['token_observation_count'].zero_()
@@ -441,6 +604,8 @@ class LlamaDiffSparseKVAttention(nn.Module):
                 ws['window_a_keys'] = torch.cat([ws['window_a_keys'], new_key], dim=2)
                 ws['window_a_values'] = torch.cat([ws['window_a_values'], new_value], dim=2)
             ws['window_a_size'] += 1
+            new_index = torch.tensor([self.current_sequence_length], device=new_key.device, dtype=torch.long)
+            ws['window_a_indices'] = torch.cat([ws['window_a_indices'], new_index], dim=0)
             
             if DEBUG:
                 print(f"Added to Window A (filling), new size: {ws['window_a_size']}/{W}")
@@ -453,6 +618,8 @@ class LlamaDiffSparseKVAttention(nn.Module):
                 ws['window_b_keys'] = torch.cat([ws['window_b_keys'], new_key], dim=2)
                 ws['window_b_values'] = torch.cat([ws['window_b_values'], new_value], dim=2)
             ws['window_b_size'] += 1
+            new_index = torch.tensor([self.current_sequence_length], device=new_key.device, dtype=torch.long)
+            ws['window_b_indices'] = torch.cat([ws['window_b_indices'], new_index], dim=0)
             
             if DEBUG:
                 print(f"Added to Window B, new size: {ws['window_b_size']}/{W}")
@@ -481,6 +648,18 @@ class LlamaDiffSparseKVAttention(nn.Module):
         
         # Apply mask (usually None in decode)
         if attention_mask is not None:
+            mask_seq_len = attention_mask.shape[-1]
+            if mask_seq_len != full_keys.shape[2]:
+                if mask_seq_len < full_keys.shape[2]:
+                    pad_size = full_keys.shape[2] - mask_seq_len
+                    pad_mask = torch.zeros(
+                        attention_mask.shape[:-1] + (pad_size,),
+                        dtype=attention_mask.dtype,
+                        device=attention_mask.device,
+                    )
+                    attention_mask = torch.cat([attention_mask, pad_mask], dim=-1)
+                else:
+                    attention_mask = attention_mask[..., : full_keys.shape[2]]
             attn_weights = attn_weights + attention_mask
             attn_weights = torch.max(
                 attn_weights,
@@ -606,9 +785,14 @@ class LlamaDiffSparseKVAttention(nn.Module):
             if DEBUG:
                 print(f"=== DECODE STAGE (step {self.generation_count + 1}) ===")
             self.generation_count += 1
-            attn_output, attn_weights, past_key_value = self._decode_with_diff_sparse(
-                query_states, key_states, value_states, attention_mask, past_key_value
-            )
+            if self.protected_heavy_ratio > 0.0:
+                attn_output, attn_weights, past_key_value = self._decode_with_diff_sparse_ORIGINAL(
+                    query_states, key_states, value_states, attention_mask, past_key_value
+                )
+            else:
+                attn_output, attn_weights, past_key_value = self._decode_with_diff_sparse(
+                    query_states, key_states, value_states, attention_mask, past_key_value
+                )
         
         # Reshape output
         attn_output = attn_output.transpose(1, 2).contiguous()
@@ -746,33 +930,11 @@ class LlamaDiffSparseKVAttention(nn.Module):
                 importance_scores_per_head[..., :sink_keep] = max_scores + 1.0
         
         # 3.5. Aggregate importance scores across heads.
-        mean_scores = importance_scores_per_head.mean(dim=1)
-        max_scores = importance_scores_per_head.max(dim=1).values
-        if self.head_aggregation_mode == "mean":
-            importance_scores_aggregated = mean_scores
-        elif self.head_aggregation_mode == "max":
-            importance_scores_aggregated = max_scores
-        elif self.head_aggregation_mode == "hybrid":
-            alpha = self.head_aggregation_alpha
-            importance_scores_aggregated = alpha * mean_scores + (1.0 - alpha) * max_scores
-        elif self.head_aggregation_mode == "top2_mean":
-            topk = min(2, importance_scores_per_head.shape[1])
-            importance_scores_aggregated = importance_scores_per_head.topk(topk, dim=1).values.mean(dim=1)
-        else:
-            raise ValueError(f"Unsupported head_aggregation_mode: {self.head_aggregation_mode}")
-        
-        if self.head_disagreement_ratio >= 0.0:
-            peak_ratio = max_scores / mean_scores.clamp_min(1e-6)
-            importance_scores_aggregated = torch.where(
-                peak_ratio >= self.head_disagreement_ratio,
-                max_scores,
-                importance_scores_aggregated,
-            )
+        importance_scores_aggregated = self._aggregate_head_scores(importance_scores_per_head)
         
         # Expand aggregated scores back to [B, H_kv, seq_len] for compatibility
         importance_scores = importance_scores_aggregated.unsqueeze(1).expand_as(importance_scores_per_head)
         
-<<<<<<< HEAD
         if self.selector_mode == "snapkv":
             return self._prefill_with_snapkv(
                 attn_output=attn_output,
@@ -781,9 +943,6 @@ class LlamaDiffSparseKVAttention(nn.Module):
                 importance_scores=importance_scores_aggregated,
                 kv_seq_len=kv_seq_len,
             )
-
-=======
->>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
         # 4. Compute per-layer thresholds (based on aggregated importance)
         thresholds = self.threshold_manager.compute_per_layer_thresholds(
             importance_scores_aggregated.unsqueeze(1)  # [B, 1, seq_len] - treat as single head
@@ -863,7 +1022,6 @@ class LlamaDiffSparseKVAttention(nn.Module):
         
         return attn_output, None, past_key_value
 
-<<<<<<< HEAD
     def _prefill_with_snapkv(
         self,
         attn_output: torch.Tensor,
@@ -913,9 +1071,6 @@ class LlamaDiffSparseKVAttention(nn.Module):
             print(f"  actual kept: {key_states_full.shape[2]}")
 
         return attn_output, None, past_key_value
-
-=======
->>>>>>> 34ec9a82045fc18a280c40b67c4a795e4b92dafe
     def _decode_with_diff_sparse(
         self,
         query_states: torch.Tensor,

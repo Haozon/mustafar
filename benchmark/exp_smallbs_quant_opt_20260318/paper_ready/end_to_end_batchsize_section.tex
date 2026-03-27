@@ -1,0 +1,72 @@
+\subsubsection{面向小 Batch 场景的量化路径优化}
+
+为了重新验证量化路径在小 batch 区间的真实收益，本文针对 `input=4096, output=256` 的长上下文生成设置，使用隔离式 batch-size runner 对五组配置进行了重跑：对每个 `BS` 单独加载模型，并以 `3` 次重复测量吞吐量。量化路径仍沿用当前的定向运行时调优策略，即在两条 2bit 路径上启用 `quant_k_use_meta=true`，并按 batch size 对 `quant_v_split_k` 与 `quant_v_tile_config` 做运行时覆写；其中 `Sparse50+2bit` 在 `BS=3,4,6,7` 使用 `split_k=8 + tile64`，`Sparse70+2bit` 在 `BS=3,4,6,7,8` 使用 `split_k=8 + tile64`、在 `BS=5` 使用 `split_k=4 + tile64`。实验中仍未纳入 `quant_v_decode_n1=True`，因为此前验证表明其在当前设置下带来稳定负收益。
+
+实验结果如表~\ref{tab:smallbs-quant-opt-throughput} 与图~\ref{fig:smallbs-quant-opt-throughput} 所示。与早先归档结果相比，本轮重跑采用了更严格的测量口径，因此数值趋势也更加平滑。整体来看，量化路径并没有在 `BS=1..8` 的全区间持续统治，而是呈现出“在小到中等 batch 区间最有优势、在更大 batch 下被 sparse-only 重新追平甚至反超”的特征。
+
+从左图可以看到，在 `BS=1` 时 Dense 仍然是最优配置，吞吐量为 `28.55` tokens/s；但从 `BS=2` 开始，`Sparse50+2bit` 已明显超过 Dense 和 `Sparse50`，在 `BS=2` 时达到 `42.76` tokens/s，在 `BS=4` 时达到 `64.70` tokens/s。与此同时，`Sparse50+2bit` 相对 `Sparse50` 的优势主要集中在 `BS=1..5`：例如在 `BS=5` 时前者为 `72.02` tokens/s，而后者为 `66.93` tokens/s。然而随着 batch size 继续增大，这一优势开始收敛；在 `BS=6` 时两者已经基本持平，到了 `BS=7` 和 `BS=8`，`Sparse50` 分别以 `86.52` 和 `94.51` tokens/s 重新超过 `Sparse50+2bit` 的 `80.47` 和 `86.98` tokens/s。
+
+从右图可以看到，`Sparse70+2bit` 的表现比 `Sparse50+2bit` 更稳定。在 `BS=2` 时其吞吐量为 `42.37` tokens/s，已高于 Dense 的 `39.81` tokens/s 和 `Sparse70` 的 `30.56` tokens/s；在 `BS=3` 到 `BS=6` 的区间内，`Sparse70+2bit` 进一步成为整体最优配置，吞吐量分别达到 `57.81`、`66.42`、`74.22` 和 `80.38` tokens/s。即便在 `BS=7` 时，`Sparse70+2bit` 仍略高于 `Sparse70`。不过在 `BS=8` 时，`Sparse70` 以 `96.43` tokens/s 重新超过 `Sparse70+2bit` 的 `87.12` tokens/s，说明在更大 batch 条件下，sparse-only 路径的吞吐扩展能力开始抵消量化带来的额外收益。
+
+因此，这组重跑结果表明，当前的小 batch 定向优化确实显著提升了量化路径在 `BS=2..6` 区间内的竞争力，但其收益并非在 `BS=1..8` 的全区间单调扩大。更准确的结论是：量化路径在小到中等 batch size 上更容易释放 KV Cache 压缩带来的访存优势，而在更大 batch 下，quant/dequant、元数据访问以及额外布局管理带来的开销也会被放大，从而使 sparse-only 路径重新取得优势。换言之，`quant_k_use_meta=true` 与 runtime split-k/tile 调优已经足以将量化方法推到“`BS=2..6` 局部最优”的状态，但尚不足以保证其在更大 batch 区间持续优于高效的 sparse-only 实现。
+
+需要说明的是，本节结果仍然是在共享状态下的 `NVIDIA A100 80GB PCIe` 上获得，因此更适合作为论文草稿中的预实验材料；正式定稿时，仍建议在独占 GPU 条件下按相同配置复测并替换最终数值。
+
+\begin{table}[t]
+    \centering
+    \caption{Llama-3 8B 在不同 batch size 下的五线吞吐量对比（量化路径采用小 batch 定向优化，input=4096, output=256）}
+    \label{tab:smallbs-quant-opt-throughput}
+    \begin{tabular}{cccccc}
+        \toprule
+        Batch Size & Dense & Sparse50 & Sparse70 & Sparse50+2bit & Sparse70+2bit \\
+        \midrule
+        1 & 28.55 & 17.16 & 16.84 & 23.24 & 23.38 \\
+        2 & 39.81 & 31.75 & 30.56 & 42.76 & 42.37 \\
+        3 & 49.15 & 45.15 & 46.18 & 55.45 & 57.81 \\
+        4 & 55.83 & 53.80 & 57.63 & 64.70 & 66.42 \\
+        5 & 56.67 & 66.93 & 65.96 & 72.02 & 74.22 \\
+        6 & 56.81 & 77.17 & 78.01 & 76.80 & 80.38 \\
+        7 & 59.69 & 86.52 & 83.53 & 80.47 & 84.06 \\
+        8 & 62.80 & 94.51 & 96.43 & 86.98 & 87.12 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{table}[t]
+    \centering
+    \caption{优化后量化路径在小 batch 区间的代表性表现}
+    \label{tab:smallbs-quant-opt-best}
+    \begin{tabular}{ccccc}
+        \toprule
+        Batch Size & 最优配置 & 吞吐量 & 备注 & 说明 \\
+        \midrule
+        1 & Dense & 28.55 & 小 batch 极限点 & Dense 仍保持最高吞吐量 \\
+        2 & Sparse50+2bit & 42.76 & 量化反超起点 & 量化路径首次成为整体最优配置 \\
+        4 & Sparse70+2bit & 66.42 & 关键优化点 & 量化在小到中等 batch 区间收益最明显 \\
+        6 & Sparse70+2bit & 80.38 & 量化领先末端 & 这是量化仍保持全局最优的最后一个 batch 点 \\
+        8 & Sparse70 & 96.43 & 大 batch 回切点 & sparse-only 在更大 batch 下重新取得最优 \\
+        \bottomrule
+    \end{tabular}
+\end{table}
+
+\begin{figure}[t]
+    \centering
+    \begin{minipage}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/throughput_vs_bs_dense_sparse50_quant50.pdf}
+        
+        \vspace{2mm}
+        \small (a) Dense / Sparse50 / Sparse50+2bit
+    \end{minipage}\hfill
+    \begin{minipage}[t]{0.49\linewidth}
+        \centering
+        \includegraphics[width=\linewidth]{figures/throughput_vs_bs_dense_sparse70_quant70.pdf}
+        
+        \vspace{2mm}
+        \small (b) Dense / Sparse70 / Sparse70+2bit
+    \end{minipage}
+    \caption{Llama-3 8B 在不同 batch size 下的三线吞吐量对比（量化路径采用小 batch 定向优化，input=4096, output=256）。左图展示 Dense、Sparse50 与 Sparse50+2bit；右图展示 Dense、Sparse70 与 Sparse70+2bit。}
+    \label{fig:smallbs-quant-opt-throughput}
+\end{figure}
+
+综合而言，本节结果表明，经过针对量化 `Key` 与 `Value` 路径的联合调优后，2bit 量化方法已经从“仅在局部 batch size 上具备竞争力”提升为“在 `BS=2..6` 区间具备明确优势”的状态。其中，`BS=1` 时 Dense 仍然保持最高吞吐量；从 `BS=2` 开始，量化路径先后在 `BS=2` 由 `Sparse50+2bit`、在 `BS=3..6` 由 `Sparse70+2bit` 取得全局最优；而在 `BS=7` 和 `BS=8` 时，最优配置又分别回到 `Sparse50` 与 `Sparse70`。这说明在当前 `4096 \rightarrow 256` 的设置下，量化 KV Cache 的端到端收益主要集中在小到中等 batch 区间，后续若希望在更大 batch 下继续保持领先，仍需要进一步压缩量化路径自身的附加开销。

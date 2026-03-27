@@ -1,0 +1,25 @@
+{
+  "solver_mode": "per_task",
+  "model_path": "/home/zh/model/Meta-Llama-3-8B-Instruct",
+  "target_budget": 0.7,
+  "tasks": {
+    "lcc": {
+      "task": "lcc",
+      "uniform_calib": 55.62,
+      "diff_calib": 60.38,
+      "calib_delta": 4.760000000000005,
+      "uniform_val": 57.85,
+      "diff_val": 63.95,
+      "val_delta": 6.100000000000001,
+      "p0": 0.0,
+      "p1": 0.75,
+      "p2": 0.25,
+      "rho1": 0.6,
+      "calib_indices_file": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/lcc_pertask_try1_per_task_indices/lcc_calibration_indices.json",
+      "val_indices_file": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/lcc_pertask_try1_per_task_indices/lcc_validation_indices.json",
+      "best_calib_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_lcc_pertask_try1_lcc_cand1",
+      "best_val_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_lcc_pertask_try1_lcc_bestdiff_val"
+    }
+  },
+  "per_task_csv": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/lcc_pertask_try1_per_task_results.csv"
+}

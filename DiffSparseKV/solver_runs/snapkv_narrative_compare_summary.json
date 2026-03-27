@@ -1,0 +1,49 @@
+{
+  "task": "narrativeqa",
+  "split_file": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/narrative_joint_search1_per_task_indices/narrativeqa_calibration_indices.json",
+  "target_budget": 0.7,
+  "uniform": {
+    "dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_uniform_0.70_snapkv_compare_uniform_calib",
+    "result": {
+      "narrativeqa": 9.5,
+      "average": 9.5
+    }
+  },
+  "diff_uniform_like": {
+    "dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_snapkv_compare_diff_uniformlike_calib",
+    "result": {
+      "narrativeqa": 8.76,
+      "average": 8.76
+    }
+  },
+  "snapkv_variants": {
+    "snapkv_mean": {
+      "dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_snapkv_compare_snapkv_mean_calib",
+      "result": {
+        "narrativeqa": 5.64,
+        "average": 5.64
+      }
+    },
+    "snapkv_max": {
+      "dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_snapkv_compare_snapkv_max_calib",
+      "result": {
+        "narrativeqa": 8.76,
+        "average": 8.76
+      }
+    },
+    "snapkv_top2_mean": {
+      "dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_snapkv_compare_snapkv_top2_mean_calib",
+      "result": {
+        "narrativeqa": 8.76,
+        "average": 8.76
+      }
+    },
+    "snapkv_hybrid": {
+      "dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_snapkv_compare_snapkv_hybrid_calib",
+      "result": {
+        "narrativeqa": 5.64,
+        "average": 5.64
+      }
+    }
+  }
+}

@@ -1,0 +1,7 @@
+{
+  "trec": 80.0,
+  "triviaqa": 100.0,
+  "passage_count": 10.0,
+  "qasper": 42.17,
+  "average": 58.04
+}

@@ -1,0 +1,37 @@
+% Real LongBench 16-task table for Meta-Llama-3-8B
+% Sources:
+% /mnt/home/zh/mustafar/pred/Meta-Llama-3-8B-Instruct_8192_K_0.0_V_0.0/result.json
+% /mnt/home/zh/mustafar/pred/Meta-Llama-3-8B-Instruct_8192_K_0.7_V_0.7/result.json
+% /mnt/home/zh/mustafar/pred/Meta-Llama-3-8B-Instruct_8192_greedy_avg_0.700/result.json
+
+\begin{table*}[t]
+\centering
+\caption{Meta-Llama-3-8B 在 LongBench 16 个任务上的真实结果对比}
+\label{tab:jsqkv-real-sparse-main}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lcccc}
+\toprule
+Task & Dense & MUSTAFAR 70\% & Differential 70\% & $\Delta$ vs. MUSTAFAR \\
+\midrule
+narrativeqa          & 23.45 & 23.94 & 24.17 & +0.23 \\
+qasper               & 43.71 & 40.89 & 40.36 & -0.53 \\
+multifieldqa\_en     & 43.22 & 40.91 & 42.93 & +2.02 \\
+hotpotqa             & 46.06 & 44.93 & 45.17 & +0.24 \\
+2wikimqa             & 38.41 & 38.03 & 38.03 & +0.00 \\
+musique              & 23.22 & 22.36 & 22.06 & -0.30 \\
+gov\_report          & 29.91 & 24.14 & 23.56 & -0.58 \\
+qmsum                & 22.57 & 21.82 & 21.54 & -0.28 \\
+multi\_news          & 25.67 & 24.93 & 24.63 & -0.30 \\
+trec                 & 74.00 & 70.00 & 70.50 & +0.50 \\
+triviaqa             & 90.28 & 89.79 & 90.17 & +0.38 \\
+samsum               & 42.05 & 37.88 & 39.67 & +1.79 \\
+passage\_count       & 4.50  & 6.25  & 7.50  & +1.25 \\
+passage\_retrieval\_en & 70.00 & 63.00 & 64.00 & +1.00 \\
+lcc                  & 57.12 & 54.12 & 54.82 & +0.70 \\
+repobench-p          & 53.92 & 52.86 & 55.08 & +2.22 \\
+\midrule
+Avg.                 & 43.01 & 40.99 & 41.51 & +0.52 \\
+\bottomrule
+\end{tabular}}
+\end{table*}
+

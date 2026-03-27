@@ -1,0 +1,44 @@
+{
+  "fp16": {
+    "trec": 100.0,
+    "triviaqa": 100.0,
+    "passage_count": 0.0,
+    "average": 66.67
+  },
+  "per_token_4bit": {
+    "trec": 100.0,
+    "triviaqa": 100.0,
+    "passage_count": 0.0,
+    "average": 66.67
+  },
+  "per_token_head_4bit": {
+    "trec": 100.0,
+    "triviaqa": 100.0,
+    "passage_count": 4.55,
+    "average": 68.18
+  },
+  "per_token_tile_4bit": {
+    "trec": 100.0,
+    "triviaqa": 100.0,
+    "passage_count": 0.0,
+    "average": 66.67
+  },
+  "per_token_tile_4bit_hadamard": {
+    "trec": 100.0,
+    "triviaqa": 100.0,
+    "passage_count": 0.0,
+    "average": 66.67
+  },
+  "per_token_tile_2bit": {
+    "trec": 50.0,
+    "triviaqa": 0.0,
+    "passage_count": 0.0,
+    "average": 16.67
+  },
+  "per_token_tile_2bit_hadamard": {
+    "trec": 50.0,
+    "triviaqa": 100.0,
+    "passage_count": 4.55,
+    "average": 51.52
+  }
+}

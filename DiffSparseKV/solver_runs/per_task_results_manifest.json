@@ -1,0 +1,223 @@
+{
+  "model": "Meta-Llama-3-8B-Instruct",
+  "target_budget": 0.7,
+  "importance_mode": "value_aware",
+  "head_aggregation_mode": "max",
+  "value_sink_keep": 2,
+  "tasks": {
+    "lcc": {
+      "search_prefix": "lcc_pertask_try1",
+      "uniform_calibration": 55.62,
+      "best_diff_calibration": 60.38,
+      "calibration_delta": 4.760000000000005,
+      "uniform_validation": 57.85,
+      "best_diff_validation": 63.95,
+      "validation_delta": 6.100000000000001,
+      "best_config": {
+        "target_distribution": [
+          0.0,
+          0.75,
+          0.25
+        ],
+        "sparsity_levels": [
+          0.0,
+          0.6,
+          1.0
+        ]
+      },
+      "best_calib_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_lcc_pertask_try1_lcc_cand1",
+      "best_val_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_lcc_pertask_try1_lcc_bestdiff_val",
+      "status": "positive",
+      "full_uniform_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_uniform_0.70_full_positive_lcc_uniform_full",
+      "full_diff_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_full_positive_lcc_bestdiff_full",
+      "full_uniform_score": 54.12,
+      "full_diff_score": 55.45,
+      "full_delta": 1.3300000000000054
+    },
+    "narrativeqa": {
+      "search_prefix": "rep5_pertask_try1",
+      "uniform_calibration": 9.5,
+      "best_diff_calibration": 8.76,
+      "calibration_delta": -0.7400000000000002,
+      "uniform_validation": 29.81,
+      "best_diff_validation": 29.55,
+      "validation_delta": -0.259999999999998,
+      "best_config": {
+        "target_distribution": [
+          0.0,
+          0.90009,
+          0.09991
+        ],
+        "sparsity_levels": [
+          0.0,
+          0.6667,
+          1.0
+        ]
+      },
+      "best_calib_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_rep5_pertask_try1_narrativeqa_cand2",
+      "best_val_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_rep5_pertask_try1_narrativeqa_bestdiff_val",
+      "status": "fallback_uniform",
+      "status_note": "Negative case under both DiffSparseKV and SnapKV-style comparison; final deployment policy is to fall back to the uniform baseline.",
+      "final_policy": "uniform",
+      "full_uniform_dir": "solver_runs/Meta-Llama-3-8B-Instruct_8192_uniform_0.70_narrativeqa_fallback_uniform_full",
+      "full_uniform_score": 23.94,
+      "full_diff_dir": "solver_runs/Meta-Llama-3-8B-Instruct_8192_uniform_0.70_narrativeqa_fallback_uniform_full",
+      "full_diff_score": 23.94,
+      "full_delta": 0.0,
+      "full_best_config": {
+        "mode": "uniform_fallback"
+      }
+    },
+    "qasper": {
+      "search_prefix": "rep5_pertask_try1",
+      "uniform_calibration": 49.08,
+      "best_diff_calibration": 58.07,
+      "calibration_delta": 8.990000000000002,
+      "uniform_validation": 39.02,
+      "best_diff_validation": 38.91,
+      "validation_delta": -0.11000000000000654,
+      "best_config": {
+        "target_distribution": [
+          0.0,
+          0.90009,
+          0.09991
+        ],
+        "sparsity_levels": [
+          0.0,
+          0.6667,
+          1.0
+        ]
+      },
+      "best_calib_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_rep5_pertask_try1_qasper_cand2",
+      "best_val_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_rep5_pertask_try1_qasper_bestdiff_val",
+      "status": "weak_positive",
+      "full_uniform_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_uniform_0.70_qasper_rescue_full_qasper_uniform_full",
+      "full_diff_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_qasper_rescue_full_qasper_bestdiff_full",
+      "full_uniform_score": 40.89,
+      "full_diff_score": 41.03,
+      "full_delta": 0.14000000000000057,
+      "status_note": "full dataset turned positive (+0.14) although the original small validation split was slightly negative.",
+      "full_best_config": {
+        "target_distribution": [
+          0.0,
+          0.857143,
+          0.142857
+        ],
+        "sparsity_levels": [
+          0.0,
+          0.65,
+          1.0
+        ],
+        "importance_mode": "value_aware",
+        "head_aggregation_mode": "mean",
+        "value_sink_keep": 4,
+        "level_2_mode": "evict"
+      }
+    },
+    "multifieldqa_en": {
+      "search_prefix": "rep5_pertask_try1",
+      "uniform_calibration": 41.16,
+      "best_diff_calibration": 42.41,
+      "calibration_delta": 1.25,
+      "uniform_validation": 39.53,
+      "best_diff_validation": 38.14,
+      "validation_delta": -1.3900000000000006,
+      "best_config": {
+        "target_distribution": [
+          0.0,
+          1.0,
+          0.0
+        ],
+        "sparsity_levels": [
+          0.0,
+          0.7,
+          1.0
+        ]
+      },
+      "best_calib_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_rep5_pertask_try1_multifieldqa_en_cand3",
+      "best_val_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_rep5_pertask_try1_multifieldqa_en_bestdiff_val",
+      "status": "positive",
+      "full_uniform_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_uniform_0.70_multifield_rescue_full_multifieldqa_en_uniform_full",
+      "full_diff_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_multifield_rescue_full_multifieldqa_en_bestdiff_full",
+      "full_uniform_score": 40.91,
+      "full_diff_score": 41.61,
+      "full_delta": 0.7000000000000028,
+      "status_note": "full dataset turned positive (+0.70) after rescue search, despite the original small validation split being negative.",
+      "full_best_config": {
+        "target_distribution": [
+          0.02,
+          0.8,
+          0.18
+        ],
+        "sparsity_levels": [
+          0.0,
+          0.65,
+          1.0
+        ],
+        "importance_mode": "value_aware",
+        "head_aggregation_mode": "max",
+        "value_sink_keep": 4,
+        "level_2_mode": "evict"
+      }
+    },
+    "hotpotqa": {
+      "search_prefix": "rep5_pertask_try1",
+      "uniform_calibration": 34.38,
+      "best_diff_calibration": 34.38,
+      "calibration_delta": 0.0,
+      "uniform_validation": 46.17,
+      "best_diff_validation": 46.17,
+      "validation_delta": 0.0,
+      "best_config": {
+        "target_distribution": [
+          0.0,
+          0.75,
+          0.25
+        ],
+        "sparsity_levels": [
+          0.0,
+          0.6,
+          1.0
+        ]
+      },
+      "best_calib_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_rep5_pertask_try1_hotpotqa_cand1",
+      "best_val_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_rep5_pertask_try1_hotpotqa_bestdiff_val",
+      "status": "weak_positive",
+      "full_uniform_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_uniform_0.70_hotpot_full_hotpotqa_uniform_full",
+      "full_diff_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_hotpot_full_hotpotqa_bestdiff_full",
+      "full_uniform_score": 44.93,
+      "full_diff_score": 45.12,
+      "full_delta": 0.18999999999999773,
+      "status_note": "Neutral on the small validation split, but slightly positive (+0.19) on the full dataset."
+    },
+    "trec": {
+      "search_prefix": "rep5_pertask_try1",
+      "uniform_calibration": 62.5,
+      "best_diff_calibration": 75.0,
+      "calibration_delta": 12.5,
+      "uniform_validation": 50.0,
+      "best_diff_validation": 55.0,
+      "validation_delta": 5.0,
+      "best_config": {
+        "target_distribution": [
+          0.0,
+          0.75,
+          0.25
+        ],
+        "sparsity_levels": [
+          0.0,
+          0.6,
+          1.0
+        ]
+      },
+      "best_calib_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_rep5_pertask_try1_trec_cand1",
+      "best_val_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_rep5_pertask_try1_trec_bestdiff_val",
+      "status": "positive",
+      "full_uniform_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_uniform_0.70_full_positive_trec_uniform_full",
+      "full_diff_dir": "/mnt/home/zh/mustafar/DiffSparseKV/solver_runs/Meta-Llama-3-8B-Instruct_8192_diff_sparse_kv_0.70_full_positive_trec_bestdiff_full",
+      "full_uniform_score": 70.0,
+      "full_diff_score": 72.5,
+      "full_delta": 2.5
+    }
+  }
+}

@@ -1,0 +1,50 @@
+\begin{figure*}[t]
+\centering
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\begin{tikzpicture}[
+    node distance=0.7cm,
+    box/.style={draw, rounded corners, align=center, minimum width=4.2cm, minimum height=0.9cm, font=\small},
+    arrow/.style={->, thick}
+]
+\node[box, fill=blue!8] (budget) {目标平均稀疏预算\\$S=0.70$};
+\node[box, fill=blue!8, below=of budget] (grid) {搜索网格\\$p_0,\rho_1$ 与策略超参};
+\node[box, fill=blue!8, below=of grid] (solve) {解析求解\\$p_1,p_2$ 并过滤非法模板};
+\node[box, fill=orange!10, below=of solve] (calib) {Calibration split\\每任务 8 条样本};
+\node[box, fill=orange!10, below=of calib] (select) {比较 uniform 与候选差分配置\\选取 calibration 最优配置};
+\node[box, fill=green!10, below=of select] (val) {Validation split\\每任务 20 条样本};
+\node[box, fill=green!10, below=of val] (full) {对正向或有希望的任务\\继续进行 full task set 验证};
+\draw[arrow] (budget) -- (grid);
+\draw[arrow] (grid) -- (solve);
+\draw[arrow] (solve) -- (calib);
+\draw[arrow] (calib) -- (select);
+\draw[arrow] (select) -- (val);
+\draw[arrow] (val) -- (full);
+\end{tikzpicture}
+\caption*{(a) 配置生成器流程}
+\end{minipage}
+\hfill
+\begin{minipage}[t]{0.48\textwidth}
+\centering
+\begin{tikzpicture}[
+    node distance=0.7cm,
+    box/.style={draw, rounded corners, align=center, minimum width=4.5cm, minimum height=0.9cm, font=\small},
+    arrow/.style={->, thick}
+]
+\node[box, fill=purple!8] (attn) {Prefill 阶段 observation window attention\\计算 token importance};
+\node[box, fill=purple!8, below=of attn] (cfg) {读取任务特定配置\\$\{p_0,p_1,p_2,\rho_1,\text{importance}\}$};
+\node[box, fill=purple!8, below=of cfg] (assign) {按 importance 排序\\分配到 Level 0 / 1 / 2};
+\node[box, fill=yellow!10, below=of assign] (apply) {Level 0: dense\\Level 1: feature TopK\\Level 2: evict / zero};
+\node[box, fill=yellow!10, below=of apply] (cache) {生成压缩 KV Cache\\并进入解码阶段};
+\node[box, fill=yellow!10, below=of cache] (decode) {解码时继续使用压缩 KV\\获得端到端吞吐收益};
+\draw[arrow] (attn) -- (cfg);
+\draw[arrow] (cfg) -- (assign);
+\draw[arrow] (assign) -- (apply);
+\draw[arrow] (apply) -- (cache);
+\draw[arrow] (cache) -- (decode);
+\end{tikzpicture}
+\caption*{(b) DiffSparseKV 总体算法流程}
+\end{minipage}
+\caption{配置生成器与 DiffSparseKV 总体流程示意图}
+\label{fig:diffsparsekv-generator-and-flow}
+\end{figure*}
