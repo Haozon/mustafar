@@ -1,0 +1,37 @@
+{
+  "model_name_or_path": "/home/zh/nas/nas_10g/models/Meta-Llama-3-8B-Instruct",
+  "max_length": 8192,
+  "datasets": [
+    "narrativeqa",
+    "qasper",
+    "multifieldqa_en",
+    "hotpotqa",
+    "2wikimqa",
+    "musique",
+    "gov_report",
+    "qmsum",
+    "multi_news",
+    "trec",
+    "triviaqa",
+    "samsum",
+    "passage_count",
+    "passage_retrieval_en",
+    "lcc",
+    "repobench-p"
+  ],
+  "limit": null,
+  "quant_cfg": {
+    "enable_hadamard": true,
+    "hadamard_mode": "tile",
+    "hadamard_group_size": 64,
+    "k_bits": 2,
+    "v_bits": 2,
+    "quant_impl": "default",
+    "k_quant_scheme": "default",
+    "v_quant_scheme": "default",
+    "group_size": 128,
+    "quant_granularity": "per-token-tile",
+    "tile_size": 64,
+    "residual_length": 128
+  }
+}

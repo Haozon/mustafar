@@ -52,6 +52,11 @@ FULL_DATASETS = [
     "repobench-p",
 ]
 CHAT_EXEMPT_DATASETS = {"trec", "triviaqa", "samsum", "lsht", "lcc", "repobench-p"}
+LONG_BENCH_DATA_CANDIDATES = [
+    REPO_ROOT / "longbench" / "data",
+    Path("/data/home/szm/backup_dataset/LongBench/data"),
+    Path("/data/home/szm/dataset/LongBench/data"),
+]
 
 DATASET2METRIC = {
     "narrativeqa": qa_f1_score,
@@ -128,6 +133,9 @@ def build_chat(tokenizer, prompt: str, model_name: str) -> str:
     if "llama-3" in lower and "instruct" in lower:
         messages = [{"role": "user", "content": prompt}]
         return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
+    if "qwen" in lower and "instruct" in lower:
+        messages = [{"role": "user", "content": prompt}]
+        return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
     if "mistral" in lower and "instruct" in lower:
         messages = [{"role": "user", "content": prompt}]
         return tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
@@ -169,6 +177,30 @@ def load_prompt_config():
     with open(REPO_ROOT / "config" / "dataset2maxlen.json", "r", encoding="utf-8") as f:
         dataset2maxlen = json.load(f)
     return dataset2prompt, dataset2maxlen
+
+
+def resolve_longbench_local_file(dataset_name: str) -> Path | None:
+    env_candidates = []
+    for env_key in ("LONG_BENCH_DATA_DIR", "LONGBENCH_DATA_DIR"):
+        env_value = os.environ.get(env_key)
+        if env_value:
+            env_candidates.append(Path(env_value))
+
+    for data_dir in [*env_candidates, *LONG_BENCH_DATA_CANDIDATES]:
+        local_file = data_dir / f"{dataset_name}.jsonl"
+        if local_file.exists():
+            return local_file
+    return None
+
+
+def load_longbench_dataset(dataset_name: str):
+    local_file = resolve_longbench_local_file(dataset_name)
+    if local_file is not None:
+        print(f"[dataset] using local file for {dataset_name}: {local_file}")
+        return load_dataset("json", data_files={"test": str(local_file)}, split="test")
+
+    print(f"[dataset] falling back to THUDM/LongBench for {dataset_name}")
+    return load_dataset("THUDM/LongBench", dataset_name, split="test", trust_remote_code=True)
 
 
 def score_dataset(dataset_name: str, rows):
@@ -302,7 +334,7 @@ def main():
 
     all_scores = {}
     for dataset_name in datasets:
-        ds = load_dataset("THUDM/LongBench", dataset_name, split="test", trust_remote_code=True)
+        ds = load_longbench_dataset(dataset_name)
         if args.limit is not None:
             ds = ds.select(range(min(args.limit, len(ds))))
 

@@ -1,17 +1,84 @@
 # Llama3-8B Current Results
 
-Model:
+模型：
 
-- `/mnt/home/zh/model/Meta-Llama-3-8B-Instruct`
+- `/home/zh/nas/nas_10g/models/Meta-Llama-3-8B-Instruct`
 
-Datasets:
+当前状态：
 
-- `trec`
-- `triviaqa`
-- `passage_count`
-- `qasper`
+- `Meta-Llama-3-8B-Instruct` 的 full LongBench 主线任务已经全部完成。
+- 当前没有残留的 `Meta-Llama-3-8B-Instruct` 主线运行进程。
 
-## Completed Results
+当前主线协议：
+
+- `full LongBench`
+- 16 个任务
+- full 结果目录：
+  - `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_llama3_8b_instruct_res128_full`
+
+## KIVI 与我的方法
+
+说明：
+
+- 这里的 `KIVI` 指本地 `KIVI-align fake`，不是 upstream KIVI。
+- 这里的“我的方法”指：
+  - `Per-Token-Tile + tile Hadamard(64)`
+- 两边都使用同一套 residual 配置，所以表里不再重复标 `residual128`。
+
+KIVI 配置说明：
+
+- `quant_impl = kivi`
+- `k_quant_scheme = kivi-channel`
+- `v_quant_scheme = per-token-head`
+- `group_size = 128`
+- `quant_granularity = per-token-tile`
+- `residual_length = 128`
+- `Hadamard = off`
+
+我的方法配置说明：
+
+- `quant_granularity = per-token-tile`
+- `tile_size = 64`
+- `enable_hadamard = true`
+- `hadamard_mode = tile`
+- `hadamard_group_size = 64`
+- `residual_length = 128`
+
+主对比表：
+
+| Bit | KIVI | Average | 我的方法 | Average |
+|---|---|---:|---|---:|
+| 4bit | KIVI-align fake | 42.87 | Per-Token-Tile + tile Hadamard(64) | 42.72 |
+| 3bit | KIVI-align fake | 41.80 | Per-Token-Tile + tile Hadamard(64) | 41.48 |
+| 2bit | KIVI-align fake | 26.94 | Per-Token-Tile + tile Hadamard(64) | 30.59 |
+
+## Full LongBench 完整结果
+
+结果目录：
+
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_llama3_8b_instruct_res128_full/per_token_tile_4bit_tile_hadamard64`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_llama3_8b_instruct_res128_full/per_token_tile_3bit_tile_hadamard64`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_llama3_8b_instruct_res128_full/per_token_tile_2bit_tile_hadamard64`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_llama3_8b_instruct_res128_full/kivi_align_fake_4bit`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_llama3_8b_instruct_res128_full/kivi_align_fake_3bit`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_llama3_8b_instruct_res128_full/kivi_align_fake_2bit`
+
+| 方法 | Bit | narrativeqa | qasper | multifieldqa_en | hotpotqa | 2wikimqa | musique | gov_report | qmsum | multi_news | trec | triviaqa | samsum | passage_count | passage_retrieval_en | lcc | repobench-p | average |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| Per-Token-Tile + tile Hadamard(64) | 4bit | 22.47 | 43.65 | 42.37 | 46.07 | 38.78 | 21.70 | 30.03 | 22.16 | 27.33 | 73.50 | 90.19 | 42.79 | 5.50 | 66.00 | 57.20 | 53.82 | 42.72 |
+| Per-Token-Tile + tile Hadamard(64) | 3bit | 21.64 | 41.83 | 42.37 | 46.62 | 33.79 | 22.19 | 29.16 | 21.85 | 27.32 | 73.50 | 89.52 | 43.09 | 7.00 | 59.00 | 53.66 | 51.07 | 41.48 |
+| Per-Token-Tile + tile Hadamard(64) | 2bit | 17.90 | 27.18 | 31.84 | 37.93 | 30.90 | 17.36 | 25.63 | 20.85 | 25.57 | 55.50 | 81.77 | 40.12 | 3.00 | 12.50 | 30.37 | 30.96 | 30.59 |
+| KIVI-align fake | 4bit | 24.26 | 44.16 | 41.60 | 46.06 | 40.34 | 22.88 | 29.53 | 22.15 | 27.75 | 74.00 | 90.26 | 42.10 | 6.50 | 69.00 | 54.07 | 51.24 | 42.87 |
+| KIVI-align fake | 3bit | 20.81 | 39.76 | 42.58 | 45.64 | 33.94 | 19.14 | 29.35 | 22.50 | 27.82 | 74.00 | 89.11 | 42.38 | 6.75 | 61.50 | 60.94 | 52.59 | 41.80 |
+| KIVI-align fake | 2bit | 16.55 | 24.10 | 30.81 | 27.50 | 24.57 | 8.62 | 23.91 | 20.21 | 24.92 | 58.00 | 67.26 | 40.02 | 2.00 | 3.25 | 27.03 | 32.34 | 26.94 |
+
+## 当前主线结论
+
+- `4bit` 和 `3bit` 下，KIVI 略高。
+- `2bit` 下，我的方法更高：`30.59 vs 26.94`。
+- 当前 full LongBench 主线已经跑完，下面的内容主要是历史子集结果。
+
+## 历史子集结果
 
 ### Pilot Runs: `limit=3`
 

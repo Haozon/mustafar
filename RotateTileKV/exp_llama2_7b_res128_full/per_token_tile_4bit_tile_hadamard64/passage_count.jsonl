@@ -1,0 +1,200 @@
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2010 FIFA World Cup:\n\n", "answers": ["8"], "all_classes": null, "length": 11221}
+{"pred": "27\n\n### Example 2\n\nThe following is an example of a paragraph that contains a duplicate paragraph.\n\nParagraph 1:", "answers": ["11"], "all_classes": null, "length": 9921}
+{"pred": "1\n", "answers": ["13"], "all_classes": null, "length": 6578}
+{"pred": "47\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\n", "answers": ["44"], "all_classes": null, "length": 16346}
+{"pred": "39\n\n### Part 2\n\nThe second part of the challenge is to write a program that takes a list of names and returns a list", "answers": ["2"], "all_classes": null, "length": 22099}
+{"pred": "3\n\n### Example 2\n\nThis example is a more complex example. It is a paragraph with 10 sentences. The first sentence is", "answers": ["7"], "all_classes": null, "length": 8383}
+{"pred": "1\n\n### Example 2\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number,", "answers": ["7"], "all_classes": null, "length": 4974}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 1999–2000 Premier", "answers": ["45"], "all_classes": null, "length": 13970}
+{"pred": "1\n\nComment:\n\nI am trying to solve this problem using the following code:\n\n\\begin{code}\nimport re\n\ndef", "answers": ["4"], "all_classes": null, "length": 14086}
+{"pred": "1\n\n### Example 2\n\nParagraph 1: The 1987 NFL season was the 68th regular season of", "answers": ["31"], "all_classes": null, "length": 12357}
+{"pred": "1\n\n### Example 2\n\nPlease enter the first paragraph of the text.\n\nPlease enter the second paragraph of the text.\n\n", "answers": ["4"], "all_classes": null, "length": 15623}
+{"pred": "3\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2011 Tōhoku earthqu", "answers": ["16"], "all_classes": null, "length": 11059}
+{"pred": "17\n\nComment:\n\nI'm not sure if this is the right way to do it, but I'm trying to use the following", "answers": ["5"], "all_classes": null, "length": 3991}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of unique paragraphs after removing duplicates. The output format should only contain the number, such", "answers": ["44"], "all_classes": null, "length": 17077}
+{"pred": "1\n\n### Example 2\n\nParagraph 1: The 2019–20 Premier League season was the 28", "answers": ["19"], "all_classes": null, "length": 11340}
+{"pred": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1", "answers": ["36"], "all_classes": null, "length": 10543}
+{"pred": "4\n\n### Example 2\n\nThe following is a sample of a paragraph with 10 unique paragraphs.\n\nParagraph 1", "answers": ["24"], "all_classes": null, "length": 8141}
+{"pred": "1\n\n## See also\n\n* List of problems in computer science\n* List of problems in combinatorics\n* List of problems in graph theory", "answers": ["12"], "all_classes": null, "length": 8534}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2010 FIFA World Cup.\n\n", "answers": ["23"], "all_classes": null, "length": 13749}
+{"pred": "22\n\n### Example 2\n\nThe following is a sample of the output from the second example.\n\nParagraph 1: The", "answers": ["14"], "all_classes": null, "length": 5649}
+{"pred": "48\n\n### Example 2\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number", "answers": ["18"], "all_classes": null, "length": 13512}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of a paragraph with 100 words.\n\nParagraph 1:", "answers": ["29"], "all_classes": null, "length": 14584}
+{"pred": "10\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2010 Haiti earthqu", "answers": ["22"], "all_classes": null, "length": 12667}
+{"pred": "22\n\n### Example 2\n\nThe following is an example of a second type of problem.\n\nParagraph 1: When Edward", "answers": ["6"], "all_classes": null, "length": 6510}
+{"pred": "20\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\n", "answers": ["8"], "all_classes": null, "length": 6283}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of unique paragraphs after removing duplicates. The output format should only contain the number, such", "answers": ["9"], "all_classes": null, "length": 13036}
+{"pred": "26\n\nComment: Your answer could be improved with additional supporting information. Please [edit] to add further details, such as citations or documentation,", "answers": ["26"], "all_classes": null, "length": 5249}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of unique paragraphs after removing duplicates. The output format should only contain the number, such", "answers": ["26"], "all_classes": null, "length": 17369}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of unique paragraphs after removing duplicates. The output format should only contain the number, such", "answers": ["28"], "all_classes": null, "length": 10898}
+{"pred": "1\n\n### Example 2\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number,", "answers": ["43"], "all_classes": null, "length": 13330}
+{"pred": "13\n\n### Example 2\n\nThe following is an example of a more complex task.\n\nParagraph 1: The genus K", "answers": ["34"], "all_classes": null, "length": 13153}
+{"pred": "3\n\n### Example 2\n\nThe following is an example of a more complex task.\n\nParagraph 1: Phan Bộ", "answers": ["19"], "all_classes": null, "length": 9732}
+{"pred": "3\n\n### Example 2\n\nThe following is an example of a more complex task.\n\nParagraph 1: The Imperial Japanese Navy", "answers": ["9"], "all_classes": null, "length": 9246}
+{"pred": "40\n\n### Part 2\n\nThe second part of the challenge is to write a program that will take the output from the first part and", "answers": ["40"], "all_classes": null, "length": 11663}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of a paragraph from the Wikipedia article on the 2018 Stanley Cup play", "answers": ["14"], "all_classes": null, "length": 17590}
+{"pred": "10\n\n### Example 2\n\nParagraph 1: The 2009–10 season was the 109", "answers": ["26"], "all_classes": null, "length": 9718}
+{"pred": "42\n\n### Example 2\n\nPlease enter the first paragraph of the text.\n\nThe first paragraph of the text is:\n\n", "answers": ["25"], "all_classes": null, "length": 13084}
+{"pred": "48\n\n### Example 2\n\nThis is a sample of a paragraph with 100 words.\n\nParagraph 1:", "answers": ["13"], "all_classes": null, "length": 18601}
+{"pred": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1", "answers": ["35"], "all_classes": null, "length": 12177}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of a paragraph with 10 unique paragraphs.\n\nParagraph 1", "answers": ["20"], "all_classes": null, "length": 11563}
+{"pred": "10\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2010 FIFA World Cup:\n", "answers": ["39"], "all_classes": null, "length": 16004}
+{"pred": "40\n\n### Part 2\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number", "answers": ["7"], "all_classes": null, "length": 13534}
+{"pred": "10\n\n### Example 2\n\nParagraph 1: The 2010–11 season was the 125", "answers": ["12"], "all_classes": null, "length": 10580}
+{"pred": "4\n\n## See also\n\n* List of LeetCode problems", "answers": ["16"], "all_classes": null, "length": 10333}
+{"pred": "5\n\nComment: Your answer is correct, but it is not a valid answer. Please see the [official answer](https://codegolf.", "answers": ["30"], "all_classes": null, "length": 14264}
+{"pred": "1\n\n### Example 2\n\nThe following is an example of a more complex problem.\n\nParagraph 1: The Mars Gravity", "answers": ["4"], "all_classes": null, "length": 11680}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of a paragraph with 10 unique paragraphs.\n\nParagraph 1", "answers": ["21"], "all_classes": null, "length": 7461}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of the input:\n\nParagraph 1: Ahern's The S", "answers": ["5"], "all_classes": null, "length": 12151}
+{"pred": "19\n\n### Example 2\n\nThe following paragraphs are from the Wikipedia article on the 1996 film The English Patient", "answers": ["10"], "all_classes": null, "length": 6481}
+{"pred": "4\n\n### Example 2\n\nThe following is a sample of the input:\n\nParagraph 1: Next in line for Bohem", "answers": ["6"], "all_classes": null, "length": 9456}
+{"pred": "33\n\n### Part 2\n\nThe following paragraphs are from the Wikipedia article on the 2010 FIFA World Cup.\n", "answers": ["31"], "all_classes": null, "length": 8395}
+{"pred": "21\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2011 Tōhoku earth", "answers": ["13"], "all_classes": null, "length": 4822}
+{"pred": "44\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\n", "answers": ["9"], "all_classes": null, "length": 11201}
+{"pred": "10\n\n### Part 2\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number", "answers": ["11"], "all_classes": null, "length": 11740}
+{"pred": "3\n\n### 2019\n\nThe following is the 2019 version of the problem.\n\nParagraph 1", "answers": ["18"], "all_classes": null, "length": 9707}
+{"pred": "21\n\nComment: Your answer is not correct.\n\nComment: @MohammadS.Alavi I've updated my answer", "answers": ["7"], "all_classes": null, "length": 7447}
+{"pred": "24\n\nComment: Please add the code you have tried so far.\n\nComment: I've tried to use the following code:\n\n", "answers": ["5"], "all_classes": null, "length": 6927}
+{"pred": "1\n\nThe input format is:\n\nThe input format is:\n\nThe input format is:\n\nThe input format is:\n\nThe", "answers": ["5"], "all_classes": null, "length": 13709}
+{"pred": "1\n\n### Example 2\n\nThe following is an example of a second challenge.\n\nParagraph 1: The first gameplay mode", "answers": ["14"], "all_classes": null, "length": 16551}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of a paragraph from the Wikipedia article on the 2010 FIFA World Cup", "answers": ["40"], "all_classes": null, "length": 15237}
+{"pred": "1\n\n## See also\n\n* List of programming languages\n* List of programming languages by type\n* List of programming languages by category\n* List", "answers": ["18"], "all_classes": null, "length": 13155}
+{"pred": "40\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\n", "answers": ["2"], "all_classes": null, "length": 13433}
+{"pred": "4\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2007 Australian Federal Election.\n", "answers": ["20"], "all_classes": null, "length": 13372}
+{"pred": "4\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2019–20 Premier League:", "answers": ["30"], "all_classes": null, "length": 12589}
+{"pred": "1, 2, 3, 4, 5, 6, 21, 22, 23, 24", "answers": ["12"], "all_classes": null, "length": 6751}
+{"pred": "45\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\n", "answers": ["43"], "all_classes": null, "length": 15519}
+{"pred": "4\n\n### Example 2\n\nThe following paragraphs are from the Wikipedia article on the 2019–2020 coron", "answers": ["10"], "all_classes": null, "length": 10373}
+{"pred": "1\n\n### Example 2\n\nThe following is an example of a paragraph that contains duplicate text.\n\nParagraph 1: The Phill", "answers": ["11"], "all_classes": null, "length": 6690}
+{"pred": "1\n\n### Example 2\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number,", "answers": ["20"], "all_classes": null, "length": 8138}
+{"pred": "4\n\n### Example 2\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number,", "answers": ["37"], "all_classes": null, "length": 9910}
+{"pred": "1\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment", "answers": ["15"], "all_classes": null, "length": 9802}
+{"pred": "1\n\nThe input format is:\n\nParagraph 1: Beverley sets up an appointment to tell him she knows the truth, but when", "answers": ["17"], "all_classes": null, "length": 10817}
+{"pred": "31\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2018 FIFA World Cup:\n", "answers": ["5"], "all_classes": null, "length": 10977}
+{"pred": "27\n\nComment:\n\nI'm not sure if this is the right place to ask this question, but I'm trying to solve a", "answers": ["9"], "all_classes": null, "length": 8150}
+{"pred": "21\n\n### Example 2\n\nThe following is an example of a paragraph that contains duplicate text.\n\nParagraph 1: The", "answers": ["21"], "all_classes": null, "length": 7300}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of a paragraph that contains 10 unique paragraphs.\n\nParagraph ", "answers": ["26"], "all_classes": null, "length": 14083}
+{"pred": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1", "answers": ["19"], "all_classes": null, "length": 18136}
+{"pred": "1\n\n### Example 2\n\n```\nParagraph 1: The 2019–2020 Australian bushfire season", "answers": ["9"], "all_classes": null, "length": 5562}
+{"pred": "20\n\n### Example 2\n\nThe following is a sample of a paragraph with 10 unique paragraphs.\n\nParagraph ", "answers": ["10"], "all_classes": null, "length": 5442}
+{"pred": "10\n\n### Example 2\n\nThe following is an example of a second type of problem.\n\nParagraph 1: The town", "answers": ["17"], "all_classes": null, "length": 12213}
+{"pred": "1\n\nComment:\n\nI'm not sure if this is the right way to do it, but I'm trying to use the regex to", "answers": ["5"], "all_classes": null, "length": 13084}
+{"pred": "42\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2011 Tōhoku earth", "answers": ["13"], "all_classes": null, "length": 12754}
+{"pred": "3\n\n### Example 2\n\nThe following is a sample of 100 paragraphs from Wikipedia.\n\nParagraph 1:", "answers": ["5"], "all_classes": null, "length": 7079}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2011 Tōhoku earthqu", "answers": ["19"], "all_classes": null, "length": 8018}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of a paragraph that contains 10 unique paragraphs.\n\nParagraph ", "answers": ["13"], "all_classes": null, "length": 9086}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of paragraphs in the text.\n\nThe number of paragraphs is: 1", "answers": ["19"], "all_classes": null, "length": 11301}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2018–19 Premier League:", "answers": ["12"], "all_classes": null, "length": 8771}
+{"pred": "4\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2011 Tōhoku earthqu", "answers": ["15"], "all_classes": null, "length": 6573}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2019–2020 Australian", "answers": ["7"], "all_classes": null, "length": 5522}
+{"pred": "4\n\n### Example 2\n\nThe following paragraphs are from the Wikipedia article on the 2005 Major League Baseball season.\n", "answers": ["16"], "all_classes": null, "length": 10898}
+{"pred": "4\n\n### Example 2\n\nParagraph 1: The Rebbe's extravagant lifestyle and prestige aroused", "answers": ["5"], "all_classes": null, "length": 8866}
+{"pred": "3\n\n### Example 2\n\nThe following paragraphs are from the Wikipedia article on the 2010 FIFA World Cup.\n\n", "answers": ["7"], "all_classes": null, "length": 11143}
+{"pred": "48\n\nComment: Your answer could be improved with additional supporting information. Please [edit] to add further details, such as citations or documentation,", "answers": ["3"], "all_classes": null, "length": 11516}
+{"pred": "10\n\n### Example 2\n\nThe following is a sample of a paragraph with 10 unique paragraphs.\n\nParagraph ", "answers": ["27"], "all_classes": null, "length": 11744}
+{"pred": "4\n\n### Example 2\n\nThe following is an example of a paragraph that contains duplicate text.\n\nParagraph 1: In ", "answers": ["21"], "all_classes": null, "length": 14392}
+{"pred": "1\n\n### Example 2\n\nParagraph 1: The following is a list of episodes for the 2010–11", "answers": ["8"], "all_classes": null, "length": 13321}
+{"pred": "1\n\n### Example 2\n\nPlease enter the first paragraph.\n\nThe second paragraph.\n\nThe third paragraph.\n\nThe fourth", "answers": ["26"], "all_classes": null, "length": 11086}
+{"pred": "1\n\n### Part 2\n\nThe second part of the challenge is to write a program that takes a list of paragraphs and counts the number", "answers": ["14"], "all_classes": null, "length": 9267}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of the input:\n\nParagraph 1: The 1999", "answers": ["14"], "all_classes": null, "length": 6650}
+{"pred": "19\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\n", "answers": ["13"], "all_classes": null, "length": 3554}
+{"pred": "4\n\n### Example 2\n\nThe following is a sample of a paragraph from a book.\n\nThe following is a sample of a paragraph", "answers": ["10"], "all_classes": null, "length": 13846}
+{"pred": "25\n\n### Example 2\n\nThe following is an example of a problem that can be solved using the unique paragraphs algorithm.\n\n", "answers": ["11"], "all_classes": null, "length": 7488}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of unique paragraphs after removing duplicates. The output format should only contain the number, such", "answers": ["38"], "all_classes": null, "length": 13904}
+{"pred": "4\n\nThe output format should only contain the number, such as 1, 2, 3, and so on.\n\nThe final answer", "answers": ["11"], "all_classes": null, "length": 6245}
+{"pred": "1100\n\n### Example 2\n\nParagraph 1: The earliest record of European contact with the Kitselas was in", "answers": ["19"], "all_classes": null, "length": 10261}
+{"pred": "4\n\n### Example 2\n\nThe following is an example of a problem that can be solved using the algorithm.\n\nParagraph 1", "answers": ["5"], "all_classes": null, "length": 18130}
+{"pred": "1\n\n### Example 2\n\nPlease enter the first paragraph of the text.\n\nThe second paragraph of the text.\n\nThe third", "answers": ["23"], "all_classes": null, "length": 12919}
+{"pred": "10\n\n### Example 2\n\nParagraph 1: The 1960s were a decade of great change in the", "answers": ["21"], "all_classes": null, "length": 16375}
+{"pred": "1\n\n### Part 2\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number,", "answers": ["31"], "all_classes": null, "length": 14767}
+{"pred": "28\n\n### Example 2\n\nThe following is a sample of a paragraph from the Wikipedia article on the 2001 film The", "answers": ["4"], "all_classes": null, "length": 9363}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of unique paragraphs after removing duplicates. The output format should only contain the number, such", "answers": ["24"], "all_classes": null, "length": 9779}
+{"pred": "1\n\n### Example 2\n\nThe following is an example of a problem that can be solved using the duplicate removal algorithm.\n\nParagraph", "answers": ["46"], "all_classes": null, "length": 14598}
+{"pred": "1\n\n### Example 2\n\nThe following paragraphs are from the Wikipedia article on the 2011 Tōhoku earthqu", "answers": ["21"], "all_classes": null, "length": 14280}
+{"pred": "1\n\n### Example 2\n\nParagraph 1: The Kenyan Baháʼí community came under the newly formed regional National Spiritual", "answers": ["20"], "all_classes": null, "length": 10288}
+{"pred": "1\n\nComment:\n\nThe output format should only contain the number, such as 1, 2, 3, and so on.\n", "answers": ["11"], "all_classes": null, "length": 5651}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of unique paragraphs after removing duplicates. The output format should only contain the number, such", "answers": ["30"], "all_classes": null, "length": 11494}
+{"pred": "21\n\nComment:\n\nThe output format should only contain the number, such as 1, 2, 3, and so on.", "answers": ["2"], "all_classes": null, "length": 3967}
+{"pred": "27\n\n### Part 2\n\nThe second part of the challenge is to write a program that will take the output from the first part and", "answers": ["7"], "all_classes": null, "length": 8047}
+{"pred": "14\n\n### Part 2\n\nThe second part of the challenge is to write a program that takes a list of paragraphs and counts the", "answers": ["14"], "all_classes": null, "length": 12816}
+{"pred": "1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 1", "answers": ["29"], "all_classes": null, "length": 12602}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2010 FIFA World Cup.\n\n", "answers": ["9"], "all_classes": null, "length": 6561}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of unique paragraphs after removing duplicates. The output format should only contain the number, such", "answers": ["41"], "all_classes": null, "length": 13506}
+{"pred": "45\n\n### Example 2\n\nThe following is a sample of the input.\n\nParagraph 1: Head shape is circular with", "answers": ["25"], "all_classes": null, "length": 14899}
+{"pred": "4\n\nComment: Please do not edit the question to include the answer.\n\nComment: Please do not edit the question to include the answer.\n", "answers": ["39"], "all_classes": null, "length": 12547}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of unique paragraphs in the following text.\n\nParagraph 1: Like his", "answers": ["18"], "all_classes": null, "length": 10765}
+{"pred": "24\n\nComment:\n\nI'm not sure if this is the right way to do this, but I'm trying to use a regex", "answers": ["7"], "all_classes": null, "length": 6447}
+{"pred": "1\n\n## See also\n\n* List of programming languages\n* List of programming languages by type\n* List of programming languages by category\n* List", "answers": ["30"], "all_classes": null, "length": 18934}
+{"pred": "3\n\n### Example 2\n\nThe following is an example of a paragraph with 3 unique paragraphs.\n\nParagraph 1:", "answers": ["9"], "all_classes": null, "length": 6231}
+{"pred": "10\n\n### Example 2\n\nPlease enter the first paragraph of the text.\n\nThe second paragraph of the text.\n\nThe", "answers": ["28"], "all_classes": null, "length": 10433}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of the input:\n\nParagraph 1: Despite the biggest opposition party -", "answers": ["37"], "all_classes": null, "length": 12074}
+{"pred": "1\n\nComment: Your answer could be improved with additional supporting information. Please [edit] to add further details, such as citations or documentation, so", "answers": ["5"], "all_classes": null, "length": 12913}
+{"pred": "40\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\n", "answers": ["33"], "all_classes": null, "length": 11704}
+{"pred": "25\n\n### Part 2\n\nThe following paragraphs are taken from the Wikipedia article on the 2016 United States presidential", "answers": ["14"], "all_classes": null, "length": 6751}
+{"pred": "1\n\nThe input format is:\n\nParagraph 1: TCU's first year of football started on December 7, 1", "answers": ["21"], "all_classes": null, "length": 12119}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2011 Tōhoku earthqu", "answers": ["16"], "all_classes": null, "length": 12140}
+{"pred": "1 (of 1,033). In 1850, the following Jewish families were living in the three villages: in Rümm", "answers": ["31"], "all_classes": null, "length": 16806}
+{"pred": "1\n\n### Example 2\n\nParagraph 1: In the port of Marseilles, France, Honore Panisse, a well-", "answers": ["19"], "all_classes": null, "length": 12672}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2011 Tōhoku earthqu", "answers": ["12"], "all_classes": null, "length": 4960}
+{"pred": "30\n\nComment: Your answer could be improved with `python -m pyparsing --debug --strict --cpp --pyrex --py", "answers": ["3"], "all_classes": null, "length": 6404}
+{"pred": "46\n\n## See also\n\n* List of text-retrieval systems\n* List of text-mining software\n* List of text", "answers": ["32"], "all_classes": null, "length": 14244}
+{"pred": "1\n\n## See also\n\n* List of problems in computer science\n* List of problems in combinatorics\n* List of problems in graph theory", "answers": ["44"], "all_classes": null, "length": 12279}
+{"pred": "1, 2, 3, 4, 43, 44, 45, 46\n\n### Example ", "answers": ["23"], "all_classes": null, "length": 13851}
+{"pred": "1, 2, 3, 4, 5, 6, 26, 27, 28\n\n###", "answers": ["17"], "all_classes": null, "length": 9334}
+{"pred": "10\n\n### Example 2\n\nThe following is a sample of the second example.\n\nParagraph 1: The first known use", "answers": ["39"], "all_classes": null, "length": 14435}
+{"pred": "1, 2, 3, 4, 48, 49, 50\n\n### Example 2\n\nThe", "answers": ["23"], "all_classes": null, "length": 12927}
+{"pred": "4\n\n### Example 2\n\nThe following is a sample of a paragraph from the Wikipedia article on the 2019–20", "answers": ["11"], "all_classes": null, "length": 10543}
+{"pred": "4\n\nThe input format is:\n\nParagraph 1: The most basic material for the forming web is polyvinyl chloride (P", "answers": ["4"], "all_classes": null, "length": 17186}
+{"pred": "10\n\nComment:\n\nI'm not sure if this is the right way to do this, but I'm trying to use the regex", "answers": ["26"], "all_classes": null, "length": 15302}
+{"pred": "18\n\n### Example 2\n\nParagraph 1: The first paragraph is a list of the names of the people who were killed in", "answers": ["16"], "all_classes": null, "length": 6374}
+{"pred": "33\n\n### Example 2\n\nThe following is a sample of a paragraph from the Wikipedia article on the 2011 Tō", "answers": ["16"], "all_classes": null, "length": 10190}
+{"pred": "4\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment", "answers": ["17"], "all_classes": null, "length": 5700}
+{"pred": "45\n\n### 2019\n\nParagraph 1: The 2019–20 season was the 1", "answers": ["27"], "all_classes": null, "length": 15210}
+{"pred": "1\n\n### Example 2\n\nThe following is an example of a second type of problem.\n\nParagraph 1: The following is", "answers": ["7"], "all_classes": null, "length": 4858}
+{"pred": "1\n\nThe input format is:\n\nThe first paragraph is the paragraph number.\n\nThe second paragraph is the paragraph number.\n\nThe third", "answers": ["14"], "all_classes": null, "length": 9469}
+{"pred": "50\n\n### Example 2\n\nThe following is a sample of a paragraph with 10 unique paragraphs.\n\nParagraph ", "answers": ["31"], "all_classes": null, "length": 15454}
+{"pred": "42\n\n### Part 2\n\nGiven a paragraph, find the number of unique paragraphs after removing duplicates.\n\n### Example", "answers": ["3"], "all_classes": null, "length": 13841}
+{"pred": "1\n\nComment: Your answer could be improved with additional supporting information. Please [edit] to add further details, such as citations or documentation, so", "answers": ["3"], "all_classes": null, "length": 9325}
+{"pred": "43\n\n## See also\n\n* List of computer science journals\n* List of computer science conferences\n* List of computer science awards\n", "answers": ["3"], "all_classes": null, "length": 6771}
+{"pred": "1\n\n### Example 2\n\nThe following is an example of a more complex problem.\n\nParagraph 1: In his second tournament", "answers": ["9"], "all_classes": null, "length": 11684}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of a paragraph with 10 unique paragraphs.\n\nParagraph 1", "answers": ["3"], "all_classes": null, "length": 13730}
+{"pred": "10\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2019–20 Premier League", "answers": ["17"], "all_classes": null, "length": 8501}
+{"pred": "1\n\n### Example 2\n\nPlease enter the first paragraph of the text.\n\nParagraph 1: The People's Milk", "answers": ["22"], "all_classes": null, "length": 13035}
+{"pred": "28\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2010 FIFA World Cup.\n", "answers": ["16"], "all_classes": null, "length": 9281}
+{"pred": "1\n\n### Part 2\n\nThe following text is a paragraph from the Wikipedia article on the 2019–20 Premier League", "answers": ["17"], "all_classes": null, "length": 7400}
+{"pred": "34\n\n## External links\n\n* The 10000000000000000000", "answers": ["4"], "all_classes": null, "length": 14283}
+{"pred": "1\n\n### Example 2\n\nThis example is a more complex example, with a few more rules.\n\nParagraph 1: Meanwhile", "answers": ["7"], "all_classes": null, "length": 12616}
+{"pred": "10\n\nComment: Your answer does not match the sample input.\n\nComment: I've updated my answer.\n\nComment: I'", "answers": ["38"], "all_classes": null, "length": 12285}
+{"pred": "13\n\n### Example 2\n\nParagraph 1: The 2010–11 NBA season was the 65", "answers": ["17"], "all_classes": null, "length": 14999}
+{"pred": "4\n\n### Part 2\n\nThe following paragraphs are taken from Wikipedia.\n\nParagraph 1: The Cotati originated on", "answers": ["15"], "all_classes": null, "length": 13557}
+{"pred": "4\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment:\n\nComment", "answers": ["34"], "all_classes": null, "length": 15684}
+{"pred": "1\n\n### 2014\n\nParagraph 1: Greene beat Martin O'Donnell 5–3 to qual", "answers": ["5"], "all_classes": null, "length": 12236}
+{"pred": "1\n", "answers": ["22"], "all_classes": null, "length": 16104}
+{"pred": "1\n\n### Part 2\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number,", "answers": ["30"], "all_classes": null, "length": 9118}
+{"pred": "1\n", "answers": ["9"], "all_classes": null, "length": 17635}
+{"pred": "1\n\nComment:\n\nI'm not sure if this is the right place to ask this question, but I'm trying to solve a problem", "answers": ["6"], "all_classes": null, "length": 8470}
+{"pred": "19\n\n### Example 2\n\nThe following is an example of a paragraph that contains duplicate text.\n\nParagraph 1: Sh", "answers": ["7"], "all_classes": null, "length": 5326}
+{"pred": "1\n\n### Example 2\n\nParagraph 1: The first known use of the term \"sandwich\" was in 17", "answers": ["31"], "all_classes": null, "length": 12687}
+{"pred": "21\n\nComment:\n\nI'm not sure if this is the right way to do this, but I'm trying to use the regex", "answers": ["5"], "all_classes": null, "length": 5518}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2014 FIFA World Cup:\n\n", "answers": ["35"], "all_classes": null, "length": 15203}
+{"pred": "1\n\n### Example 2\n\nThe following paragraphs are taken from the Wikipedia article on the 2011 Tōhoku earth", "answers": ["24"], "all_classes": null, "length": 7955}
+{"pred": "1\n\n### 2013\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the", "answers": ["37"], "all_classes": null, "length": 12718}
+{"pred": "10\n\n### Example 2\n\nThe following is an example of a problem that can be solved using the Paragraphs package.\n\n", "answers": ["11"], "all_classes": null, "length": 12939}
+{"pred": "4\n\nComment:\n\nI'm not sure if this is the right way to do this, but I'm trying to get the number of", "answers": ["28"], "all_classes": null, "length": 12397}
+{"pred": "1\n\n### Example 2\n\nThe following is a sample of the input:\n\nParagraph 1: Hasankeyf is rich", "answers": ["5"], "all_classes": null, "length": 11938}
+{"pred": "1, 2, 21, 22\n\n### 2019\n\nPlease enter the number of unique paragraphs in", "answers": ["4"], "all_classes": null, "length": 8543}
+{"pred": "25\n\nComment: Please add the code you have tried so far.\n\nComment: I have tried to use the following code:\n\nimport", "answers": ["11"], "all_classes": null, "length": 8590}
+{"pred": "1\n\n### Example 2\n\nPlease enter the final count of unique paragraphs after removing duplicates. The output format should only contain the number,", "answers": ["16"], "all_classes": null, "length": 9543}
+{"pred": "10\n\n### Example 2\n\nThe source of the commotion is a group of men pursuing a young woman who is swimming fr", "answers": ["26"], "all_classes": null, "length": 13429}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2011 Tōhoku earthqu", "answers": ["10"], "all_classes": null, "length": 9585}
+{"pred": "1\n\n### Part 2\n\nPlease enter the number of unique paragraphs after removing duplicates. The output format should only contain the number, such", "answers": ["42"], "all_classes": null, "length": 15870}
+{"pred": "1\n\nThe input format is:\n\nThe first line contains the number of paragraphs.\n\nThe next lines contain the paragraphs.\n\n", "answers": ["26"], "all_classes": null, "length": 12313}
+{"pred": "24\n\n### Example 2\n\nThe following is a sample of the second example.\n\nParagraph 1: The Lindbergh", "answers": ["21"], "all_classes": null, "length": 6986}
+{"pred": "1\n", "answers": ["19"], "all_classes": null, "length": 9484}
+{"pred": "52\n\n### Example 2\n\nThe following is an example of a second type of problem.\n\nParagraph 1: The first", "answers": ["26"], "all_classes": null, "length": 15479}
+{"pred": "1\n\\end{code}\n\nComment: Please provide a [mre]\n\nComment: @RomanPerekhrest I have added", "answers": ["5"], "all_classes": null, "length": 9960}
+{"pred": "1, 2, 3, 4, 48, 49, 50\n\nComment:\n\nThe input file is", "answers": ["20"], "all_classes": null, "length": 14973}
+{"pred": "100\n\n### Example 2\n\nThe following is a sample of a paragraph from a book. The paragraph contains 10 unique words", "answers": ["15"], "all_classes": null, "length": 13734}
+{"pred": "120\n\n### 2019\n\nParagraph 1: The 2019 World Series of Poker (WS", "answers": ["10"], "all_classes": null, "length": 6073}
+{"pred": "1\n\n### Example 2\n\nThe following is a paragraph from the Wikipedia article on the 2010 Haiti earthquake", "answers": ["17"], "all_classes": null, "length": 15984}
+{"pred": "1\n\n### Example 2\n\nPlease enter the number of unique paragraphs in the following text.\n\nParagraph 1: The ", "answers": ["28"], "all_classes": null, "length": 6972}
