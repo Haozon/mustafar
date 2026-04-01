@@ -137,6 +137,7 @@ def find_matching_candidate_dir(
     output_root: Path,
     model_path: str,
     max_length: int,
+    kv_sparsity: float,
     search_tag: str,
     task: str,
     candidate: CandidateConfig,
@@ -147,9 +148,10 @@ def find_matching_candidate_dir(
     level_2_mode: str,
     selector_mode: str,
     protected_heavy_ratio: float,
+    protected_recent_ratio: float,
 ) -> Optional[Path]:
     model_name = Path(model_path).name
-    pattern = f"{model_name}_{max_length}_diff_sparse_kv_0.70_{search_tag}_{task}_*"
+    pattern = f"{model_name}_{max_length}_diff_sparse_kv_{kv_sparsity:.2f}_{search_tag}_{task}_*"
     for path_str in glob.glob(str(output_root / pattern)):
         path = Path(path_str)
         cfg_file = path / "sparsity_config.json"
@@ -170,6 +172,8 @@ def find_matching_candidate_dir(
             "selector_mode", "diffsparse"
         ) == selector_mode and abs(
             float(cfg.get("protected_heavy_ratio", 0.0)) - float(protected_heavy_ratio)
+        ) <= CONFIG_TOL and abs(
+            float(cfg.get("protected_recent_ratio", 1.0)) - float(protected_recent_ratio)
         ) <= CONFIG_TOL:
             return path
     return None
@@ -232,6 +236,7 @@ def run_eval(
     level_2_mode: str = "evict",
     selector_mode: str = "diffsparse",
     protected_heavy_ratio: float = 0.0,
+    protected_recent_ratio: float = 1.0,
 ) -> Optional[Path]:
     args = [
         sys.executable,
@@ -263,6 +268,7 @@ def run_eval(
             "--level_2_mode", level_2_mode,
             "--selector_mode", selector_mode,
             "--protected_heavy_ratio", f"{protected_heavy_ratio:.4f}",
+            "--protected_recent_ratio", f"{protected_recent_ratio:.4f}",
         ]
 
     if sparsity_type == "uniform":
@@ -312,6 +318,7 @@ def run_diff_eval_with_custom_dir(
     level_2_mode: str,
     selector_mode: str,
     protected_heavy_ratio: float,
+    protected_recent_ratio: float,
 ) -> Optional[Path]:
     existing = None
     if "cand" in output_tag:
@@ -322,6 +329,7 @@ def run_diff_eval_with_custom_dir(
                 output_root=output_root,
                 model_path=model_path,
                 max_length=max_length,
+                kv_sparsity=kv_sparsity,
                 search_tag=output_tag.split(f"_{task}_")[0],
                 task=task,
                 candidate=candidate,
@@ -332,6 +340,7 @@ def run_diff_eval_with_custom_dir(
                 level_2_mode=level_2_mode,
                 selector_mode=selector_mode,
                 protected_heavy_ratio=protected_heavy_ratio,
+                protected_recent_ratio=protected_recent_ratio,
             )
     if existing is not None:
         print(f"[reuse-candidate] {existing}")
@@ -355,6 +364,7 @@ def run_diff_eval_with_custom_dir(
         "--level_2_mode", level_2_mode,
         "--selector_mode", selector_mode,
         "--protected_heavy_ratio", f"{protected_heavy_ratio:.4f}",
+        "--protected_recent_ratio", f"{protected_recent_ratio:.4f}",
         "--output_tag", output_tag,
     ]
     if sample_indices_file is not None:
@@ -401,6 +411,7 @@ def main():
     parser.add_argument("--level_2_mode_grid", type=str, default="")
     parser.add_argument("--selector_mode_grid", type=str, default="")
     parser.add_argument("--protected_heavy_ratio_grid", type=str, default="")
+    parser.add_argument("--protected_recent_ratio_grid", type=str, default="")
     parser.add_argument("--output_root", type=str, default="solver_runs")
     parser.add_argument("--search_tag", type=str, default="solver_search")
     args = parser.parse_args()
@@ -420,6 +431,7 @@ def main():
     level_2_modes = parse_str_list(args.level_2_mode_grid) if args.level_2_mode_grid else ["evict"]
     selector_modes = parse_str_list(args.selector_mode_grid) if args.selector_mode_grid else ["diffsparse"]
     protected_heavy_ratios = parse_float_list(args.protected_heavy_ratio_grid) if args.protected_heavy_ratio_grid else [0.0]
+    protected_recent_ratios = parse_float_list(args.protected_recent_ratio_grid) if args.protected_recent_ratio_grid else [1.0]
     search_settings = list(product(
         importance_modes,
         head_modes,
@@ -428,6 +440,7 @@ def main():
         level_2_modes,
         selector_modes,
         protected_heavy_ratios,
+        protected_recent_ratios,
     ))
 
     print(f"[info] generated {len(candidates)} feasible budget candidates and {len(search_settings)} importance settings")
@@ -483,18 +496,18 @@ def main():
             total_combo = len(candidates) * len(search_settings)
             combo_idx = 0
             for idx, candidate in enumerate(candidates, start=1):
-                for imp_mode, head_mode, sink_keep, head_alpha, level_2_mode, selector_mode, protected_heavy_ratio in search_settings:
+                for imp_mode, head_mode, sink_keep, head_alpha, level_2_mode, selector_mode, protected_heavy_ratio, protected_recent_ratio in search_settings:
                     combo_idx += 1
                     candidate_tag = (
                         f"{args.search_tag}_{task}_cand{idx}_{candidate.short_name}_"
                         f"imp_{imp_mode}_head_{head_mode}_sink_{sink_keep}_"
-                        f"alpha_{head_alpha:.2f}_l2_{level_2_mode}_sel_{selector_mode}_phr_{protected_heavy_ratio:.2f}"
+                        f"alpha_{head_alpha:.2f}_l2_{level_2_mode}_sel_{selector_mode}_phr_{protected_heavy_ratio:.2f}_prr_{protected_recent_ratio:.2f}"
                     )
                     print(
                         f"[per-task-search] task={task} {combo_idx}/{total_combo} "
                         f"p0={candidate.p0:.2f} p1={candidate.p1:.2f} p2={candidate.p2:.2f} "
                         f"rho1={candidate.rho1:.4f} imp={imp_mode} head={head_mode} sink={sink_keep} "
-                        f"alpha={head_alpha:.2f} l2={level_2_mode} sel={selector_mode} phr={protected_heavy_ratio:.2f}"
+                        f"alpha={head_alpha:.2f} l2={level_2_mode} sel={selector_mode} phr={protected_heavy_ratio:.2f} prr={protected_recent_ratio:.2f}"
                     )
                     diff_output = run_diff_eval_with_custom_dir(
                         model_path=args.model_path,
@@ -514,6 +527,7 @@ def main():
                         level_2_mode=level_2_mode,
                         selector_mode=selector_mode,
                         protected_heavy_ratio=protected_heavy_ratio,
+                        protected_recent_ratio=protected_recent_ratio,
                     )
                     if diff_output is None:
                         continue
@@ -524,12 +538,12 @@ def main():
                         best_dir = diff_output
                         best_setting = (
                             imp_mode, head_mode, sink_keep,
-                            head_alpha, level_2_mode, selector_mode, protected_heavy_ratio,
+                            head_alpha, level_2_mode, selector_mode, protected_heavy_ratio, protected_recent_ratio,
                         )
 
             if best_cfg is None or best_result is None or best_dir is None or best_setting is None:
                 raise RuntimeError(f"Per-task search failed for {task}")
-            best_imp_mode, best_head_mode, best_sink_keep, best_head_alpha, best_level2_mode, best_selector_mode, best_protected_heavy_ratio = best_setting
+            best_imp_mode, best_head_mode, best_sink_keep, best_head_alpha, best_level2_mode, best_selector_mode, best_protected_heavy_ratio, best_protected_recent_ratio = best_setting
 
             uniform_val_tag = f"{args.search_tag}_{task}_uniform_val"
             uniform_val_output = run_eval(
@@ -567,6 +581,7 @@ def main():
                 level_2_mode=best_level2_mode,
                 selector_mode=best_selector_mode,
                 protected_heavy_ratio=best_protected_heavy_ratio,
+                protected_recent_ratio=best_protected_recent_ratio,
             )
             if diff_val_output is None:
                 raise RuntimeError(f"Best diff validation failed for {task}")
@@ -591,6 +606,7 @@ def main():
                 "level_2_mode": best_level2_mode,
                 "selector_mode": best_selector_mode,
                 "protected_heavy_ratio": best_protected_heavy_ratio,
+                "protected_recent_ratio": best_protected_recent_ratio,
                 "calib_indices_file": str(calib_idx_file),
                 "val_indices_file": str(val_idx_file),
                 "best_calib_dir": str(best_dir),
@@ -609,7 +625,7 @@ def main():
                     "uniform_val", "diff_val", "val_delta",
                     "p0", "p1", "p2", "rho1",
                     "importance_mode", "head_aggregation_mode", "value_sink_keep",
-                    "head_aggregation_alpha", "level_2_mode", "selector_mode", "protected_heavy_ratio",
+                    "head_aggregation_alpha", "level_2_mode", "selector_mode", "protected_heavy_ratio", "protected_recent_ratio",
                     "calib_indices_file", "val_indices_file",
                     "best_calib_dir", "best_val_dir",
                 ],
@@ -662,18 +678,18 @@ def main():
     total_combo = len(candidates) * len(search_settings)
     combo_idx = 0
     for idx, candidate in enumerate(candidates, start=1):
-        for imp_mode, head_mode, sink_keep, head_alpha, level_2_mode, selector_mode, protected_heavy_ratio in search_settings:
+        for imp_mode, head_mode, sink_keep, head_alpha, level_2_mode, selector_mode, protected_heavy_ratio, protected_recent_ratio in search_settings:
             combo_idx += 1
             candidate_tag = (
                 f"{args.search_tag}_cand{idx}_{candidate.short_name}_"
                 f"imp_{imp_mode}_head_{head_mode}_sink_{sink_keep}_"
-                f"alpha_{head_alpha:.2f}_l2_{level_2_mode}_sel_{selector_mode}_phr_{protected_heavy_ratio:.2f}"
+                f"alpha_{head_alpha:.2f}_l2_{level_2_mode}_sel_{selector_mode}_phr_{protected_heavy_ratio:.2f}_prr_{protected_recent_ratio:.2f}"
             )
             print(
                 f"[search] {combo_idx}/{total_combo} "
                 f"p0={candidate.p0:.2f} p1={candidate.p1:.2f} p2={candidate.p2:.2f} "
                 f"rho1={candidate.rho1:.4f} imp={imp_mode} head={head_mode} sink={sink_keep} "
-                f"alpha={head_alpha:.2f} l2={level_2_mode} sel={selector_mode} phr={protected_heavy_ratio:.2f}"
+                f"alpha={head_alpha:.2f} l2={level_2_mode} sel={selector_mode} phr={protected_heavy_ratio:.2f} prr={protected_recent_ratio:.2f}"
             )
             diff_output = run_diff_eval_with_custom_dir(
                 model_path=args.model_path,
@@ -693,6 +709,7 @@ def main():
                 level_2_mode=level_2_mode,
                 selector_mode=selector_mode,
                 protected_heavy_ratio=protected_heavy_ratio,
+                protected_recent_ratio=protected_recent_ratio,
             )
             if diff_output is None:
                 continue
@@ -708,6 +725,7 @@ def main():
                 "level_2_mode": level_2_mode,
                 "selector_mode": selector_mode,
                 "protected_heavy_ratio": protected_heavy_ratio,
+                "protected_recent_ratio": protected_recent_ratio,
                 "expected_budget": candidate.expected_budget,
                 "calib_average": avg,
                 "delta_vs_uniform": delta,
@@ -717,7 +735,7 @@ def main():
             if best_result is None or avg > best_result["average"]:
                 best_cfg = candidate
                 best_result = result
-                best_setting = (imp_mode, head_mode, sink_keep, head_alpha, level_2_mode, selector_mode, protected_heavy_ratio)
+                best_setting = (imp_mode, head_mode, sink_keep, head_alpha, level_2_mode, selector_mode, protected_heavy_ratio, protected_recent_ratio)
 
     rows.sort(key=lambda x: x["calib_average"], reverse=True)
     search_csv = output_root / f"{args.search_tag}_calibration_results.csv"
@@ -727,7 +745,7 @@ def main():
                 fieldnames=[
                     "p0", "p1", "p2", "rho1",
                     "importance_mode", "head_aggregation_mode", "value_sink_keep",
-                    "head_aggregation_alpha", "level_2_mode", "selector_mode", "protected_heavy_ratio",
+                    "head_aggregation_alpha", "level_2_mode", "selector_mode", "protected_heavy_ratio", "protected_recent_ratio",
                     "target_budget", "expected_budget",
                     "calib_average", "delta_vs_uniform", "output_dir"
                 ],
@@ -737,13 +755,13 @@ def main():
 
     if best_cfg is None or best_result is None or best_setting is None:
         raise RuntimeError("Search finished without a valid best candidate.")
-    best_imp_mode, best_head_mode, best_sink_keep, best_head_alpha, best_level2_mode, best_selector_mode, best_protected_heavy_ratio = best_setting
+    best_imp_mode, best_head_mode, best_sink_keep, best_head_alpha, best_level2_mode, best_selector_mode, best_protected_heavy_ratio, best_protected_recent_ratio = best_setting
 
     print(
         "[best] "
         f"p0={best_cfg.p0:.2f} p1={best_cfg.p1:.2f} p2={best_cfg.p2:.2f} rho1={best_cfg.rho1:.4f} "
         f"imp={best_imp_mode} head={best_head_mode} sink={best_sink_keep} "
-        f"alpha={best_head_alpha:.2f} l2={best_level2_mode} sel={best_selector_mode} phr={best_protected_heavy_ratio:.2f} "
+        f"alpha={best_head_alpha:.2f} l2={best_level2_mode} sel={best_selector_mode} phr={best_protected_heavy_ratio:.2f} prr={best_protected_recent_ratio:.2f} "
         f"calib_avg={best_result['average']:.2f} delta={best_result['average'] - uniform_avg:+.2f}"
     )
 
@@ -783,6 +801,7 @@ def main():
         level_2_mode=best_level2_mode,
         selector_mode=best_selector_mode,
         protected_heavy_ratio=best_protected_heavy_ratio,
+        protected_recent_ratio=best_protected_recent_ratio,
     )
     if val_diff_output is None:
         raise RuntimeError("Best diff validation failed")
@@ -805,6 +824,7 @@ def main():
         "best_level_2_mode": best_level2_mode,
         "best_selector_mode": best_selector_mode,
         "best_protected_heavy_ratio": best_protected_heavy_ratio,
+        "best_protected_recent_ratio": best_protected_recent_ratio,
         "best_importance_mode": best_imp_mode,
         "best_head_aggregation_mode": best_head_mode,
         "best_value_sink_keep": best_sink_keep,

@@ -1,0 +1,31 @@
+% Recommended placement:
+% Insert this snippet in Section "Experimental Setup",
+% after the paragraph that introduces models / datasets / truncation settings,
+% and before the paragraph that starts with
+% "We answer three questions."
+
+\paragraph{Budget instantiation protocol.}
+For all differential-sparsity and joint sparse-quant settings, we do not fix a single universal three-level policy in advance.
+Instead, under each target average sparsity budget, we instantiate the policy using the calibration procedure described in
+Section~\ref{sec:budget-config}. Concretely, for a target budget $B \in \{0.5, 0.7\}$, we construct a feasible candidate set
+of three-level configurations $c = ([p_0,p_1,p_2], \rho_1)$ satisfying the budget constraint in
+Equation~\eqref{eq:budget_constraint}, evaluate these candidates on a small held-out calibration split, and select the
+best-performing configuration under the same budget. We then re-evaluate the selected configuration on a disjoint validation
+split before running the full LongBench evaluation.
+
+Unless otherwise noted, the calibration protocol keeps the remaining selection hyperparameters fixed and only searches the
+budget allocation itself, namely the dense/partial/evict proportions and the intermediate sparsity level. This protocol
+ensures that matched-budget comparisons are fair in two senses: the compared methods have the same target average sparsity,
+and the differential policy is instantiated through the same calibration procedure rather than through hidden task-specific
+manual tuning. For task-adaptive results, calibration and validation are performed separately for each task; for shared-policy
+results, one calibrated configuration is selected and then reused across the evaluation tasks.
+
+In the experiments reported below, we use a small calibration subset and a disjoint validation subset drawn from the same
+benchmark pool with fixed random seeds. This lightweight protocol is sufficient to expose task-level differences in preferred
+budget allocation while keeping the tuning cost negligible compared with full evaluation.
+
+% Optional concrete version if you want to state exact numbers.
+% Replace the paragraph above with the following sentence if you want explicit protocol details:
+%
+% In our default protocol, we use 10 calibration examples and 30 validation examples
+% per task, sampled with fixed random seeds, and keep the two subsets disjoint.

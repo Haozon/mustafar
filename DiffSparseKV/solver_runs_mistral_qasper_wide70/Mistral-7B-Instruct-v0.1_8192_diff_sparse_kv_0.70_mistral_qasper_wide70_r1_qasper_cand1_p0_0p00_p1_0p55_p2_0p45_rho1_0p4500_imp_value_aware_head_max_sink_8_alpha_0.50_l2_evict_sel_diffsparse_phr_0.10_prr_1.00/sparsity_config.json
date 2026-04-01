@@ -1,0 +1,37 @@
+{
+  "model": "Mistral-7B-Instruct-v0.1",
+  "max_length": 8192,
+  "sparsity_type": "diff_sparse_kv",
+  "kv_sparsity": 0.7,
+  "sparsity_levels": [
+    0.0,
+    0.45,
+    1.0
+  ],
+  "target_distribution": [
+    0.0,
+    0.545455,
+    0.454545
+  ],
+  "window_size": 128,
+  "obs_window_size": 128,
+  "level_2_mode": "evict",
+  "importance_mode": "value_aware",
+  "value_sink_keep": 8,
+  "head_aggregation_mode": "max",
+  "head_aggregation_alpha": 0.5,
+  "head_disagreement_ratio": -1.0,
+  "selector_mode": "diffsparse",
+  "protected_heavy_ratio": 0.1,
+  "protected_recent_ratio": 1.0,
+  "target_budget": -1.0,
+  "budget_template": "default_3level",
+  "limit": 0,
+  "sample_seed": -1,
+  "output_tag": "mistral_qasper_wide70_r1_qasper_cand1_p0_0p00_p1_0p55_p2_0p45_rho1_0p4500_imp_value_aware_head_max_sink_8_alpha_0.50_l2_evict_sel_diffsparse_phr_0.10_prr_1.00",
+  "sparsity_stats": {
+    "total_tokens": 0,
+    "pruned_tokens": 0,
+    "compression_ratio": 0.0
+  }
+}

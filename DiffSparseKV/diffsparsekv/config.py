@@ -123,6 +123,7 @@ def create_diff_sparse_kv_config(
     base_config.obs_window_size = obs_window_size
     base_config.debug_diff_sparse = debug_diff_sparse
     base_config.use_flash = use_flash_attention
+    base_config.use_flash_attention = use_flash_attention
     base_config.level_2_mode = level_2_mode
     base_config.importance_mode = importance_mode
     base_config.value_sink_keep = value_sink_keep

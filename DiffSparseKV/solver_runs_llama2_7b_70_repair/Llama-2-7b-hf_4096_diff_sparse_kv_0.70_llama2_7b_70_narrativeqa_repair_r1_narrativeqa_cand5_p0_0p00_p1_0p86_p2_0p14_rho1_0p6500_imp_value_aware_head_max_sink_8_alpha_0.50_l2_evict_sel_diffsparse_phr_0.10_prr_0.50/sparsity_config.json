@@ -1,0 +1,37 @@
+{
+  "model": "Llama-2-7b-hf",
+  "max_length": 4096,
+  "sparsity_type": "diff_sparse_kv",
+  "kv_sparsity": 0.7,
+  "sparsity_levels": [
+    0.0,
+    0.65,
+    1.0
+  ],
+  "target_distribution": [
+    0.0,
+    0.857143,
+    0.142857
+  ],
+  "window_size": 128,
+  "obs_window_size": 128,
+  "level_2_mode": "evict",
+  "importance_mode": "value_aware",
+  "value_sink_keep": 8,
+  "head_aggregation_mode": "max",
+  "head_aggregation_alpha": 0.5,
+  "head_disagreement_ratio": -1.0,
+  "selector_mode": "diffsparse",
+  "protected_heavy_ratio": 0.1,
+  "protected_recent_ratio": 0.5,
+  "target_budget": -1.0,
+  "budget_template": "default_3level",
+  "limit": 0,
+  "sample_seed": -1,
+  "output_tag": "llama2_7b_70_narrativeqa_repair_r1_narrativeqa_cand5_p0_0p00_p1_0p86_p2_0p14_rho1_0p6500_imp_value_aware_head_max_sink_8_alpha_0.50_l2_evict_sel_diffsparse_phr_0.10_prr_0.50",
+  "sparsity_stats": {
+    "total_tokens": 0,
+    "pruned_tokens": 0,
+    "compression_ratio": 0.0
+  }
+}

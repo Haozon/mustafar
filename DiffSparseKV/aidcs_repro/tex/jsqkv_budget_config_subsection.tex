@@ -1,0 +1,66 @@
+% Recommended placement:
+% Insert this subsection after
+% \subsection{Differential Sparsity from Attention Scores}
+% and before
+% \subsection{Dual-Window Online Execution for Decoding}.
+
+\subsection{Budget-Constrained Task-Adaptive Configuration}
+\label{sec:budget-config}
+
+A fixed average sparsity budget does not uniquely determine a differential sparsity policy.
+Even when the target compression ratio is held constant, different allocations of dense preservation,
+feature-level pruning, and token eviction can lead to noticeably different accuracy outcomes across tasks.
+Some tasks benefit from reserving more budget for a dense token subset, while others tolerate more aggressive
+token eviction as long as a small set of evidence-bearing tokens is preserved.
+Therefore, in \method, the sparsity policy is instantiated under an explicit budget constraint rather than by
+fixing one universal three-level configuration for all tasks.
+
+We parameterize a three-level sparsity policy by
+\begin{equation}
+c = ([p_0,p_1,p_2], \rho_1),
+\end{equation}
+where $p_0$, $p_1$, and $p_2$ denote the proportions of Level 0, Level 1, and Level 2 tokens, respectively,
+with
+\begin{equation}
+p_0 + p_1 + p_2 = 1.
+\end{equation}
+Level 0 tokens are kept dense, Level 1 tokens use feature-level sparsity $\rho_1$, and Level 2 tokens are fully removed.
+With $\rho_0 = 0$ and $\rho_2 = 1$, the expected average sparsity budget $B$ must satisfy
+\begin{equation}
+B = p_0 \rho_0 + p_1 \rho_1 + p_2 \rho_2 = p_1 \rho_1 + p_2.
+\label{eq:budget_constraint}
+\end{equation}
+Equation~\eqref{eq:budget_constraint} makes clear that many feasible policies can share the same overall budget.
+As a result, matched-budget comparison requires not only fixing $B$, but also specifying how the budget is distributed
+across dense, partially sparse, and evicted tokens.
+
+To instantiate \method\ under a target budget, we use a lightweight calibration-based configuration solver.
+Instead of exhaustively searching all possible triples, we search over a small feasible grid of $(p_0,\rho_1)$ pairs
+and analytically recover the remaining proportions:
+\begin{equation}
+p_1 = \frac{1 - p_0 - B}{1 - \rho_1},
+\qquad
+p_2 = 1 - p_0 - p_1.
+\label{eq:budget_solver}
+\end{equation}
+Candidates that violate $p_0,p_1,p_2 \in [0,1]$ are discarded.
+This yields a compact family of policies that all satisfy the same average compression target while expressing
+different dense/partial/evict trade-offs.
+
+We then select the final configuration on a small calibration split:
+\begin{equation}
+c^\star = \arg\max_{c \in \mathcal{C}(B)} \mathrm{Metric}(D_{\mathrm{cal}}; c),
+\label{eq:calibration_objective}
+\end{equation}
+where $\mathcal{C}(B)$ is the feasible candidate set under budget $B$ and $D_{\mathrm{cal}}$ is a held-out calibration subset.
+To reduce overfitting, the selected configuration is re-evaluated on a disjoint validation subset before it is used in
+full evaluation. If the calibration gain does not generalize, we fall back to a simpler matched-budget uniform policy.
+This procedure is intentionally lightweight: it preserves the fairness of matched-budget comparison while allowing
+\method\ to adapt the dense/partial/evict allocation to the sensitivity profile of each task.
+
+This budget-constrained instantiation plays an important practical role in the overall framework.
+It connects the token-importance model in Section~\ref{sec:diff-sparsity} with the downstream sparse-quant runtime:
+the importance estimator ranks tokens, the budget solver determines how much budget each compression level receives,
+and the sparse-quant representation applies the resulting policy.
+In this sense, the configuration solver is not a separate compression primitive, but the mechanism that turns
+a fixed global budget into a task-appropriate differential sparsity policy.

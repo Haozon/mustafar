@@ -470,6 +470,7 @@ class LlamaDiffSparseKVAttention(nn.Module):
                 raise RuntimeError("Thresholds not computed. Must run prefill first.")
             
             protected_mask = torch.zeros_like(normalized_attention_aggregated, dtype=torch.bool)
+            protected_global_indices = []
             if self.protected_heavy_ratio > 0.0:
                 protected_count = min(
                     W,
@@ -489,15 +490,38 @@ class LlamaDiffSparseKVAttention(nn.Module):
                         max_value.expand(-1, protected_idx.shape[-1]),
                     )
                     protected_mask.scatter_(1, protected_idx, True)
-                    ws['protected_indices'] = torch.unique(
-                        ws['window_a_indices'][protected_idx[0]].to(ws['window_a_indices'].dtype),
-                        sorted=True,
+                    protected_global_indices.append(
+                        ws['window_a_indices'][protected_idx[0]].to(ws['window_a_indices'].dtype)
                     )
+
+            if self.protected_recent_ratio > 0.0:
+                protected_recent_count = min(
+                    W,
+                    max(1, int(round(self.protected_recent_ratio * W)))
+                )
+                recent_idx = torch.arange(
+                    W - protected_recent_count,
+                    W,
+                    device=normalized_attention_aggregated.device,
+                    dtype=torch.long,
+                ).unsqueeze(0).expand(normalized_attention_aggregated.shape[0], -1)
+                protected_mask.scatter_(1, recent_idx, True)
+                protected_global_indices.append(
+                    ws['window_a_indices'][recent_idx[0]].to(ws['window_a_indices'].dtype)
+                )
+
+            if protected_global_indices:
+                ws['protected_indices'] = torch.unique(
+                    torch.cat(protected_global_indices, dim=0),
+                    sorted=True,
+                )
+            else:
+                ws['protected_indices'] = ws['window_a_indices'].new_empty((0,), dtype=torch.long)
 
             if DEBUG:
                 print(f"Using thresholds: {self.diff_sparse_thresholds}")
 
-            if self.protected_heavy_ratio > 0.0:
+            if self.protected_heavy_ratio > 0.0 or self.protected_recent_ratio > 0.0:
                 level_assignments = self._build_budgeted_levels(
                     aggregated_scores=normalized_attention_aggregated,
                     protected_mask=protected_mask,
