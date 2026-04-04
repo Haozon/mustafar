@@ -117,6 +117,7 @@ def parse_args():
     parser.add_argument("--seed", type=int, default=42)
     parser.add_argument("--allow-download", action="store_true")
     parser.add_argument("--attn-implementation", default="flash_attention_2")
+    parser.add_argument("--overwrite-existing-datasets", action="store_true")
     return parser.parse_args()
 
 
@@ -201,6 +202,17 @@ def load_longbench_dataset(dataset_name: str):
 
     print(f"[dataset] falling back to THUDM/LongBench for {dataset_name}")
     return load_dataset("THUDM/LongBench", dataset_name, split="test", trust_remote_code=True)
+
+
+def load_saved_rows(path: Path):
+    rows = []
+    with open(path, "r", encoding="utf-8") as f:
+        for line in f:
+            line = line.strip()
+            if not line:
+                continue
+            rows.append(json.loads(line))
+    return rows
 
 
 def score_dataset(dataset_name: str, rows):
@@ -334,24 +346,38 @@ def main():
 
     all_scores = {}
     for dataset_name in datasets:
-        ds = load_longbench_dataset(dataset_name)
-        if args.limit is not None:
-            ds = ds.select(range(min(args.limit, len(ds))))
+        dataset_output_path = output_dir / f"{dataset_name}.jsonl"
+        rows = None
+        if dataset_output_path.exists() and not args.overwrite_existing_datasets:
+            try:
+                saved_rows = load_saved_rows(dataset_output_path)
+                if saved_rows:
+                    rows = saved_rows
+                    print(f"[resume] reusing existing predictions for {dataset_name}: {dataset_output_path}")
+                else:
+                    print(f"[resume] existing predictions empty for {dataset_name}, regenerating")
+            except Exception as exc:
+                print(f"[resume] failed to load existing predictions for {dataset_name}: {exc}")
 
-        rows = generate_predictions(
-            model=model,
-            tokenizer=tokenizer,
-            dataset_name=dataset_name,
-            rows=ds,
-            prompt_format=dataset2prompt[dataset_name],
-            max_length=max_length,
-            max_gen=dataset2maxlen[dataset_name],
-        )
+        if rows is None:
+            ds = load_longbench_dataset(dataset_name)
+            if args.limit is not None:
+                ds = ds.select(range(min(args.limit, len(ds))))
 
-        with open(output_dir / f"{dataset_name}.jsonl", "w", encoding="utf-8") as f:
-            for row in rows:
-                json.dump(row, f, ensure_ascii=False)
-                f.write("\n")
+            rows = generate_predictions(
+                model=model,
+                tokenizer=tokenizer,
+                dataset_name=dataset_name,
+                rows=ds,
+                prompt_format=dataset2prompt[dataset_name],
+                max_length=max_length,
+                max_gen=dataset2maxlen[dataset_name],
+            )
+
+            with open(dataset_output_path, "w", encoding="utf-8") as f:
+                for row in rows:
+                    json.dump(row, f, ensure_ascii=False)
+                    f.write("\n")
 
         score = score_dataset(dataset_name, rows)
         all_scores[dataset_name] = score

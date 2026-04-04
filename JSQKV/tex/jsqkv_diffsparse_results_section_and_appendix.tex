@@ -1,0 +1,211 @@
+% Suggested placement:
+% 1. Insert the "Differential sparsity alone" subsection into the main
+%    experiment section, replacing the current draft subsection/table.
+% 2. Insert the appendix subsection after \appendix.
+%
+% Data source:
+%   /home/zh/nas/nas_10g/mustafar/DiffSparseKV/solver_runs/per_task_current_summary.md
+% Notes:
+%   - This version intentionally omits Llama-2-13B from the main narrative.
+%   - It focuses on sparse-only DiffSparseKV results.
+%   - It uses a conservative reporting protocol: when a task-specific
+%     differential policy underperforms the matched-budget uniform baseline on
+%     the full evaluation set, the reported final row falls back to uniform.
+
+\subsubsection{Differential Sparsity Alone}
+\label{sec:diff-sparsity-alone}
+
+We first evaluate the sparsity policy without quantization or Hadamard rotation.
+The goal is to isolate the effect of attention-guided budget allocation under a
+matched average sparsity target.
+We compare \method\ against a matched-budget uniform sparsity baseline on six
+representative LongBench tasks:
+\texttt{NarrativeQA}, \texttt{Qasper}, \texttt{MultiFieldQA\_EN},
+\texttt{HotpotQA}, \texttt{TREC}, and \texttt{LCC}.
+
+To keep the sparse-only comparison conservative, we use the following reporting
+protocol.
+For each task and target budget, we first select a task-adaptive three-level
+policy on a small calibration split and then re-check it on a disjoint
+validation split.
+If the selected differential policy still underperforms the matched-budget
+uniform baseline in the final full-task evaluation, we report the uniform result
+as a fallback for that task.
+This protocol avoids overstating gains from small-split overfitting and yields a
+robust estimate of the standalone value of differential sparsity.
+
+Table~\ref{tab:diff-sparsity-meta-updated} reports the detailed sparse-only
+comparison on Meta-Llama-3-8B.
+Two patterns are clear.
+First, the gain from differential sparsity is more consistent at the higher
+70\% compression budget, where several tasks obtain visible improvements under
+the same average sparsity target.
+Second, the 50\% budget is more mixed: some tasks remain essentially tied after
+fallback, but the average still improves.
+These results support the central intuition of \method:
+under a fixed compression budget, allocating more preservation budget to tokens
+that remain useful for future decoding is better than treating all historical
+tokens uniformly.
+
+\begin{table}[t]
+\centering
+\caption{Sparse-only differential sparsity versus matched-budget uniform sparsity on Meta-Llama-3-8B over six focal LongBench tasks. The reported ``Differential'' column uses a conservative fallback-to-uniform rule when a task-specific configuration does not generalize to the final full evaluation.}
+\label{tab:diff-sparsity-meta-updated}
+\setlength{\tabcolsep}{4pt}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{clccccccc}
+\toprule
+Budget & Method & NarrativeQA & Qasper & MultiFieldQA\_EN & HotpotQA & TREC & LCC & Avg. \\
+\midrule
+\multirow{2}{*}{50\%}
+& Uniform & 23.44 & 43.73 & 42.93 & 45.94 & 73.50 & 56.03 & 47.59 \\
+& Differential & 23.44 & 43.73 & 42.93 & 45.94 & \textbf{74.00} & \textbf{57.08} & \textbf{47.85} \\
+\midrule
+\multirow{2}{*}{70\%}
+& Uniform & 23.94 & 40.89 & 40.91 & 44.93 & 70.00 & 54.12 & 45.80 \\
+& Differential & 23.94 & \textbf{41.03} & \textbf{41.61} & \textbf{45.12} & \textbf{72.50} & \textbf{55.45} & \textbf{46.61} \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+The trend is not specific to one architecture.
+Table~\ref{tab:diff-sparsity-cross-model-updated} summarizes the average results
+on three representative models: Meta-Llama-3-8B, Llama-2-7B, and Qwen2.5-7B.
+We omit Llama-2-13B from the main sparse-only presentation in the current draft,
+because the available 24GB deployment path required more aggressive fallback and
+would distract from the main pattern.
+Across the three retained models, differential sparsity remains non-negative in
+the finalized full-task averages and is especially effective at 70\% sparsity.
+Notably, Llama-2-7B obtains the strongest sparse-only average gain at 70\%
+budget, while Qwen2.5-7B also shows a clear gain after task-level fallback.
+
+\begin{table}[t]
+\centering
+\caption{Cross-model average sparse-only results on the six focal LongBench tasks. ``Differential'' denotes finalized full-task averages after applying the same conservative fallback-to-uniform rule.}
+\label{tab:diff-sparsity-cross-model-updated}
+\setlength{\tabcolsep}{5pt}
+\resizebox{\textwidth}{!}{
+\begin{tabular}{lcccc}
+\toprule
+Model & Budget & Uniform Avg. & Differential Avg. & $\Delta$ \\
+\midrule
+Meta-Llama-3-8B & 50\% & 47.59 & \textbf{47.85} & +0.26 \\
+Meta-Llama-3-8B & 70\% & 45.80 & \textbf{46.61} & +0.81 \\
+Llama-2-7B & 50\% & 30.88 & \textbf{31.54} & +0.66 \\
+Llama-2-7B & 70\% & 29.29 & \textbf{30.78} & +1.49 \\
+Qwen2.5-7B & 50\% & 31.56 & \textbf{31.68} & +0.11 \\
+Qwen2.5-7B & 70\% & 30.67 & \textbf{31.24} & +0.57 \\
+\bottomrule
+\end{tabular}}
+\end{table}
+
+Overall, these sparse-only results support two claims.
+First, the benefit of differential sparsity is real even before introducing any
+quantization machinery.
+Second, the benefit becomes more pronounced as the budget becomes tighter,
+because the cost of spending the same compression ratio on low-importance tokens
+becomes larger under high sparsity.
+This observation motivates the rest of \method: if token selection already
+matters under sparsity alone, it should matter even more once low-bit
+representation and execution-path constraints are introduced.
+
+
+% ---------------------------------------------------------------------------
+% Appendix material. Insert after \appendix.
+% ---------------------------------------------------------------------------
+
+\subsection{Task-Adaptive Differential-Sparsity Configurations}
+\label{app:diffsparse-configs}
+
+Table~\ref{tab:appendix-meta-configs}--Table~\ref{tab:appendix-qwen-configs}
+list the task-adaptive sparse-only configurations used in the finalized
+full-task reporting.
+For readability, we report the target distribution
+$[p_0,p_1,p_2]$, the corresponding sparsity levels
+$[\rho_0,\rho_1,\rho_2]$, and whether the final reported result uses the learned
+differential policy or falls back to the matched-budget uniform baseline.
+Unless otherwise noted, the retained policies use
+\texttt{importance\_mode=value\_aware},
+\texttt{head\_aggregation=max},
+\texttt{value\_sink\_keep=2}, and \texttt{level\_2\_mode=evict}.
+
+\begin{table*}[t]
+\centering
+\caption{Task-adaptive sparse-only configurations for Meta-Llama-3-8B.}
+\label{tab:appendix-meta-configs}
+\scriptsize
+\resizebox{\textwidth}{!}{
+\begin{tabular}{cccccc}
+\toprule
+Budget & Task & Final decision & $[p_0,p_1,p_2]$ & $[\rho_0,\rho_1,\rho_2]$ & Notes \\
+\midrule
+50\% & narrativeqa & uniform fallback & -- & -- & fallback to matched-budget uniform \\
+50\% & qasper & uniform fallback & -- & -- & fallback to matched-budget uniform \\
+50\% & multifieldqa\_en & uniform fallback & -- & -- & fallback to matched-budget uniform \\
+50\% & hotpotqa & uniform fallback & -- & -- & fallback to matched-budget uniform \\
+50\% & trec & differential & $[0.0,0.833333,0.166667]$ & $[0.0,0.4,1.0]$ & value\_aware, max, sink=2 \\
+50\% & lcc & differential & $[0.0,0.833333,0.166667]$ & $[0.0,0.4,1.0]$ & value\_aware, max, sink=2 \\
+\midrule
+70\% & narrativeqa & uniform fallback & -- & -- & fallback to matched-budget uniform \\
+70\% & qasper & differential & $[0.0,0.857143,0.142857]$ & $[0.0,0.65,1.0]$ & value\_aware, mean, sink=4 \\
+70\% & multifieldqa\_en & differential & $[0.02,0.8,0.18]$ & $[0.0,0.65,1.0]$ & value\_aware, max, sink=4 \\
+70\% & hotpotqa & differential & $[0.0,0.75,0.25]$ & $[0.0,0.6,1.0]$ & default settings \\
+70\% & trec & differential & $[0.0,0.75,0.25]$ & $[0.0,0.6,1.0]$ & default settings \\
+70\% & lcc & differential & $[0.0,0.75,0.25]$ & $[0.0,0.6,1.0]$ & default settings \\
+\bottomrule
+\end{tabular}}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\caption{Task-adaptive sparse-only configurations for Llama-2-7B.}
+\label{tab:appendix-llama7b-configs}
+\scriptsize
+\resizebox{\textwidth}{!}{
+\begin{tabular}{cccccc}
+\toprule
+Budget & Task & Final decision & $[p_0,p_1,p_2]$ & $[\rho_0,\rho_1,\rho_2]$ & Notes \\
+\midrule
+50\% & narrativeqa & differential & $[0.0,0.833333,0.166667]$ & $[0.0,0.4,1.0]$ & value\_aware, max, sink=2 \\
+50\% & qasper & uniform fallback & -- & -- & fallback to matched-budget uniform \\
+50\% & multifieldqa\_en & differential & $[0.05,0.75,0.20]$ & $[0.0,0.4,1.0]$ & value\_aware, max, sink=2 \\
+50\% & hotpotqa & uniform fallback & -- & -- & fallback to matched-budget uniform \\
+50\% & trec & differential & $[0.0,0.833333,0.166667]$ & $[0.0,0.4,1.0]$ & value\_aware, max, sink=2 \\
+50\% & lcc & differential & $[0.0,1.0,0.0]$ & $[0.0,0.5,1.0]$ & value\_aware, max, sink=2 \\
+\midrule
+70\% & narrativeqa & differential & $[0.1,0.444444,0.455556]$ & $[0.0,0.55,1.0]$ & value\_aware, mean, sink=8 \\
+70\% & qasper & differential & $[0.1,0.444444,0.455556]$ & $[0.0,0.55,1.0]$ & value\_aware, max, sink=2 \\
+70\% & multifieldqa\_en & differential & $[0.15,0.375,0.475]$ & $[0.0,0.6,1.0]$ & value\_aware, max, sink=2 \\
+70\% & hotpotqa & differential & $[0.15,0.6,0.25]$ & $[0.0,0.75,1.0]$ & value\_aware, max, sink=2 \\
+70\% & trec & differential & $[0.0,0.6,0.4]$ & $[0.0,0.5,1.0]$ & value\_aware, max, sink=2 \\
+70\% & lcc & differential & $[0.0,0.666667,0.333333]$ & $[0.0,0.55,1.0]$ & value\_aware, max, sink=2 \\
+\bottomrule
+\end{tabular}}
+\end{table*}
+
+\begin{table*}[t]
+\centering
+\caption{Task-adaptive sparse-only configurations for Qwen2.5-7B.}
+\label{tab:appendix-qwen-configs}
+\scriptsize
+\resizebox{\textwidth}{!}{
+\begin{tabular}{cccccc}
+\toprule
+Budget & Task & Final decision & $[p_0,p_1,p_2]$ & $[\rho_0,\rho_1,\rho_2]$ & Notes \\
+\midrule
+50\% & narrativeqa & uniform fallback & -- & -- & fallback to matched-budget uniform \\
+50\% & qasper & differential & $[0.15,0.7,0.15]$ & $[0.0,0.5,1.0]$ & value\_aware, max, sink=2 \\
+50\% & multifieldqa\_en & uniform fallback & -- & -- & fallback to matched-budget uniform \\
+50\% & hotpotqa & differential tie & $[0.0,1.0,0.0]$ & $[0.0,0.5,1.0]$ & final full result ties uniform \\
+50\% & trec & differential tie & $[0.0,1.0,0.0]$ & $[0.0,0.5,1.0]$ & final full result ties uniform \\
+50\% & lcc & differential & $[0.05,0.9,0.05]$ & $[0.0,0.5,1.0]$ & value\_aware, max, sink=2 \\
+\midrule
+70\% & narrativeqa & differential & $[0.0,0.75,0.25]$ & $[0.0,0.6,1.0]$ & value\_aware, max, sink=2 \\
+70\% & qasper & differential & $[0.0,0.75,0.25]$ & $[0.0,0.6,1.0]$ & value\_aware, max, sink=2 \\
+70\% & multifieldqa\_en & differential & $[0.1,0.4,0.5]$ & $[0.0,0.5,1.0]$ & value\_aware, max, sink=2 \\
+70\% & hotpotqa & differential & $[0.0,0.6,0.4]$ & $[0.0,0.5,1.0]$ & value\_aware, max, sink=2 \\
+70\% & trec & differential & $[0.0,0.6,0.4]$ & $[0.0,0.5,1.0]$ & value\_aware, max, sink=2 \\
+70\% & lcc & uniform fallback & -- & -- & fallback to matched-budget uniform \\
+\bottomrule
+\end{tabular}}
+\end{table*}

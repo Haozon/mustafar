@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PY = "/home/zh/miniconda3/envs/mustar/bin/python"
+PY = sys.executable
 
 
 def run(cmd: list[str]) -> None:

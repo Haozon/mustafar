@@ -1,0 +1,28 @@
+@@@@@@@@@@@Using Naive
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:04,  1.65s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:03<00:03,  1.64s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:05<00:01,  1.97s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.38s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:06<00:00,  1.53s/it]
+Running warmup iteration...
+We detected that you are passing `past_key_values` as a tuple and this is deprecated and will be removed in v4.43. Please use an appropriate `Cache` class (https://huggingface.co/docs/transformers/v4.41.3/en/internal/generation_utils#transformers.Cache)
+bs: 2, seqlen: 4098+256
+model:/data/labshare/Param/llama/llama3/Meta-Llama-3-8B-Instruct
+
+=== Original Batch Generation Results ===
+Batch generation time: 12294.81 ms
+Peak mem: 18.29 GB
+Throughput: 41.64 tokens/sec
+
+=== Token-level timing for Naive ===
+Running token-level warmup...
+Running repeat 1/1...
+  Repeat 1: TTFT=2031.28ms, TPOT=40.57ms
+Average TTFT: 2031.28 ms
+Average TPOT: 40.57 ms
+Total generation time: 12376.50 ms
+Peak memory: 19.29 GB
+
+=== Final Results Summary ===
+Model: Naive
+TTFT: 2031.28 ms
+TPOT: 40.57 ms
+Total generation time: 12376.50 ms
+Peak memory: 19.29 GB
+Batch size: 2, Input length: 4098, Output length: 256

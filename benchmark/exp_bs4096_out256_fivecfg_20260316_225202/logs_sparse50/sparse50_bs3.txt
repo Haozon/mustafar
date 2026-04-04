@@ -1,0 +1,27 @@
+@@@@@@@@@@@Using Mustafar
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.77it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.86it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.93it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.64it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.29it/s]
+Running warmup iteration...
+bs: 3, seqlen: 4098+256
+model:/data/labshare/Param/llama/llama3/Meta-Llama-3-8B-Instruct
+
+=== Original Batch Generation Results ===
+Batch generation time: 15914.63 ms
+Peak mem: 18.47 GB
+Throughput: 48.26 tokens/sec
+
+=== Token-level timing for Mustafar ===
+Running token-level warmup...
+Running repeat 1/1...
+  Repeat 1: TTFT=4317.12ms, TPOT=51.19ms
+Average TTFT: 4317.12 ms
+Average TPOT: 51.19 ms
+Total generation time: 17369.98 ms
+Peak memory: 19.48 GB
+
+=== Final Results Summary ===
+Model: Mustafar
+TTFT: 4317.12 ms
+TPOT: 51.19 ms
+Total generation time: 17369.98 ms
+Peak memory: 19.48 GB
+Batch size: 3, Input length: 4098, Output length: 256

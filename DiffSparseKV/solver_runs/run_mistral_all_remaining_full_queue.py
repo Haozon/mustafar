@@ -2,12 +2,13 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PY = "/home/zh/miniconda3/envs/mustar/bin/python"
-MODEL_PATH = "/home/zh/model/Mistral-7B-Instruct-v0.1"
+PY = sys.executable
+MODEL_PATH = "/home/zh/model/Mistral-7B-v0.1"
 MAX_LENGTH = "8192"
 TARGET_BUDGET = "0.70"
 TAG_PREFIX = "mistral70_repaired_full"

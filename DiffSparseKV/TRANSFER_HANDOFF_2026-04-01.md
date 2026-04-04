@@ -168,3 +168,5 @@
 - The most reliable resume method was to start long-running jobs in a live session / PTY.
 - `solver_runs/per_task_current_summary.md` is the main human-facing status file.
 - `SCRIPT_UPDATES.md` is the detailed chronological work log.
+- `Mistral-7B-Instruct-v0.1` and `Mistral-7B-v0.1` should be treated as the same local model in this workspace.
+  Historical result directories keep the older prefix, but new scheduling should prefer `Mistral-7B-v0.1`.

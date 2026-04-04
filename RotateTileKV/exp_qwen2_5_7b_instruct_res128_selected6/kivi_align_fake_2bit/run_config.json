@@ -1,0 +1,27 @@
+{
+  "model_name_or_path": "/home/zh/nas/nas_10g/models/Qwen2.5-7B-instruct",
+  "max_length": 32768,
+  "datasets": [
+    "hotpotqa",
+    "lcc",
+    "multifieldqa_en",
+    "narrativeqa",
+    "qasper",
+    "trec"
+  ],
+  "limit": null,
+  "quant_cfg": {
+    "enable_hadamard": false,
+    "hadamard_mode": "none",
+    "hadamard_group_size": null,
+    "k_bits": 2,
+    "v_bits": 2,
+    "quant_impl": "kivi",
+    "k_quant_scheme": "kivi-channel",
+    "v_quant_scheme": "per-token-head",
+    "group_size": 128,
+    "quant_granularity": "per-token-tile",
+    "tile_size": null,
+    "residual_length": 128
+  }
+}

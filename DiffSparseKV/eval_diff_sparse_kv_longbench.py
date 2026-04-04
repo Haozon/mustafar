@@ -30,12 +30,7 @@ sys.path.insert(0, os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def build_chat(tokenizer, prompt, model_name):
     """构建聊天格式的prompt"""
-    if "llama-3" in model_name.lower() and "instruct" in model_name.lower():
-        messages = [
-            {"role": "user", "content": prompt},
-        ]
-        prompt = tokenizer.apply_chat_template(messages, tokenize=False, add_generation_prompt=True)
-    elif "mistral" in model_name.lower() and "instruct" in model_name.lower():
+    if "instruct" in model_name.lower() and hasattr(tokenizer, "apply_chat_template"):
         messages = [
             {"role": "user", "content": prompt},
         ]
@@ -148,7 +143,19 @@ class KVCacheSparsityWrapper:
 
 
 def load_longbench_dataset(dataset_name: str):
-    """Load LongBench from local cache first, then fall back to HF datasets."""
+    """Load LongBench from local files/cache first, then fall back to HF datasets."""
+    local_data_roots = [
+        os.environ.get("LONG_BENCH_DATA_DIR", ""),
+        "/data/home/szm/backup_dataset/LongBench/data",
+        "/data/home/szm/dataset/LongBench/data",
+    ]
+    for root in local_data_roots:
+        if not root:
+            continue
+        local_json = os.path.join(root, f"{dataset_name}.jsonl")
+        if os.path.exists(local_json):
+            return load_dataset("json", data_files=local_json, split="train")
+
     cache_pattern = (
         f"/home/zh/.cache/huggingface/datasets/THUDM___long_bench/"
         f"{dataset_name}/1.0.0/*/long_bench-test.arrow"
@@ -211,7 +218,12 @@ def get_pred(model, tokenizer, data, max_length, max_gen, prompt_format, dataset
             "all_classes": json_obj["all_classes"], 
             "length": json_obj["length"]
         })
-    
+
+        del output
+        del input_tokens
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
     return preds
 
 
@@ -311,6 +323,7 @@ def main():
             from diffsparsekv import (
                 LlamaForCausalLMDiffSparseKV,
                 MistralForCausalLMDiffSparseKV,
+                Qwen2ForCausalLM_DiffSparseKV,
                 create_diff_sparse_kv_config,
             )
 
@@ -320,6 +333,8 @@ def main():
                 model_cls = LlamaForCausalLMDiffSparseKV
             elif model_type == "mistral":
                 model_cls = MistralForCausalLMDiffSparseKV
+            elif model_type == "qwen2":
+                model_cls = Qwen2ForCausalLM_DiffSparseKV
             else:
                 raise NotImplementedError(f"DiffSparseKV does not support model_type={model_type}")
             
@@ -386,33 +401,73 @@ def main():
         try:
             config = AutoConfig.from_pretrained(args.model_path, trust_remote_code=True)
             model_type = getattr(config, "model_type", "")
-            config.k_sparsity = 0.0 if args.sparsity_type == 'none' else args.kv_sparsity
-            config.v_sparsity = 0.0 if args.sparsity_type == 'none' else args.kv_sparsity
-            config.group_size = 32
-            config.residual_length = 32  # 与原始代码一致
-            config.use_flash = True
 
-            if model_type == "mistral":
-                from models.mistral_mustafar_Kt_Mag_Vt_Mag import MistralForCausalLM_MUSTAFAR
+            if model_type == "qwen2" and args.sparsity_type == "uniform":
+                from diffsparsekv import (
+                    Qwen2ForCausalLM_DiffSparseKV,
+                    create_diff_sparse_kv_config,
+                )
 
-                model = MistralForCausalLM_MUSTAFAR.from_pretrained(
+                config = create_diff_sparse_kv_config(
+                    base_config=config,
+                    enable_diff_sparse=True,
+                    target_distribution=[0.0, 1.0, 0.0],
+                    sparsity_levels=[0.0, args.kv_sparsity, 1.0],
+                    diff_sparse_window_size=args.window_size,
+                    obs_window_size=args.obs_window_size,
+                    use_flash_attention=True,
+                    debug_diff_sparse=args.debug_diff_sparse,
+                )
+                config.importance_mode = args.importance_mode
+                config.value_sink_keep = args.value_sink_keep
+                config.head_aggregation_mode = args.head_aggregation_mode
+                config.head_aggregation_alpha = args.head_aggregation_alpha
+                config.head_disagreement_ratio = args.head_disagreement_ratio
+                config.selector_mode = args.selector_mode
+                config.protected_heavy_ratio = args.protected_heavy_ratio
+                config.protected_recent_ratio = args.protected_recent_ratio
+                config.level_2_mode = args.level_2_mode
+
+                model = Qwen2ForCausalLM_DiffSparseKV.from_pretrained(
                     pretrained_model_name_or_path=args.model_path,
                     config=config,
                     torch_dtype=torch.float16,
                     low_cpu_mem_usage=True,
                     device_map="auto",
                 )
+                print("✓ Qwen2 uniform baseline loaded via DiffSparseKV uniform emulation")
+                print(f"  - Model type: {model_type}")
+                print(f"  - Uniform sparsity: {args.kv_sparsity}")
+                print(f"  - Target distribution: {[0.0, 1.0, 0.0]}")
+                print(f"  - Sparsity levels: {[0.0, args.kv_sparsity, 1.0]}")
             else:
-                from models.llama_mustafar_Kt_Mag_Vt_Mag import LlamaForCausalLM_MUSTAFAR
+                config.k_sparsity = 0.0 if args.sparsity_type == 'none' else args.kv_sparsity
+                config.v_sparsity = 0.0 if args.sparsity_type == 'none' else args.kv_sparsity
+                config.group_size = 32
+                config.residual_length = 32  # 与原始代码一致
+                config.use_flash = True
 
-                model = LlamaForCausalLM_MUSTAFAR.from_pretrained(
-                    pretrained_model_name_or_path=args.model_path,
-                    config=config,
-                    torch_dtype=torch.float16,
-                    low_cpu_mem_usage=True,
-                    device_map="auto",
-                )
-            print(f"✓ MUSTAFAR model loaded successfully (sparsity_type: {args.sparsity_type}, model_type: {model_type})")
+                if model_type == "mistral":
+                    from models.mistral_mustafar_Kt_Mag_Vt_Mag import MistralForCausalLM_MUSTAFAR
+
+                    model = MistralForCausalLM_MUSTAFAR.from_pretrained(
+                        pretrained_model_name_or_path=args.model_path,
+                        config=config,
+                        torch_dtype=torch.float16,
+                        low_cpu_mem_usage=True,
+                        device_map="auto",
+                    )
+                else:
+                    from models.llama_mustafar_Kt_Mag_Vt_Mag import LlamaForCausalLM_MUSTAFAR
+
+                    model = LlamaForCausalLM_MUSTAFAR.from_pretrained(
+                        pretrained_model_name_or_path=args.model_path,
+                        config=config,
+                        torch_dtype=torch.float16,
+                        low_cpu_mem_usage=True,
+                        device_map="auto",
+                    )
+                print(f"✓ MUSTAFAR model loaded successfully (sparsity_type: {args.sparsity_type}, model_type: {model_type})")
         except Exception as e:
             print(f"Warning: Failed to load MUSTAFAR model: {e}")
             print("Falling back to standard model")

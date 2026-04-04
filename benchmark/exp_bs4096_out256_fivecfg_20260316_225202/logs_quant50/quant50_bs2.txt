@@ -1,0 +1,78 @@
+============================================================
+🚀 Using Mustafar Quantized Sparse Kernel
+   - K Sparsity: 50.0%
+   - V Sparsity: 50.0%
+   - Quantization: 2-bit
+   - K Dequant Mode: 0
+   - V Dequant Mode: 0
+   - V Split-K: 4
+   - V Tile Config: 0
+   - Expected Memory Compression: ~8.0x
+============================================================
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:05,  1.68s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:03<00:03,  1.61s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:04<00:01,  1.45s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.06it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.17s/it]
+
+============================================================
+📝 Test Configuration:
+   Batch size: 2
+   Input length: 4098
+   Output length: 256
+   Model: /data/labshare/Param/llama/llama3/Meta-Llama-3-8B-Instruct
+============================================================
+
+⏳ Running warmup iteration...
+
+============================================================
+🔥 Running Batch Generation Test
+============================================================
+   Batch repeat 1/1...
+
+📊 Batch Generation Results:
+   Average time: 13359.44 ms
+   Peak memory: 16.57 GB
+   Throughput: 38.32 tokens/sec
+
+============================================================
+🔍 Token-level timing for Mustafar-Quant-2bit
+============================================================
+⏳ Running token-level warmup...
+
+📌 Repeat 1/1...
+   Generated 100/256 tokens...
+   Generated 200/256 tokens...
+   ✅ Repeat 1: TTFT=2711.33ms, TPOT=49.36ms
+
+============================================================
+📊 Token-level Results:
+   Average TTFT: 2711.33 ms
+   Average TPOT: 49.36 ms
+   Total generation time: 15297.40 ms
+   Peak memory: 16.88 GB
+============================================================
+
+============================================================
+🎯 FINAL RESULTS SUMMARY
+============================================================
+Model Configuration:
+   Mode: Mustafar-Quant-2bit
+   Quantization: 2-bit per-token
+   K Sparsity: 50.0%
+   V Sparsity: 50.0%
+
+Performance Metrics:
+   TTFT (Time to First Token): 2711.33 ms
+   TPOT (Time per Output Token): 49.36 ms
+   Total generation time: 15297.40 ms
+   Peak memory: 16.88 GB
+
+Workload:
+   Batch size: 2
+   Input length: 4098 tokens
+   Output length: 256 tokens
+   Total tokens: 8708
+
+Memory Compression:
+   Theoretical: ~8.0x
+   (FP16 baseline → 2-bit + 50.0% sparse)
+============================================================
+
+✅ Results saved to: mem_spd_test_quant_results_2bit.txt

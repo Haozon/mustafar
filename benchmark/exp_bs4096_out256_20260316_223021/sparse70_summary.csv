@@ -1,0 +1,14 @@
+config,batch_size,status,ttft_ms,tpot_ms,total_ms,peak_gb,batch_ms,throughput_tps,log_file
+sparse70,1,ok,1439.15,38.61,11285.50,18.17,11538.99,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs1.txt
+sparse70,2,ok,2978.65,39.43,13033.75,21.38,13342.27,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs2.txt
+sparse70,3,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs3.txt
+sparse70,4,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs4.txt
+sparse70,5,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs5.txt
+sparse70,6,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs6.txt
+sparse70,7,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs7.txt
+sparse70,8,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs8.txt
+sparse70,9,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs9.txt
+sparse70,10,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs10.txt
+sparse70,12,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs12.txt
+sparse70,14,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs14.txt
+sparse70,16,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_sparse70/sparse70_bs16.txt

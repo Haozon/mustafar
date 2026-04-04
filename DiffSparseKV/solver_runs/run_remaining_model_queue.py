@@ -8,7 +8,7 @@ from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PY = "/home/zh/miniconda3/envs/mustar/bin/python"
+PY = sys.executable
 
 
 def run(cmd: list[str]) -> None:
@@ -34,7 +34,7 @@ def main() -> None:
         {
             "name": "mistral_70",
             "output_root": "solver_runs_mistral_budget70",
-            "model_path": "/home/zh/model/Mistral-7B-Instruct-v0.1",
+            "model_path": "/home/zh/model/Mistral-7B-v0.1",
             "max_length": 8192,
             "target_budget": 0.70,
             "p0_grid": "0.0,0.05,0.10,0.15",
@@ -61,7 +61,7 @@ def main() -> None:
         {
             "name": "mistral_50",
             "output_root": "solver_runs_mistral_budget50",
-            "model_path": "/home/zh/model/Mistral-7B-Instruct-v0.1",
+            "model_path": "/home/zh/model/Mistral-7B-v0.1",
             "max_length": 8192,
             "target_budget": 0.50,
             "p0_grid": "0.0,0.05,0.10",

@@ -18,6 +18,21 @@ from tqdm import tqdm
 from transformers import AutoConfig, AutoModelForCausalLM, AutoTokenizer
 
 
+def load_longbench_dataset(dataset_name: str):
+    local_data_roots = [
+        os.environ.get("LONG_BENCH_DATA_DIR", ""),
+        "/data/home/szm/backup_dataset/LongBench/data",
+        "/data/home/szm/dataset/LongBench/data",
+    ]
+    for root in local_data_roots:
+        if not root:
+            continue
+        local_json = os.path.join(root, f"{dataset_name}.jsonl")
+        if os.path.exists(local_json):
+            return load_dataset("json", data_files=local_json, split="train")
+    return load_dataset("THUDM/LongBench", dataset_name, split="test", trust_remote_code=True)
+
+
 def build_chat(tokenizer, prompt, model_name):
     """Build chat prompt only for instruct-style models with chat template."""
     if "instruct" in model_name.lower() and hasattr(tokenizer, "apply_chat_template"):
@@ -255,7 +270,7 @@ def main():
         print(f"Processing dataset: {dataset}")
         print(f"{'=' * 50}")
 
-        data = load_dataset("THUDM/LongBench", dataset, split="test", trust_remote_code=True)
+        data = load_longbench_dataset(dataset)
         prompt_format = dataset2prompt.get(dataset, "{input}")
         max_gen = dataset2maxlen.get(dataset, 100)
 

@@ -1,0 +1,37 @@
+{
+  "model": "Mistral-7B-Instruct-v0.1",
+  "max_length": 8192,
+  "sparsity_type": "diff_sparse_kv",
+  "kv_sparsity": 0.7,
+  "sparsity_levels": [
+    0.0,
+    0.55,
+    1.0
+  ],
+  "target_distribution": [
+    0.0,
+    0.666667,
+    0.333333
+  ],
+  "window_size": 128,
+  "obs_window_size": 128,
+  "level_2_mode": "evict",
+  "importance_mode": "value_aware",
+  "value_sink_keep": 2,
+  "head_aggregation_mode": "mean",
+  "head_aggregation_alpha": 0.5,
+  "head_disagreement_ratio": -1.0,
+  "selector_mode": "diffsparse",
+  "protected_heavy_ratio": 0.0,
+  "protected_recent_ratio": 0.75,
+  "target_budget": -1.0,
+  "budget_template": "default_3level",
+  "limit": 0,
+  "sample_seed": -1,
+  "output_tag": "Mistral_7B_Instruct_v0.1_70_narrativeqa_repair_r1_narrativeqa_cand3_p0_0p00_p1_0p67_p2_0p33_rho1_0p5500_imp_value_aware_head_mean_sink_2_alpha_0.50_l2_evict_sel_diffsparse_phr_0.00_prr_0.75",
+  "sparsity_stats": {
+    "total_tokens": 0,
+    "pruned_tokens": 0,
+    "compression_ratio": 0.0
+  }
+}

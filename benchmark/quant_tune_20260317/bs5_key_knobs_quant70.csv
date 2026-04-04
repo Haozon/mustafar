@@ -1,0 +1,5 @@
+k_mode,k_meta,returncode,batch_ms,throughput,ttft,tpot
+0,False,0,19530.21,65.54,6288.86,51.49
+0,True,0,19732.23,64.87,6382.31,51.04
+1,False,0,19769.55,64.75,6373.61,51.38
+1,True,1,,,,

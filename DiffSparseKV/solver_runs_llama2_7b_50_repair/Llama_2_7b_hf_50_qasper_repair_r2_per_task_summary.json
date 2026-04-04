@@ -1,0 +1,33 @@
+{
+  "solver_mode": "per_task",
+  "model_path": "/home/zh/model/Llama-2-7b-hf",
+  "target_budget": 0.5,
+  "tasks": {
+    "qasper": {
+      "task": "qasper",
+      "uniform_calib": 7.88,
+      "diff_calib": 9.59,
+      "calib_delta": 1.71,
+      "uniform_val": 9.01,
+      "diff_val": 7.25,
+      "val_delta": -1.7599999999999998,
+      "p0": 0.2,
+      "p1": 0.6,
+      "p2": 0.2,
+      "rho1": 0.5,
+      "importance_mode": "value_aware",
+      "head_aggregation_mode": "mean",
+      "value_sink_keep": 2,
+      "head_aggregation_alpha": 0.5,
+      "level_2_mode": "evict",
+      "selector_mode": "diffsparse",
+      "protected_heavy_ratio": 0.0,
+      "protected_recent_ratio": 0.75,
+      "calib_indices_file": "/mnt/nas/nas_192.168.7.2/zh/mustafar/DiffSparseKV/solver_runs_llama2_7b_50_repair/Llama_2_7b_hf_50_qasper_repair_r2_per_task_indices/qasper_calibration_indices.json",
+      "val_indices_file": "/mnt/nas/nas_192.168.7.2/zh/mustafar/DiffSparseKV/solver_runs_llama2_7b_50_repair/Llama_2_7b_hf_50_qasper_repair_r2_per_task_indices/qasper_validation_indices.json",
+      "best_calib_dir": "/mnt/nas/nas_192.168.7.2/zh/mustafar/DiffSparseKV/solver_runs_llama2_7b_50_repair/Llama-2-7b-hf_4096_diff_sparse_kv_0.50_Llama_2_7b_hf_50_qasper_repair_r1_qasper_cand23_p0_0p20_p1_0p60_p2_0p20_rho1_0p5000_imp_value_aware_head_mean_sink_2_alpha_0.50_l2_evict_sel_diffsparse_phr_0.00_prr_0.75",
+      "best_val_dir": "/mnt/nas/nas_192.168.7.2/zh/mustafar/DiffSparseKV/solver_runs_llama2_7b_50_repair/Llama-2-7b-hf_4096_diff_sparse_kv_0.50_Llama_2_7b_hf_50_qasper_repair_r2_qasper_bestdiff_val"
+    }
+  },
+  "per_task_csv": "/mnt/nas/nas_192.168.7.2/zh/mustafar/DiffSparseKV/solver_runs_llama2_7b_50_repair/Llama_2_7b_hf_50_qasper_repair_r2_per_task_results.csv"
+}

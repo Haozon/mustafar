@@ -1,0 +1,9 @@
+quant_v_dequant_mode,quant_v_split_k,quant_v_tile_config,returncode,batch_ms,throughput_tps,ttft_ms,tpot_ms,log_file
+0,4,0,0,22315.67,68.83,7653.84,58.88,/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/quant_tune_20260317/vm0_sk4_tile0.log
+0,4,1,0,22652.78,67.81,7739.88,59.19,/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/quant_tune_20260317/vm0_sk4_tile1.log
+0,8,0,0,22599.65,67.97,7755.98,59.07,/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/quant_tune_20260317/vm0_sk8_tile0.log
+0,8,1,0,22664.66,67.77,7753.72,59.00,/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/quant_tune_20260317/vm0_sk8_tile1.log
+1,4,0,0,22696.39,67.68,7784.28,59.43,/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/quant_tune_20260317/vm1_sk4_tile0.log
+1,4,1,0,22708.04,67.64,7758.25,59.41,/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/quant_tune_20260317/vm1_sk4_tile1.log
+1,8,0,0,22662.13,67.78,7788.39,59.38,/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/quant_tune_20260317/vm1_sk8_tile0.log
+1,8,1,0,22703.75,67.65,7778.02,59.19,/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/quant_tune_20260317/vm1_sk8_tile1.log

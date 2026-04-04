@@ -1,0 +1,65 @@
+============================================================
+🚀 Using Mustafar Quantized Sparse Kernel
+   - K Sparsity: 50.0%
+   - V Sparsity: 50.0%
+   - Quantization: 2-bit
+   - K Dequant Mode: 0
+   - V Dequant Mode: 0
+   - V Split-K: 4
+   - V Tile Config: 0
+   - Expected Memory Compression: ~8.0x
+============================================================
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:01,  1.51it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.68it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:01<00:00,  1.80it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.43it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:01<00:00,  2.10it/s]
+
+============================================================
+📝 Test Configuration:
+   Batch size: 8
+   Input length: 4098
+   Output length: 256
+   Model: /data/labshare/Param/llama/llama3/Meta-Llama-3-8B-Instruct
+============================================================
+
+⏳ Running warmup iteration...
+
+============================================================
+🔥 Running Batch Generation Test
+============================================================
+   Batch repeat 1/1...
+
+📊 Batch Generation Results:
+   Average time: 29209.10 ms
+   Peak memory: 21.38 GB
+   Throughput: 70.12 tokens/sec
+
+============================================================
+🔍 Token-level timing for Mustafar-Quant-2bit
+============================================================
+⏳ Running token-level warmup...
+
+📌 Repeat 1/1...
+Traceback (most recent call last):
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/mem_spd_test_quant.py", line 286, in <module>
+    ttft, tpot, total_time, peak_mem = benchmark_with_token_timing(
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/mem_spd_test_quant.py", line 184, in benchmark_with_token_timing
+    logits, past_key_values = forward_last_logits(
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/low_memory_generation.py", line 6, in forward_last_logits
+    outputs = model.model(
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/models/llama_mustafar_quant_kernel.py", line 933, in forward
+    layer_outputs = decoder_layer(
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/models/llama_mustafar_quant_kernel.py", line 790, in forward
+    hidden_states = self.mlp(hidden_states)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py", line 253, in forward
+    down_proj = self.down_proj(self.act_fn(self.gate_proj(x)) * self.up_proj(x))
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 898.00 MiB. GPU 0 has a total capacity of 23.56 GiB of which 831.06 MiB is free. Including non-PyTorch memory, this process has 22.74 GiB memory in use. Of the allocated memory 21.09 GiB is allocated by PyTorch, and 1.34 GiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

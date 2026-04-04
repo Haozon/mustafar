@@ -10,6 +10,7 @@ ACTIVE_PATTERNS = [
     "eval_diff_sparse_kv_longbench.py --model_path /home/zh/model/Llama-2-7b-hf",
     "eval_diff_sparse_kv_longbench.py --model_path /home/zh/model/Llama-2-13b-hf",
     "eval_diff_sparse_kv_longbench.py --model_path /home/zh/model/Mistral-7B-Instruct-v0.1",
+    "eval_diff_sparse_kv_longbench.py --model_path /home/zh/model/Mistral-7B-v0.1",
     "eval_diff_sparse_kv_longbench.py --model_path /home/zh/model/Meta-Llama-3-8B-Instruct",
 ]
 

@@ -8,6 +8,7 @@ import subprocess
 import sys
 import time
 from pathlib import Path
+from typing import List
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -26,16 +27,32 @@ def run(cmd: list[str]) -> None:
 def gpu_free_mb() -> float:
     try:
         out = subprocess.check_output(
-            ["nvidia-smi", "--query-gpu=memory.free", "--format=csv,noheader,nounits"],
+            ["nvidia-smi", "--query-gpu=index,memory.free", "--format=csv,noheader,nounits"],
             text=True,
         )
-        vals = [float(x.strip()) for x in out.splitlines() if x.strip()]
+        visible_raw = os.environ.get("CUDA_VISIBLE_DEVICES", "").strip()
+        visible: List[int] | None = None
+        if visible_raw:
+            try:
+                visible = [int(x.strip()) for x in visible_raw.split(",") if x.strip()]
+            except ValueError:
+                visible = None
+
+        vals = []
+        for line in out.splitlines():
+            if not line.strip():
+                continue
+            idx_str, free_str = [part.strip() for part in line.split(",", 1)]
+            idx = int(idx_str)
+            if visible is not None and idx not in visible:
+                continue
+            vals.append(float(free_str))
         return max(vals) if vals else 0.0
     except Exception:
         return 0.0
 
 
-def wait_for_gpu(min_free_mb: int = 30000, poll_sec: int = 60) -> None:
+def wait_for_gpu(min_free_mb: int = 18000, poll_sec: int = 60) -> None:
     while True:
         free_mb = gpu_free_mb()
         print(f"[gpu] free={free_mb:.0f}MB required={min_free_mb}MB", flush=True)

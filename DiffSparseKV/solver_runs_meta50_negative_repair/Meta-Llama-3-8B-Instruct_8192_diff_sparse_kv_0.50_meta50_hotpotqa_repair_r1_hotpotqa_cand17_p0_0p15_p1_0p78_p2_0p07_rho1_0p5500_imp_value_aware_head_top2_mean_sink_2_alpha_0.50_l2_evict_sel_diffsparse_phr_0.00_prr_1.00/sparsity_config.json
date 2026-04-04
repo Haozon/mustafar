@@ -1,0 +1,37 @@
+{
+  "model": "Meta-Llama-3-8B-Instruct",
+  "max_length": 8192,
+  "sparsity_type": "diff_sparse_kv",
+  "kv_sparsity": 0.5,
+  "sparsity_levels": [
+    0.0,
+    0.55,
+    1.0
+  ],
+  "target_distribution": [
+    0.15,
+    0.777778,
+    0.072222
+  ],
+  "window_size": 128,
+  "obs_window_size": 128,
+  "level_2_mode": "evict",
+  "importance_mode": "value_aware",
+  "value_sink_keep": 2,
+  "head_aggregation_mode": "top2_mean",
+  "head_aggregation_alpha": 0.5,
+  "head_disagreement_ratio": -1.0,
+  "selector_mode": "diffsparse",
+  "protected_heavy_ratio": 0.0,
+  "protected_recent_ratio": 1.0,
+  "target_budget": -1.0,
+  "budget_template": "default_3level",
+  "limit": 0,
+  "sample_seed": -1,
+  "output_tag": "meta50_hotpotqa_repair_r1_hotpotqa_cand17_p0_0p15_p1_0p78_p2_0p07_rho1_0p5500_imp_value_aware_head_top2_mean_sink_2_alpha_0.50_l2_evict_sel_diffsparse_phr_0.00_prr_1.00",
+  "sparsity_stats": {
+    "total_tokens": 0,
+    "pruned_tokens": 0,
+    "compression_ratio": 0.0
+  }
+}

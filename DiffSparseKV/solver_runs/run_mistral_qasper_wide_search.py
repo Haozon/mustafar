@@ -2,11 +2,12 @@
 from __future__ import annotations
 
 import subprocess
+import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PY = "/home/zh/miniconda3/envs/mustar/bin/python"
+PY = sys.executable
 
 
 def run(cmd: list[str]) -> None:
@@ -22,7 +23,7 @@ def main() -> None:
         PY,
         "search_diff_budget_solver.py",
         "--solver_mode", "per_task",
-        "--model_path", "/home/zh/model/Mistral-7B-Instruct-v0.1",
+        "--model_path", "/home/zh/model/Mistral-7B-v0.1",
         "--max_length", "8192",
         "--target_budget", "0.70",
         "--output_root", output_root,

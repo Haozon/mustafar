@@ -29,7 +29,7 @@ from itertools import product
 from pathlib import Path
 from typing import Dict, Iterable, List, Optional
 
-from datasets import Dataset
+from datasets import Dataset, load_dataset
 
 
 ROOT = Path(__file__).resolve().parent
@@ -114,7 +114,12 @@ def generate_candidates(
 
 def run_command(cmd: List[str], env: Optional[Dict[str, str]] = None) -> None:
     print("[cmd]", " ".join(cmd))
-    subprocess.run(cmd, cwd=str(ROOT), env=env, check=True)
+    merged_env = os.environ.copy()
+    merged_env.setdefault("PYTORCH_CUDA_ALLOC_CONF", "expandable_segments:True")
+    merged_env.setdefault("TOKENIZERS_PARALLELISM", "false")
+    if env:
+        merged_env.update(env)
+    subprocess.run(cmd, cwd=str(ROOT), env=merged_env, check=True)
 
 
 def eval_result_path(output_dir: Path) -> Path:
@@ -180,14 +185,26 @@ def find_matching_candidate_dir(
 
 
 def load_local_longbench_dataset(dataset_name: str) -> Dataset:
+    local_data_roots = [
+        os.environ.get("LONG_BENCH_DATA_DIR", ""),
+        "/data/home/szm/backup_dataset/LongBench/data",
+        "/data/home/szm/dataset/LongBench/data",
+    ]
+    for root in local_data_roots:
+        if not root:
+            continue
+        local_json = os.path.join(root, f"{dataset_name}.jsonl")
+        if os.path.exists(local_json):
+            return load_dataset("json", data_files=local_json, split="train")
+
     cache_pattern = (
         f"/home/zh/.cache/huggingface/datasets/THUDM___long_bench/"
         f"{dataset_name}/1.0.0/*/long_bench-test.arrow"
     )
     matches = sorted(glob.glob(cache_pattern))
-    if not matches:
-        raise FileNotFoundError(f"No cached LongBench dataset found for {dataset_name}")
-    return Dataset.from_file(matches[-1])
+    if matches:
+        return Dataset.from_file(matches[-1])
+    return load_dataset("THUDM/LongBench", dataset_name, split="test", trust_remote_code=True)
 
 
 def build_disjoint_split_indices(

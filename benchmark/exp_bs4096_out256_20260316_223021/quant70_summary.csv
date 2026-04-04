@@ -1,0 +1,14 @@
+config,batch_size,status,ttft_ms,tpot_ms,total_ms,peak_gb,batch_ms,throughput_tps,log_file
+sparse70_quant2bit,1,ok,1414.87,39.18,11404.73,18.08,11555.92,22.15,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs1.txt
+sparse70_quant2bit,2,ok,2782.94,37.08,12237.64,21.19,12365.26,41.41,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs2.txt
+sparse70_quant2bit,3,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs3.txt
+sparse70_quant2bit,4,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs4.txt
+sparse70_quant2bit,5,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs5.txt
+sparse70_quant2bit,6,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs6.txt
+sparse70_quant2bit,7,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs7.txt
+sparse70_quant2bit,8,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs8.txt
+sparse70_quant2bit,9,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs9.txt
+sparse70_quant2bit,10,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs10.txt
+sparse70_quant2bit,12,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs12.txt
+sparse70_quant2bit,14,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs14.txt
+sparse70_quant2bit,16,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_quant70/quant70_bs16.txt

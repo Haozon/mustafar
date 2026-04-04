@@ -1,0 +1,82 @@
+% Appendix snippet for the threshold-reuse evidence in AttnScoreThreshold/.
+% This file is intended to be included via \input{...}.
+
+\providecommand{\method}{JSQKV}
+\providecommand{\attnscorefigdir}{AttnScoreThreshold/normalized_attention_threshold_llama3_8b/paper_main}
+
+\section{Threshold Stability for Prefill-to-Decode Reuse}
+\label{sec:appendix-threshold-reuse}
+
+Section~\ref{sec:diff-sparsity} estimates the token-importance thresholds
+$(\tau_{\text{high}}, \tau_{\text{low}})$ from normalized prefill attention,
+and Section~\ref{sec:dual-window} reuses the same thresholds during decoding
+after normalizing the accumulated attention by the number of available future
+observations. This design relies on a layer-wise stability assumption: under
+the same normalization rule, the importance-score scale of a fixed layer should
+remain sufficiently consistent for prefill-estimated thresholds to remain
+meaningful during online decoding.
+
+We test this assumption on the exact threshold type used by \method. Following
+\texttt{run\_normalized\_attention\_threshold\_stability.py}, we compute
+normalized attention-derived importance scores with
+\texttt{DiffKVImportanceCalculator} and obtain
+$(\tau_{\text{high}}, \tau_{\text{low}})$ with
+\texttt{GlobalThresholdManager}. The evaluation uses
+Meta-Llama-3-8B-Instruct on seven datasets (WikiText-2, GSM8K, Qasper,
+MultiFieldQA-EN, NarrativeQA, HotpotQA, and MuSiQue), with 10 samples per
+dataset, maximum length 192, and representative layers 10 and 20.
+
+Table~\ref{tab:appendix-threshold-reuse} reports the resulting cross-dataset
+statistics. For Layer 10, the median CV is 10.21\% for
+$\tau_{\text{high}}$ and 14.37\% for $\tau_{\text{low}}$. For Layer 20, the
+corresponding CVs are 19.40\% and 19.82\%. Figure~\ref{fig:appendix-threshold-reuse}
+shows the full distributions. Two observations are important. First, for a
+fixed layer, both thresholds remain concentrated within a bounded range across
+datasets. Second, the threshold scale is clearly layer dependent, so the
+supported claim is reuse of \emph{fixed per-layer thresholds}, not a single
+global threshold shared by all layers.
+
+These results are sufficient for the reuse mechanism in
+Section~\ref{sec:dual-window}. The decoder does not require decode-time scores
+to match prefill thresholds exactly for every sample; it only requires the
+normalized scores to stay on a comparable layer-wise scale. The empirical
+stability in Table~\ref{tab:appendix-threshold-reuse} and
+Figure~\ref{fig:appendix-threshold-reuse} therefore supports estimating
+$(\tau_{\text{high}}, \tau_{\text{low}})$ once in prefill and reusing them
+during decoding without step-wise re-calibration.
+
+\begin{table}[t]
+\centering
+\caption{Cross-dataset stability of the normalized attention thresholds used by
+the prefill-to-decode reuse path. CV is computed from the per-dataset median
+thresholds.}
+\label{tab:appendix-threshold-reuse}
+\small
+\begin{tabular}{llcc}
+\toprule
+Layer & Threshold & Median range & Median CV (\%) \\
+\midrule
+10 & $\tau_{\text{high}}$ & 0.67120--0.92427 & 10.21 \\
+10 & $\tau_{\text{low}}$  & 0.04243--0.06552 & 14.37 \\
+20 & $\tau_{\text{high}}$ & 0.35568--0.61690 & 19.40 \\
+20 & $\tau_{\text{low}}$  & 0.01732--0.02890 & 19.82 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+\begin{figure}[t]
+\centering
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\includegraphics[width=\linewidth]{\attnscorefigdir/layer10_normalized_attention_thresholds.pdf}
+\end{minipage}\hfill
+\begin{minipage}[t]{0.49\linewidth}
+\centering
+\includegraphics[width=\linewidth]{\attnscorefigdir/layer20_normalized_attention_thresholds.pdf}
+\end{minipage}
+\caption{Cross-dataset distributions of the normalized attention thresholds
+used by the prefill-to-decode reuse path. Left: Layer 10. Right: Layer 20. The
+thresholds remain stable at a fixed layer, while their absolute scale is
+layer dependent.}
+\label{fig:appendix-threshold-reuse}
+\end{figure}

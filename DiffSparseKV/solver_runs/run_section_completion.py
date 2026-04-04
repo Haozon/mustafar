@@ -4,11 +4,24 @@ from __future__ import annotations
 import argparse
 import json
 import subprocess
+import sys
 from pathlib import Path
 
 
 ROOT = Path(__file__).resolve().parents[1]
-PY = "/home/zh/miniconda3/envs/mustar/bin/python"
+LEGACY_ROOT = Path("/mnt/home/zh/mustafar/DiffSparseKV")
+PY = sys.executable
+
+
+def normalize_repo_path(path_str: str) -> str:
+    path = Path(path_str)
+    if path.exists():
+        return str(path)
+    try:
+        relative = path.relative_to(LEGACY_ROOT)
+    except ValueError:
+        return str(path)
+    return str(ROOT / relative)
 
 
 def run(cmd: list[str]) -> None:
@@ -48,6 +61,7 @@ def update_summary(section_title: str, model_name: str, max_length: int, budget:
 
 
 def run_full_from_cfg(task: str, cfg_path: str, model_path: str, max_length: int, budget: float, tag_prefix: str) -> None:
+    cfg_path = normalize_repo_path(cfg_path)
     run([
         PY,
         "solver_runs/run_full_task_from_config.py",
@@ -124,7 +138,7 @@ def main() -> None:
     for task in task_order:
         if full_delta(model_name, args.max_length, args.budget, task, args.base_tag) is not None:
             continue
-        cfg_path = str(Path(task_summary[task]["best_val_dir"]) / "sparsity_config.json")
+        cfg_path = str(Path(normalize_repo_path(task_summary[task]["best_val_dir"])) / "sparsity_config.json")
         run_full_from_cfg(task, cfg_path, args.model_path, args.max_length, args.budget, args.base_tag)
         update_summary(args.section_title, model_name, args.max_length, args.budget, per_task_json, task_order)
 
@@ -155,7 +169,7 @@ def main() -> None:
         )
         repair_summary = json.loads(repair_summary_path.read_text(encoding="utf-8"))
         item = repair_summary["tasks"][task]
-        cfg_path = str(Path(item["best_val_dir"]) / "sparsity_config.json")
+        cfg_path = str(Path(normalize_repo_path(item["best_val_dir"])) / "sparsity_config.json")
         repair_tag = f"{args.base_tag}_{task}_repair_r{round_idx}"
         run_full_from_cfg(task, cfg_path, args.model_path, args.max_length, args.budget, repair_tag)
         update_summary(args.section_title, model_name, args.max_length, args.budget, per_task_json, task_order)

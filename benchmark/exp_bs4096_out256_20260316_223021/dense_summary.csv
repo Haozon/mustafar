@@ -1,0 +1,14 @@
+config,batch_size,status,ttft_ms,tpot_ms,total_ms,peak_gb,batch_ms,throughput_tps,log_file
+dense,1,ok,1108.19,31.95,9256.62,18.43,9342.84,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs1.txt
+dense,2,ok,2185.42,40.93,12621.55,21.90,12757.95,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs2.txt
+dense,3,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs3.txt
+dense,4,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs4.txt
+dense,5,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs5.txt
+dense,6,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs6.txt
+dense,7,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs7.txt
+dense,8,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs8.txt
+dense,9,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs9.txt
+dense,10,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs10.txt
+dense,12,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs12.txt
+dense,14,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs14.txt
+dense,16,failed(1),,,,,,,benchmark/exp_bs4096_out256_20260316_223021/logs_dense/dense_bs16.txt

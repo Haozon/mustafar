@@ -58,6 +58,10 @@ from .mistral_integration import (
     MistralForCausalLMDiffSparseKV,
     MistralDiffSparseKVAttention,
 )
+from .qwen2_integration import (
+    Qwen2ForCausalLM_DiffSparseKV,
+    Qwen2DiffSparseKVAttention,
+)
 
 # 为了兼容性，提供别名
 LlamaForCausalLMDiffSparseKV = LlamaForCausalLM_DiffSparseKV
@@ -86,4 +90,6 @@ __all__ = [
     "MistralForCausalLM_DiffSparseKV",
     "MistralForCausalLMDiffSparseKV",
     "MistralDiffSparseKVAttention",
+    "Qwen2ForCausalLM_DiffSparseKV",
+    "Qwen2DiffSparseKVAttention",
 ]

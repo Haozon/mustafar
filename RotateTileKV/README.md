@@ -35,3 +35,8 @@ python RotateTileKV/run_longbench.py \
   --enable-hadamard \
   --full-longbench
 ```
+
+断点续跑说明：
+
+- 如果同一个 `--output-dir` 下已经存在 `<dataset>.jsonl`，脚本会默认复用已落盘预测并直接重算分数。
+- 如果要强制重跑已有数据集，追加 `--overwrite-existing-datasets`。

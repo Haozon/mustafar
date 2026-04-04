@@ -1,0 +1,41 @@
+@@@@@@@@@@@Using Mustafar
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:00<00:02,  1.04it/s]Loading checkpoint shards:  50%|█████     | 2/4 [00:01<00:01,  1.16it/s]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:02<00:00,  1.21it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.66it/s]Loading checkpoint shards: 100%|██████████| 4/4 [00:02<00:00,  1.43it/s]
+Running warmup iteration...
+Traceback (most recent call last):
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/mem_spd_test.py", line 203, in <module>
+    outputs = greedy_generate(model, inputs, max_new_tokens=output_length)
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/low_memory_generation.py", line 39, in greedy_generate
+    logits, past_key_values = forward_last_logits(
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/low_memory_generation.py", line 6, in forward_last_logits
+    outputs = model.model(
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/models/llama_mustafar_kernel.py", line 889, in forward
+    layer_outputs = decoder_layer(
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/models/llama_mustafar_kernel.py", line 732, in forward
+    hidden_states, self_attn_weights, present_key_value = self.self_attn(
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/models/llama_mustafar_kernel.py", line 371, in forward
+    cos, sin = self.rotary_emb(value_states, position_ids)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py", line 159, in forward
+    cos = cos * self.attention_scaling
+RuntimeError: CUDA error: an illegal memory access was encountered
+CUDA kernel errors might be asynchronously reported at some other API call, so the stacktrace below might be incorrect.
+For debugging consider passing CUDA_LAUNCH_BLOCKING=1
+Compile with `TORCH_USE_CUDA_DSA` to enable device-side assertions.
+

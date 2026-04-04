@@ -1,0 +1,25 @@
+@@@@@@@@@@@Using Naive
+Loading checkpoint shards:   0%|          | 0/4 [00:00<?, ?it/s]Loading checkpoint shards:  25%|██▌       | 1/4 [00:01<00:04,  1.57s/it]Loading checkpoint shards:  50%|█████     | 2/4 [00:03<00:03,  1.56s/it]Loading checkpoint shards:  75%|███████▌  | 3/4 [00:04<00:01,  1.53s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.08s/it]Loading checkpoint shards: 100%|██████████| 4/4 [00:04<00:00,  1.25s/it]
+Running warmup iteration...
+Traceback (most recent call last):
+  File "/mnt/nas/nas_192.168.7.2/zh/mustafar/benchmark/mem_spd_test.py", line 206, in <module>
+    outputs = model.generate(**inputs, max_new_tokens=output_length, eos_token_id=None)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/utils/_contextlib.py", line 116, in decorate_context
+    return func(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/transformers/generation/utils.py", line 1989, in generate
+    result = self._sample(
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/transformers/generation/utils.py", line 2932, in _sample
+    outputs = self(**model_inputs, return_dict=True)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/transformers/models/llama/modeling_llama.py", line 1158, in forward
+    logits = self.lm_head(hidden_states)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1739, in _wrapped_call_impl
+    return self._call_impl(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/module.py", line 1750, in _call_impl
+    return forward_call(*args, **kwargs)
+  File "/home/zh/miniconda3/envs/mustafar/lib/python3.10/site-packages/torch/nn/modules/linear.py", line 125, in forward
+    return F.linear(input, self.weight, self.bias)
+torch.OutOfMemoryError: CUDA out of memory. Tried to allocate 5.88 GiB. GPU 0 has a total capacity of 23.56 GiB of which 4.98 GiB is free. Including non-PyTorch memory, this process has 18.57 GiB memory in use. Of the allocated memory 18.16 GiB is allocated by PyTorch, and 110.78 MiB is reserved by PyTorch but unallocated. If reserved but unallocated memory is large try setting PYTORCH_CUDA_ALLOC_CONF=expandable_segments:True to avoid fragmentation.  See documentation for Memory Management  (https://pytorch.org/docs/stable/notes/cuda.html#environment-variables)

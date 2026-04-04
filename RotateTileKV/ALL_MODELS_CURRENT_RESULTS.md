@@ -2,7 +2,7 @@
 
 日期：
 
-- `2026-03-30`
+- `2026-04-02`
 
 用途：
 
@@ -31,6 +31,8 @@
 |---|---|---|
 | `Meta-Llama-3-8B-Instruct` | full LongBench 主线已完成 | `LLAMA3_8B_CURRENT_RESULTS.md` |
 | `llama-2-7b` | full LongBench 主线已完成 | `LLAMA2_7B_CURRENT_RESULTS.md` |
+| `Mistral-7B-v0.1` | `selected6` 主线已完成 | `MISTRAL_7B_V01_CURRENT_RESULTS.md` |
+| `Qwen2.5-7B-instruct` | `selected6` 主线已完成 | `QWEN25_7B_INSTRUCT_CURRENT_RESULTS.md` |
 
 ## Meta-Llama-3-8B-Instruct
 
@@ -88,6 +90,82 @@ KIVI 与我的方法：
 - `4bit` 下，我的方法略高。
 - `3bit` 和 `2bit` 下，KIVI 略高。
 - 三个 bit 的差距都不大。
+
+## Mistral-7B-v0.1
+
+模型：
+
+- `/home/zh/nas/nas_10g/models/Mistral-7B-v0.1`
+
+当前主线协议：
+
+- `selected6`
+- 任务集合：
+  - `hotpotqa`
+  - `lcc`
+  - `multifieldqa_en`
+  - `narrativeqa`
+  - `qasper`
+  - `trec`
+
+详细文档：
+
+- `MISTRAL_7B_V01_CURRENT_RESULTS.md`
+
+当前结果状态：
+
+- `selected6` 的 6 个主线配置已经全部完成。
+
+KIVI 与我的方法：
+
+| Bit | KIVI | Average | 我的方法 | Average |
+|---|---|---:|---|---:|
+| 4bit | KIVI-align fake | 31.19 | Per-Token-Tile + tile Hadamard(64) | 30.78 |
+| 3bit | KIVI-align fake | 30.16 | Per-Token-Tile + tile Hadamard(64) | 29.52 |
+| 2bit | KIVI-align fake | 23.91 | Per-Token-Tile + tile Hadamard(64) | 25.72 |
+
+简短结论：
+
+- `4bit` 和 `3bit` 下，KIVI 略高。
+- `2bit` 下，我的方法更高：`25.72 vs 23.91`。
+
+## Qwen2.5-7B-instruct
+
+模型：
+
+- `/home/zh/nas/nas_10g/models/Qwen2.5-7B-instruct`
+
+当前主线协议：
+
+- `selected6`
+- 任务集合：
+  - `hotpotqa`
+  - `lcc`
+  - `multifieldqa_en`
+  - `narrativeqa`
+  - `qasper`
+  - `trec`
+
+详细文档：
+
+- `QWEN25_7B_INSTRUCT_CURRENT_RESULTS.md`
+
+当前结果状态：
+
+- `selected6` 的 6 个主线配置已经全部完成。
+
+KIVI 与我的方法：
+
+| Bit | KIVI | Average | 我的方法 | Average |
+|---|---|---:|---|---:|
+| 4bit | KIVI-align fake | 14.47 | Per-Token-Tile + tile Hadamard(64) | 3.53 |
+| 3bit | KIVI-align fake | 10.94 | Per-Token-Tile + tile Hadamard(64) | 1.76 |
+| 2bit | KIVI-align fake | 8.13 | Per-Token-Tile + tile Hadamard(64) | 2.04 |
+
+简短结论：
+
+- `4bit/3bit/2bit` 三档下，KIVI 都明显高于我的方法。
+- 当前 `Qwen2.5-7B-instruct` 的 `selected6` 主线对比已经可以视为完成。
 
 ## 后续追加模板
 

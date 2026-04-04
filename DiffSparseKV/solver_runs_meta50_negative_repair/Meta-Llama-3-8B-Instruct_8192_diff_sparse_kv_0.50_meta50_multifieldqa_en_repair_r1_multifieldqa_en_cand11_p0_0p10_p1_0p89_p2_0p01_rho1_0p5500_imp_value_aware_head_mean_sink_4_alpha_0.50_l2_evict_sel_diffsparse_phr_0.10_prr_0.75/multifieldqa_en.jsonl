@@ -1,0 +1,12 @@
+{"pred": "Electricity is used in everyday life in a wide range of applications, including lighting, heating, cooling, communication, transportation, and many others.", "answers": ["Electricity is used for transport, heating, lighting, communications, and computation."], "all_classes": null, "length": 6202}
+{"pred": "Out of fairness.", "answers": ["Fairness."], "all_classes": null, "length": 5701}
+{"pred": "14,520", "answers": ["There are 14,520 attendees, including 7,152 chemical scientists, 5,059 students, 1,283 exhibitors, 119 precollege teachers, 573 exposition visitors, and 453 guests."], "all_classes": null, "length": 6444}
+{"pred": "Spanish BERT base", "answers": ["The best performing model for the Spanish language in Track-1 was Spanish BERT."], "all_classes": null, "length": 2409}
+{"pred": "Jivani Street 2 of the Malatia-Sebastia District, Yerevan.", "answers": ["The club's headquarters are located on Jivani Street 2 of the Malatia-Sebastia District, Yerevan."], "all_classes": null, "length": 812}
+{"pred": "physics, biology, social sciences, finance, neuroscience", "answers": ["Physics, biology, social sciences, finance, and neuroscience are some fields in which the inverse problem is encountered."], "all_classes": null, "length": 6308}
+{"pred": "The bigger the receptive field size, the more complete shapes can be reconstructed using DSP.", "answers": ["Bigger receptive field size leads to more successful shape completion."], "all_classes": null, "length": 5241}
+{"pred": "XLM-RoBERTa, BERT, ELECTRA, GPT-2, RoBERTa", "answers": ["BERT, RoBERTa, ELECTRA, GPT-2, and XLM-RoBERTa."], "all_classes": null, "length": 2397}
+{"pred": "Nothing can give a solid proof of the existence of heaven and hell, yet nothing can disprove it either.", "answers": ["Unknown."], "all_classes": null, "length": 2490}
+{"pred": "Director", "answers": ["The Director of Town and Country Planning is responsible for carrying out the functions assigned under the act."], "all_classes": null, "length": 6958}
+{"pred": "The decorrelation of the data before running the PLS algorithm allows to reduce the dimensionality of the data and to improve the interpretability of the results.", "answers": ["Decorrelating the data before running the PLS algorithm improves the performance of the algorithm."], "all_classes": null, "length": 8232}
+{"pred": "Iraq", "answers": ["The main topic of the text is Iraq's politics and current situation."], "all_classes": null, "length": 4468}
