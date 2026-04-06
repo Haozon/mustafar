@@ -152,20 +152,22 @@ KIVI 与我的方法：
 
 当前结果状态：
 
-- `selected6` 的 6 个主线配置已经全部完成。
+- 修复版 `selected6` 的 6 个主线配置已经全部完成。
+- 旧版结果存在实现问题，当前应以 `fix4096` 重跑结果为准。
 
 KIVI 与我的方法：
 
 | Bit | KIVI | Average | 我的方法 | Average |
 |---|---|---:|---|---:|
-| 4bit | KIVI-align fake | 14.47 | Per-Token-Tile + tile Hadamard(64) | 3.53 |
-| 3bit | KIVI-align fake | 10.94 | Per-Token-Tile + tile Hadamard(64) | 1.76 |
-| 2bit | KIVI-align fake | 8.13 | Per-Token-Tile + tile Hadamard(64) | 2.04 |
+| 4bit | KIVI-align fake | 17.62 | Per-Token-Tile + tile Hadamard(64) | 8.05 |
+| 3bit | KIVI-align fake | 13.52 | Per-Token-Tile + tile Hadamard(64) | 2.88 |
+| 2bit | KIVI-align fake | 9.13 | Per-Token-Tile + tile Hadamard(64) | 2.19 |
 
 简短结论：
 
-- `4bit/3bit/2bit` 三档下，KIVI 都明显高于我的方法。
-- 当前 `Qwen2.5-7B-instruct` 的 `selected6` 主线对比已经可以视为完成。
+- 修复后，结果已经从明显异常坏掉恢复到正常区间。
+- 但 `4bit/3bit/2bit` 三档下，KIVI 仍明显高于 `Per-Token-Tile + tile Hadamard(64)`。
+- 当前 `Qwen2.5-7B-instruct` 的修复版 `selected6` 主线对比已经可以视为完成。
 
 ## 后续追加模板
 

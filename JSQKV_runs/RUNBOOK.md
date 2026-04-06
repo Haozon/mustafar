@@ -206,6 +206,21 @@ When moving to a new model, run in this order:
 7. `selected6 full` on the strongest setting
 8. only then broaden to other budgets / bit widths
 
+### Current Priority Override
+
+At the current stage of this workspace, use this priority order:
+
+1. finish `2bit` and `4bit` selected6/full for the current model
+2. do not expand `3bit` until the `2bit/4bit` main comparisons are stable
+3. once the main comparisons are stable, move to the next Llama-family model
+4. treat `3bit` as a secondary extension, not as a blocker for model expansion
+
+This means:
+
+- `2bit/4bit` are first-class paper-facing settings
+- `3bit` is useful, but can be paused whenever GPU budget is needed for a new
+  model
+
 ## 8. Decision Rules
 
 ### If `JSQKV(fp16, no hadamard)` is much worse than `DiffSparseKV only`
@@ -285,3 +300,27 @@ When multiple results complete, read in this order:
 2. `selected6 full` strongest setting
 3. matched sequential proxy for the same setting
 4. only then read weaker settings / ablations
+
+## 12. Cross-Model Fast Path
+
+When moving beyond `Meta-Llama-3-8B-Instruct` and `llama-2-7b`, use this
+order to minimize risk and get the next publishable result fastest:
+
+1. `Mistral-7B-v0.1`
+2. `Qwen2.5-7B`
+
+For a new model, do not start with a full matrix. Use this order:
+
+1. code integration
+2. `fp16/no-quant` smoke test on `qasper limit=1`
+3. `qasper full` first-wave matched runs:
+   - `uniform+kivi 70% + 4bit`
+   - `JSQKV 70% + 4bit`
+   - `uniform+kivi 70% + 2bit`
+   - `JSQKV 70% + 2bit`
+4. `selected6 full` first-wave matched runs:
+   - start from the stronger `2bit` pair if GPU is limited
+   - then add the `4bit` pair
+
+This keeps the first result latency low while still building toward a formal
+matched table.

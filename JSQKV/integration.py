@@ -17,6 +17,14 @@ from transformers.models.llama.modeling_llama import (
     apply_rotary_pos_emb,
     repeat_kv,
 )
+from transformers.models.mistral.modeling_mistral import (
+    apply_rotary_pos_emb as mistral_apply_rotary_pos_emb,
+    repeat_kv as mistral_repeat_kv,
+)
+from transformers.models.qwen2.modeling_qwen2 import (
+    apply_rotary_pos_emb as qwen2_apply_rotary_pos_emb,
+    repeat_kv as qwen2_repeat_kv,
+)
 
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -26,8 +34,15 @@ if str(PROJECT_ROOT) not in sys.path:
 if str(DIFFSPARSE_ROOT) not in sys.path:
     sys.path.insert(0, str(DIFFSPARSE_ROOT))
 
-from diffsparsekv import LlamaForCausalLMDiffSparseKV, create_diff_sparse_kv_config  # noqa: E402
+from diffsparsekv import (  # noqa: E402
+    LlamaForCausalLMDiffSparseKV,
+    MistralForCausalLMDiffSparseKV,
+    Qwen2ForCausalLM_DiffSparseKV,
+    create_diff_sparse_kv_config,
+)
 from diffsparsekv.llama_integration import LlamaDiffSparseKVAttention  # noqa: E402
+from diffsparsekv.mistral_integration import MistralDiffSparseKVAttention  # noqa: E402
+from diffsparsekv.qwen2_integration import Qwen2DiffSparseKVAttention  # noqa: E402
 from RotateTileKV.modeling_llama_rotatetilekv import (  # noqa: E402
     RotateTileKVConfig,
     _maybe_apply_hadamard,
@@ -365,6 +380,472 @@ class LlamaJSQKVAttention(LlamaDiffSparseKVAttention):
         return attn_output, attn_weights, past_key_value
 
 
+class MistralJSQKVAttention(MistralDiffSparseKVAttention):
+    """
+    JSQKV attention for Mistral.
+    """
+
+    def __init__(self, config, quant_cfg: Optional[RotateTileKVConfig] = None):
+        super().__init__(config=config)
+        self.quant_cfg = quant_cfg or create_jsqkv_quant_config(k_bits=2, v_bits=2)
+        self.quantize_decode_cache = False
+
+    def _normalize_quant_scheme(self, scheme: str) -> str:
+        value = scheme.lower().replace("_", "-")
+        if value in {"default", "inherit"}:
+            return self.quant_cfg.quant_granularity
+        return value
+
+    def _quantize_prefix_cache(
+        self,
+        key_states: torch.Tensor,
+        value_states: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        if key_states.shape[2] == 0:
+            return key_states, value_states
+
+        k_scheme = self._normalize_quant_scheme(self.quant_cfg.k_quant_scheme)
+        v_scheme = self._normalize_quant_scheme(self.quant_cfg.v_quant_scheme)
+        tile_size = self.quant_cfg.tile_size if self.quant_cfg.tile_size is not None else self.head_dim // 2
+
+        if self.quant_cfg.k_bits is not None and self.quant_cfg.k_bits < 16:
+            if k_scheme == "kivi-channel":
+                key_states = fake_quant_k_cache_kivi_channel(
+                    key_states,
+                    self.quant_cfg.k_bits,
+                    self.quant_cfg.group_size,
+                )
+            else:
+                key_states = fake_quant_kv(
+                    key_states,
+                    self.quant_cfg.k_bits,
+                    k_scheme,
+                    tile_size,
+                    quant_impl=self.quant_cfg.quant_impl,
+                )
+
+        if self.quant_cfg.v_bits is not None and self.quant_cfg.v_bits < 16:
+            value_states = fake_quant_kv(
+                value_states,
+                self.quant_cfg.v_bits,
+                v_scheme,
+                tile_size,
+                quant_impl=self.quant_cfg.quant_impl,
+            )
+        return key_states, value_states
+
+    def _prefill_with_diff_sparse(
+        self,
+        query_states: torch.Tensor,
+        key_states: torch.Tensor,
+        value_states: torch.Tensor,
+        attention_mask: Optional[torch.Tensor],
+        kv_seq_len: int,
+    ):
+        attn_output, attn_weights, past_key_value = super()._prefill_with_diff_sparse(
+            query_states=query_states,
+            key_states=key_states,
+            value_states=value_states,
+            attention_mask=attention_mask,
+            kv_seq_len=kv_seq_len,
+        )
+
+        if (
+            (self.quant_cfg.k_bits is None or self.quant_cfg.k_bits >= 16)
+            and (self.quant_cfg.v_bits is None or self.quant_cfg.v_bits >= 16)
+        ):
+            return attn_output, attn_weights, past_key_value
+
+        past_keys, past_values, past_length = past_key_value
+        window_a_size = min(self.window_size, past_keys.shape[2])
+        compress_end = max(past_keys.shape[2] - window_a_size, 0)
+        if compress_end <= 0:
+            return attn_output, attn_weights, past_key_value
+
+        compressed_keys = past_keys[:, :, :compress_end, :].contiguous()
+        compressed_values = past_values[:, :, :compress_end, :].contiguous()
+        compressed_keys, compressed_values = self._quantize_prefix_cache(
+            compressed_keys,
+            compressed_values,
+        )
+
+        past_keys = torch.cat([compressed_keys, past_keys[:, :, compress_end:, :]], dim=2)
+        past_values = torch.cat([compressed_values, past_values[:, :, compress_end:, :]], dim=2)
+        self.initialize_dual_window_after_prefill(past_keys, past_values)
+        return attn_output, attn_weights, (past_keys, past_values, past_length)
+
+    def _decode_with_diff_sparse(
+        self,
+        query_states: torch.Tensor,
+        key_state: torch.Tensor,
+        value_state: torch.Tensor,
+        attention_mask: Optional[torch.Tensor],
+        past_key_value: Tuple[torch.Tensor],
+    ):
+        attn_output, attn_weights, next_past = super()._decode_with_diff_sparse(
+            query_states=query_states,
+            key_state=key_state,
+            value_state=value_state,
+            attention_mask=attention_mask,
+            past_key_value=past_key_value,
+        )
+        if not self.quantize_decode_cache:
+            return attn_output, attn_weights, next_past
+        return attn_output, attn_weights, next_past
+
+    def _decode_with_diff_sparse_ORIGINAL(
+        self,
+        query_states: torch.Tensor,
+        key_state: torch.Tensor,
+        value_state: torch.Tensor,
+        attention_mask: Optional[torch.Tensor],
+        past_key_value: Tuple[torch.Tensor],
+    ):
+        attn_output, attn_weights, next_past = super()._decode_with_diff_sparse_ORIGINAL(
+            query_states=query_states,
+            key_state=key_state,
+            value_state=value_state,
+            attention_mask=attention_mask,
+            past_key_value=past_key_value,
+        )
+        if not self.quantize_decode_cache:
+            return attn_output, attn_weights, next_past
+        return attn_output, attn_weights, next_past
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None,
+        position_ids: Optional[torch.LongTensor] = None,
+        past_key_value: Optional[Tuple[torch.Tensor]] = None,
+        output_attentions: bool = False,
+        use_cache: bool = False,
+        **kwargs,
+    ):
+        if "padding_mask" in kwargs:
+            warnings.warn(
+                "Passing `padding_mask` is deprecated and will be removed in v4.37. "
+                "Please make sure use `attention_mask` instead."
+            )
+
+        hadamard_mode = getattr(self.quant_cfg, "hadamard_mode", "none").lower().replace("_", "-")
+        if self.quant_cfg.enable_hadamard and hadamard_mode == "none":
+            hadamard_mode = "full"
+        if hadamard_mode == "none":
+            return super().forward(
+                hidden_states=hidden_states,
+                attention_mask=attention_mask,
+                position_ids=position_ids,
+                past_key_value=past_key_value,
+                output_attentions=output_attentions,
+                use_cache=use_cache,
+                **kwargs,
+            )
+
+        bsz, q_len, _ = hidden_states.size()
+        pretraining_tp = getattr(self.config, "pretraining_tp", 1)
+        if pretraining_tp > 1:
+            key_value_slicing = (self.num_key_value_heads * self.head_dim) // pretraining_tp
+            query_slices = self.q_proj.weight.split(
+                (self.num_heads * self.head_dim) // pretraining_tp, dim=0
+            )
+            key_slices = self.k_proj.weight.split(key_value_slicing, dim=0)
+            value_slices = self.v_proj.weight.split(key_value_slicing, dim=0)
+
+            query_states = [F.linear(hidden_states, query_slices[i]) for i in range(pretraining_tp)]
+            query_states = torch.cat(query_states, dim=-1)
+
+            key_states = [F.linear(hidden_states, key_slices[i]) for i in range(pretraining_tp)]
+            key_states = torch.cat(key_states, dim=-1)
+
+            value_states = [F.linear(hidden_states, value_slices[i]) for i in range(pretraining_tp)]
+            value_states = torch.cat(value_states, dim=-1)
+        else:
+            query_states = self.q_proj(hidden_states)
+            key_states = self.k_proj(hidden_states)
+            value_states = self.v_proj(hidden_states)
+
+        query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
+        key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+        value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+
+        kv_seq_len = key_states.shape[-2]
+        if past_key_value is not None:
+            kv_seq_len += past_key_value[-1]
+
+        cos, sin = self.rotary_emb(value_states, position_ids)
+        query_states, key_states = mistral_apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
+
+        query_states, key_states = _maybe_apply_hadamard(
+            query_states,
+            key_states,
+            self.quant_cfg,
+            self.head_dim,
+        )
+
+        if past_key_value is None:
+            self.generation_count = 0
+            attn_output, attn_weights, past_key_value = self._prefill_with_diff_sparse(
+                query_states, key_states, value_states, attention_mask, kv_seq_len
+            )
+        else:
+            self.generation_count += 1
+            if self.protected_heavy_ratio > 0.0:
+                attn_output, attn_weights, past_key_value = self._decode_with_diff_sparse_ORIGINAL(
+                    query_states, key_states, value_states, attention_mask, past_key_value
+                )
+            else:
+                attn_output, attn_weights, past_key_value = self._decode_with_diff_sparse(
+                    query_states, key_states, value_states, attention_mask, past_key_value
+                )
+
+        attn_output = attn_output.transpose(1, 2).contiguous()
+        attn_output = attn_output.reshape(bsz, q_len, self.hidden_size)
+
+        if pretraining_tp > 1:
+            attn_output = attn_output.split(self.hidden_size // pretraining_tp, dim=2)
+            o_proj_slices = self.o_proj.weight.split(self.hidden_size // pretraining_tp, dim=1)
+            attn_output = sum([F.linear(attn_output[i], o_proj_slices[i]) for i in range(pretraining_tp)])
+        else:
+            attn_output = self.o_proj(attn_output)
+
+        return attn_output, attn_weights, past_key_value
+
+
+class Qwen2JSQKVAttention(Qwen2DiffSparseKVAttention):
+    """
+    JSQKV attention for Qwen2.
+    """
+
+    def __init__(self, config, quant_cfg: Optional[RotateTileKVConfig] = None):
+        super().__init__(config=config)
+        self.quant_cfg = quant_cfg or create_jsqkv_quant_config(k_bits=2, v_bits=2)
+        self.quantize_decode_cache = False
+
+    def _normalize_quant_scheme(self, scheme: str) -> str:
+        value = scheme.lower().replace("_", "-")
+        if value in {"default", "inherit"}:
+            return self.quant_cfg.quant_granularity
+        return value
+
+    def _quantize_prefix_cache(
+        self,
+        key_states: torch.Tensor,
+        value_states: torch.Tensor,
+    ) -> Tuple[torch.Tensor, torch.Tensor]:
+        if key_states.shape[2] == 0:
+            return key_states, value_states
+
+        k_scheme = self._normalize_quant_scheme(self.quant_cfg.k_quant_scheme)
+        v_scheme = self._normalize_quant_scheme(self.quant_cfg.v_quant_scheme)
+        tile_size = self.quant_cfg.tile_size if self.quant_cfg.tile_size is not None else self.head_dim // 2
+
+        if self.quant_cfg.k_bits is not None and self.quant_cfg.k_bits < 16:
+            if k_scheme == "kivi-channel":
+                key_states = fake_quant_k_cache_kivi_channel(
+                    key_states,
+                    self.quant_cfg.k_bits,
+                    self.quant_cfg.group_size,
+                )
+            else:
+                key_states = fake_quant_kv(
+                    key_states,
+                    self.quant_cfg.k_bits,
+                    k_scheme,
+                    tile_size,
+                    quant_impl=self.quant_cfg.quant_impl,
+                )
+
+        if self.quant_cfg.v_bits is not None and self.quant_cfg.v_bits < 16:
+            value_states = fake_quant_kv(
+                value_states,
+                self.quant_cfg.v_bits,
+                v_scheme,
+                tile_size,
+                quant_impl=self.quant_cfg.quant_impl,
+            )
+        return key_states, value_states
+
+    def _prefill_with_diff_sparse(
+        self,
+        query_states: torch.Tensor,
+        key_states: torch.Tensor,
+        value_states: torch.Tensor,
+        attention_mask: Optional[torch.Tensor],
+        kv_seq_len: int,
+    ):
+        attn_output, attn_weights, past_key_value = super()._prefill_with_diff_sparse(
+            query_states=query_states,
+            key_states=key_states,
+            value_states=value_states,
+            attention_mask=attention_mask,
+            kv_seq_len=kv_seq_len,
+        )
+
+        if (
+            (self.quant_cfg.k_bits is None or self.quant_cfg.k_bits >= 16)
+            and (self.quant_cfg.v_bits is None or self.quant_cfg.v_bits >= 16)
+        ):
+            return attn_output, attn_weights, past_key_value
+
+        past_keys, past_values, past_length = past_key_value
+        window_a_size = min(self.window_size, past_keys.shape[2])
+        compress_end = max(past_keys.shape[2] - window_a_size, 0)
+        if compress_end <= 0:
+            return attn_output, attn_weights, past_key_value
+
+        compressed_keys = past_keys[:, :, :compress_end, :].contiguous()
+        compressed_values = past_values[:, :, :compress_end, :].contiguous()
+        compressed_keys, compressed_values = self._quantize_prefix_cache(
+            compressed_keys,
+            compressed_values,
+        )
+
+        past_keys = torch.cat([compressed_keys, past_keys[:, :, compress_end:, :]], dim=2)
+        past_values = torch.cat([compressed_values, past_values[:, :, compress_end:, :]], dim=2)
+        self.initialize_dual_window_after_prefill(past_keys, past_values)
+        return attn_output, attn_weights, (past_keys, past_values, past_length)
+
+    def _decode_with_diff_sparse(
+        self,
+        query_states: torch.Tensor,
+        key_state: torch.Tensor,
+        value_state: torch.Tensor,
+        attention_mask: Optional[torch.Tensor],
+        past_key_value: Tuple[torch.Tensor],
+    ):
+        attn_output, attn_weights, next_past = super()._decode_with_diff_sparse(
+            query_states=query_states,
+            key_state=key_state,
+            value_state=value_state,
+            attention_mask=attention_mask,
+            past_key_value=past_key_value,
+        )
+        if not self.quantize_decode_cache:
+            return attn_output, attn_weights, next_past
+        return attn_output, attn_weights, next_past
+
+    def _decode_with_diff_sparse_ORIGINAL(
+        self,
+        query_states: torch.Tensor,
+        key_state: torch.Tensor,
+        value_state: torch.Tensor,
+        attention_mask: Optional[torch.Tensor],
+        past_key_value: Tuple[torch.Tensor],
+    ):
+        attn_output, attn_weights, next_past = super()._decode_with_diff_sparse_ORIGINAL(
+            query_states=query_states,
+            key_state=key_state,
+            value_state=value_state,
+            attention_mask=attention_mask,
+            past_key_value=past_key_value,
+        )
+        if not self.quantize_decode_cache:
+            return attn_output, attn_weights, next_past
+        return attn_output, attn_weights, next_past
+
+    def forward(
+        self,
+        hidden_states: torch.Tensor,
+        attention_mask: Optional[torch.Tensor] = None,
+        position_ids: Optional[torch.LongTensor] = None,
+        past_key_value: Optional[Tuple[torch.Tensor]] = None,
+        output_attentions: bool = False,
+        use_cache: bool = False,
+        cache_position: Optional[torch.LongTensor] = None,
+        **kwargs,
+    ):
+        if "padding_mask" in kwargs:
+            warnings.warn(
+                "Passing `padding_mask` is deprecated and will be removed in v4.37. "
+                "Please make sure use `attention_mask` instead."
+            )
+
+        hadamard_mode = getattr(self.quant_cfg, "hadamard_mode", "none").lower().replace("_", "-")
+        if self.quant_cfg.enable_hadamard and hadamard_mode == "none":
+            hadamard_mode = "full"
+        if hadamard_mode == "none":
+            return super().forward(
+                hidden_states=hidden_states,
+                attention_mask=attention_mask,
+                position_ids=position_ids,
+                past_key_value=past_key_value,
+                output_attentions=output_attentions,
+                use_cache=use_cache,
+                cache_position=cache_position,
+                **kwargs,
+            )
+
+        bsz, q_len, _ = hidden_states.size()
+        pretraining_tp = getattr(self.config, "pretraining_tp", 1) or 1
+        if pretraining_tp > 1:
+            key_value_slicing = (self.num_key_value_heads * self.head_dim) // pretraining_tp
+            query_slices = self.q_proj.weight.split(
+                (self.num_heads * self.head_dim) // pretraining_tp, dim=0
+            )
+            key_slices = self.k_proj.weight.split(key_value_slicing, dim=0)
+            value_slices = self.v_proj.weight.split(key_value_slicing, dim=0)
+
+            query_states = [F.linear(hidden_states, query_slices[i]) for i in range(pretraining_tp)]
+            query_states = torch.cat(query_states, dim=-1)
+
+            key_states = [F.linear(hidden_states, key_slices[i]) for i in range(pretraining_tp)]
+            key_states = torch.cat(key_states, dim=-1)
+
+            value_states = [F.linear(hidden_states, value_slices[i]) for i in range(pretraining_tp)]
+            value_states = torch.cat(value_states, dim=-1)
+        else:
+            query_states = self.q_proj(hidden_states)
+            key_states = self.k_proj(hidden_states)
+            value_states = self.v_proj(hidden_states)
+
+        query_states = query_states.view(bsz, q_len, self.num_heads, self.head_dim).transpose(1, 2)
+        key_states = key_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+        value_states = value_states.view(bsz, q_len, self.num_key_value_heads, self.head_dim).transpose(1, 2)
+
+        kv_seq_len = key_states.shape[-2]
+        if past_key_value is not None:
+            kv_seq_len += past_key_value[-1]
+
+        cos, sin = self.rotary_emb(value_states, seq_len=kv_seq_len)
+        query_states, key_states = qwen2_apply_rotary_pos_emb(query_states, key_states, cos, sin, position_ids)
+
+        query_states, key_states = _maybe_apply_hadamard(
+            query_states,
+            key_states,
+            self.quant_cfg,
+            self.head_dim,
+        )
+
+        if past_key_value is None:
+            self.generation_count = 0
+            attn_output, attn_weights, past_key_value = self._prefill_with_diff_sparse(
+                query_states, key_states, value_states, attention_mask, kv_seq_len
+            )
+        else:
+            self.generation_count += 1
+            if self.protected_heavy_ratio > 0.0:
+                attn_output, attn_weights, past_key_value = self._decode_with_diff_sparse_ORIGINAL(
+                    query_states, key_states, value_states, attention_mask, past_key_value
+                )
+            else:
+                attn_output, attn_weights, past_key_value = self._decode_with_diff_sparse(
+                    query_states, key_states, value_states, attention_mask, past_key_value
+                )
+
+        attn_output = attn_output.transpose(1, 2).contiguous()
+        attn_output = attn_output.reshape(bsz, q_len, self.hidden_size)
+
+        if pretraining_tp > 1:
+            attn_output = attn_output.split(self.hidden_size // pretraining_tp, dim=2)
+            o_proj_slices = self.o_proj.weight.split(self.hidden_size // pretraining_tp, dim=1)
+            attn_output = sum([F.linear(attn_output[i], o_proj_slices[i]) for i in range(pretraining_tp)])
+        else:
+            attn_output = self.o_proj(attn_output)
+
+        return attn_output, attn_weights, past_key_value
+
+
 def apply_jsqkv_to_llama(
     model: LlamaForCausalLMDiffSparseKV,
     quant_cfg: RotateTileKVConfig,
@@ -381,6 +862,62 @@ def apply_jsqkv_to_llama(
         new_attn.quantize_decode_cache = False
 
         # Preserve runtime settings already attached by the DiffSparse loader.
+        new_attn.generation_count = getattr(old_attn, "generation_count", 0)
+        new_attn.prefill_length = getattr(old_attn, "prefill_length", 0)
+        new_attn.current_sequence_length = getattr(old_attn, "current_sequence_length", 0)
+        new_attn.window_state = getattr(old_attn, "window_state", None)
+        new_attn.diff_sparse_thresholds = getattr(old_attn, "diff_sparse_thresholds", None)
+        new_attn.thresholds_computed = getattr(old_attn, "thresholds_computed", False)
+
+        layer.self_attn = new_attn
+
+    model.config.jsqkv = quant_cfg.to_dict()
+    return model
+
+
+def apply_jsqkv_to_mistral(
+    model: MistralForCausalLMDiffSparseKV,
+    quant_cfg: RotateTileKVConfig,
+) -> MistralForCausalLMDiffSparseKV:
+    for layer in model.model.layers:
+        old_attn = layer.self_attn
+        attn_device = next(old_attn.parameters()).device
+        attn_dtype = next(old_attn.parameters()).dtype
+
+        new_attn = MistralJSQKVAttention(old_attn.config, quant_cfg=quant_cfg)
+        new_attn.load_state_dict(old_attn.state_dict(), strict=True)
+        new_attn.to(device=attn_device, dtype=attn_dtype)
+        new_attn.eval()
+        new_attn.quantize_decode_cache = False
+
+        new_attn.generation_count = getattr(old_attn, "generation_count", 0)
+        new_attn.prefill_length = getattr(old_attn, "prefill_length", 0)
+        new_attn.current_sequence_length = getattr(old_attn, "current_sequence_length", 0)
+        new_attn.window_state = getattr(old_attn, "window_state", None)
+        new_attn.diff_sparse_thresholds = getattr(old_attn, "diff_sparse_thresholds", None)
+        new_attn.thresholds_computed = getattr(old_attn, "thresholds_computed", False)
+
+        layer.self_attn = new_attn
+
+    model.config.jsqkv = quant_cfg.to_dict()
+    return model
+
+
+def apply_jsqkv_to_qwen2(
+    model: Qwen2ForCausalLM_DiffSparseKV,
+    quant_cfg: RotateTileKVConfig,
+) -> Qwen2ForCausalLM_DiffSparseKV:
+    for layer in model.model.layers:
+        old_attn = layer.self_attn
+        attn_device = next(old_attn.parameters()).device
+        attn_dtype = next(old_attn.parameters()).dtype
+
+        new_attn = Qwen2JSQKVAttention(old_attn.config, quant_cfg=quant_cfg)
+        new_attn.load_state_dict(old_attn.state_dict(), strict=True)
+        new_attn.to(device=attn_device, dtype=attn_dtype)
+        new_attn.eval()
+        new_attn.quantize_decode_cache = False
+
         new_attn.generation_count = getattr(old_attn, "generation_count", 0)
         new_attn.prefill_length = getattr(old_attn, "prefill_length", 0)
         new_attn.current_sequence_length = getattr(old_attn, "current_sequence_length", 0)
@@ -526,3 +1063,130 @@ def load_jsqkv_llama(
     )
     model = apply_jsqkv_to_llama(model, quant_cfg)
     return model, config
+
+
+def load_jsqkv_mistral(
+    *,
+    model_path: str,
+    diff_target_distribution,
+    diff_sparsity_levels,
+    quant_cfg: RotateTileKVConfig,
+    max_length: int,
+    obs_window_size: int = 128,
+    importance_mode: str = "value_aware",
+    head_aggregation_mode: str = "max",
+    value_sink_keep: int = 2,
+    level_2_mode: str = "evict",
+    protected_heavy_ratio: float = 0.0,
+    protected_recent_ratio: float = 1.0,
+    torch_dtype=torch.float16,
+    device_map="auto",
+):
+    base_config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
+    model_type = getattr(base_config, "model_type", "")
+    if model_type != "mistral":
+        raise NotImplementedError(f"JSQKV-lite currently supports only mistral models here, got {model_type}")
+
+    base_config.k_sparsity = 0.0
+    base_config.v_sparsity = 0.0
+    base_config.group_size = 32
+    base_config.residual_length = 32
+    base_config.use_flash = True
+
+    config = create_diff_sparse_kv_config(
+        base_config=base_config,
+        enable_diff_sparse=True,
+        target_distribution=list(diff_target_distribution),
+        sparsity_levels=list(diff_sparsity_levels),
+        diff_sparse_window_size=128,
+        obs_window_size=obs_window_size,
+        debug_diff_sparse=False,
+        level_2_mode=level_2_mode,
+        importance_mode=importance_mode,
+        value_sink_keep=value_sink_keep,
+        head_aggregation_mode=head_aggregation_mode,
+        selector_mode="diffsparse",
+        protected_heavy_ratio=protected_heavy_ratio,
+        protected_recent_ratio=protected_recent_ratio,
+    )
+    config.max_position_embeddings = max(config.max_position_embeddings, max_length)
+
+    model = MistralForCausalLMDiffSparseKV.from_pretrained(
+        pretrained_model_name_or_path=model_path,
+        config=config,
+        torch_dtype=torch_dtype,
+        low_cpu_mem_usage=True,
+        device_map=device_map,
+    )
+    model = apply_jsqkv_to_mistral(model, quant_cfg)
+    return model, config
+
+
+def load_jsqkv_qwen2(
+    *,
+    model_path: str,
+    diff_target_distribution,
+    diff_sparsity_levels,
+    quant_cfg: RotateTileKVConfig,
+    max_length: int,
+    obs_window_size: int = 128,
+    importance_mode: str = "value_aware",
+    head_aggregation_mode: str = "max",
+    value_sink_keep: int = 2,
+    level_2_mode: str = "evict",
+    protected_heavy_ratio: float = 0.0,
+    protected_recent_ratio: float = 1.0,
+    torch_dtype=torch.float16,
+    device_map="auto",
+):
+    base_config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
+    model_type = getattr(base_config, "model_type", "")
+    if model_type != "qwen2":
+        raise NotImplementedError(f"JSQKV-lite currently supports only qwen2 models here, got {model_type}")
+
+    base_config.k_sparsity = 0.0
+    base_config.v_sparsity = 0.0
+    base_config.group_size = 32
+    base_config.residual_length = 32
+    base_config.use_flash = True
+
+    config = create_diff_sparse_kv_config(
+        base_config=base_config,
+        enable_diff_sparse=True,
+        target_distribution=list(diff_target_distribution),
+        sparsity_levels=list(diff_sparsity_levels),
+        diff_sparse_window_size=128,
+        obs_window_size=obs_window_size,
+        debug_diff_sparse=False,
+        level_2_mode=level_2_mode,
+        importance_mode=importance_mode,
+        value_sink_keep=value_sink_keep,
+        head_aggregation_mode=head_aggregation_mode,
+        selector_mode="diffsparse",
+        protected_heavy_ratio=protected_heavy_ratio,
+        protected_recent_ratio=protected_recent_ratio,
+    )
+    config.max_position_embeddings = max(config.max_position_embeddings, max_length)
+
+    model = Qwen2ForCausalLM_DiffSparseKV.from_pretrained(
+        pretrained_model_name_or_path=model_path,
+        config=config,
+        torch_dtype=torch_dtype,
+        low_cpu_mem_usage=True,
+        device_map=device_map,
+    )
+    model = apply_jsqkv_to_qwen2(model, quant_cfg)
+    return model, config
+
+
+def load_jsqkv_model(**kwargs):
+    model_path = kwargs["model_path"]
+    base_config = AutoConfig.from_pretrained(model_path, trust_remote_code=True)
+    model_type = getattr(base_config, "model_type", "")
+    if model_type == "llama":
+        return load_jsqkv_llama(**kwargs)
+    if model_type == "mistral":
+        return load_jsqkv_mistral(**kwargs)
+    if model_type == "qwen2":
+        return load_jsqkv_qwen2(**kwargs)
+    raise NotImplementedError(f"JSQKV-lite currently supports only llama, mistral, and qwen2 models, got {model_type}")

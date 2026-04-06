@@ -18,7 +18,7 @@ import torch
 from transformers import AutoTokenizer
 
 import eval_diff_sparse_kv_longbench as diff_eval  # noqa: E402
-from JSQKV.integration import create_jsqkv_quant_config, load_jsqkv_llama  # noqa: E402
+from JSQKV.integration import create_jsqkv_quant_config, load_jsqkv_model  # noqa: E402
 
 
 def parse_args():
@@ -85,7 +85,7 @@ def main():
         hadamard_group_size=args.hadamard_group_size,
     )
 
-    model, config = load_jsqkv_llama(
+    model, config = load_jsqkv_model(
         model_path=args.model_path,
         diff_target_distribution=target_distribution,
         diff_sparsity_levels=sparsity_levels,

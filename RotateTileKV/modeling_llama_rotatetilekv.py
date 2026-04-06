@@ -90,12 +90,15 @@ def _quantize_residual_prefix_inplace(
 
 
 def _apply_residual_window_quantization(
+    owner,
     key_states: torch.Tensor,
     value_states: torch.Tensor,
     quant_cfg: RotateTileKVConfig,
     head_dim: int,
     q_len: int,
+    reset_cache: bool = False,
 ) -> Tuple[torch.Tensor, torch.Tensor]:
+    marker_attr = "_rotatetilekv_quantized_prefix_len"
     tile_size = quant_cfg.tile_size if quant_cfg.tile_size is not None else head_dim // 2
     residual_length = getattr(quant_cfg, "residual_length", 0)
     k_scheme = getattr(quant_cfg, "k_quant_scheme", "default").lower().replace("_", "-")
@@ -107,12 +110,17 @@ def _apply_residual_window_quantization(
         v_scheme = quant_cfg.quant_granularity
 
     total_len = key_states.shape[2]
+    if reset_cache or not hasattr(owner, marker_attr):
+        setattr(owner, marker_attr, 0)
+
     if residual_length is None or residual_length <= 0:
-        start_idx, end_idx = 0, total_len
+        end_idx = total_len
     else:
-        old_len = max(total_len - q_len, 0)
-        start_idx = max(old_len - residual_length, 0)
         end_idx = max(total_len - residual_length, 0)
+
+    start_idx = int(getattr(owner, marker_attr, 0))
+    if end_idx < start_idx:
+        start_idx = 0
 
     if end_idx > start_idx and quant_cfg.k_bits is not None and quant_cfg.k_bits < 16:
         k_slice = key_states[:, :, start_idx:end_idx, :]
@@ -139,6 +147,8 @@ def _apply_residual_window_quantization(
             tile_size,
             quant_impl=quant_cfg.quant_impl,
         )
+
+    setattr(owner, marker_attr, end_idx)
     return key_states, value_states
 
 
@@ -197,11 +207,13 @@ class LlamaAttentionRotateTileKV(llama_mod.LlamaAttention):
             key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
 
         key_states, value_states = _apply_residual_window_quantization(
+            self,
             key_states,
             value_states,
             self.quant_cfg,
             self.head_dim,
             q_len,
+            reset_cache=past_key_value is None,
         )
 
         key_states = llama_mod.repeat_kv(key_states, self.num_key_value_groups)
@@ -274,11 +286,13 @@ class LlamaFlashAttention2RotateTileKV(llama_mod.LlamaFlashAttention2):
             key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
 
         key_states, value_states = _apply_residual_window_quantization(
+            self,
             key_states,
             value_states,
             self.quant_cfg,
             self.head_dim,
             q_len,
+            reset_cache=past_key_value is None,
         )
 
         query_states = query_states.transpose(1, 2)
@@ -351,11 +365,13 @@ class MistralAttentionRotateTileKV(mistral_mod.MistralAttention):
             key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
 
         key_states, value_states = _apply_residual_window_quantization(
+            self,
             key_states,
             value_states,
             self.quant_cfg,
             self.head_dim,
             q_len,
+            reset_cache=past_key_value is None,
         )
 
         key_states = mistral_mod.repeat_kv(key_states, self.num_key_value_groups)
@@ -442,11 +458,13 @@ class MistralFlashAttention2RotateTileKV(mistral_mod.MistralFlashAttention2):
             key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
 
         key_states, value_states = _apply_residual_window_quantization(
+            self,
             key_states,
             value_states,
             self.quant_cfg,
             self.head_dim,
             q_len,
+            reset_cache=past_key_value is None,
         )
 
         key_states = mistral_mod.repeat_kv(key_states, self.num_key_value_groups)
@@ -529,11 +547,13 @@ class Qwen2AttentionRotateTileKV(qwen2_mod.Qwen2Attention):
             key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
 
         key_states, value_states = _apply_residual_window_quantization(
+            self,
             key_states,
             value_states,
             self.quant_cfg,
             self.head_dim,
             q_len,
+            reset_cache=past_key_value is None,
         )
 
         key_states = qwen2_mod.repeat_kv(key_states, self.num_key_value_groups)
@@ -619,11 +639,13 @@ class Qwen2FlashAttention2RotateTileKV(qwen2_mod.Qwen2FlashAttention2):
             key_states, value_states = past_key_value.update(key_states, value_states, self.layer_idx, cache_kwargs)
 
         key_states, value_states = _apply_residual_window_quantization(
+            self,
             key_states,
             value_states,
             self.quant_cfg,
             self.head_dim,
             q_len,
+            reset_cache=past_key_value is None,
         )
 
         key_states = qwen2_mod.repeat_kv(key_states, self.num_key_value_groups)

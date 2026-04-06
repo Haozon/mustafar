@@ -1,0 +1,9 @@
+{
+    "qasper": 7.49,
+    "trec": 68.0,
+    "narrativeqa": 10.92,
+    "lcc": 65.28,
+    "multifieldqa_en": 29.72,
+    "hotpotqa": 9.54,
+    "average": 31.82
+}

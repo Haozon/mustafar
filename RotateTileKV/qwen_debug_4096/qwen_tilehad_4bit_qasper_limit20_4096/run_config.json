@@ -1,0 +1,22 @@
+{
+  "model_name_or_path": "/home/zh/nas/nas_10g/models/Qwen2.5-7B-instruct",
+  "max_length": 4096,
+  "datasets": [
+    "qasper"
+  ],
+  "limit": 20,
+  "quant_cfg": {
+    "enable_hadamard": true,
+    "hadamard_mode": "tile",
+    "hadamard_group_size": 64,
+    "k_bits": 4,
+    "v_bits": 4,
+    "quant_impl": "default",
+    "k_quant_scheme": "default",
+    "v_quant_scheme": "default",
+    "group_size": 128,
+    "quant_granularity": "per-token-tile",
+    "tile_size": 64,
+    "residual_length": 128
+  }
+}

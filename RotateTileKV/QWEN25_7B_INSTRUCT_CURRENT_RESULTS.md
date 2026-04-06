@@ -2,7 +2,7 @@
 
 日期：
 
-- `2026-04-02`
+- `2026-04-06`
 
 模型：
 
@@ -16,9 +16,9 @@
 
 ## 当前状态
 
-- `Qwen2.5-7B-instruct` 的 `selected6` 主线任务已经全部完成。
-- 当前没有残留的 `Qwen2.5-7B-instruct` 主线运行进程。
-- 当前没有待跑的 `Qwen2.5-7B-instruct` `selected6` 主线任务。
+- 旧版 `selected6` 结果存在实现问题，不能继续作为正式结论引用。
+- 问题已经定位并修复，当前以 `fix4096` 重跑结果为准。
+- 当前没有残留的 `Qwen2.5-7B-instruct` 修复版主线运行进程。
 
 ## 评测协议
 
@@ -32,8 +32,20 @@
   - `trec`
 - 本地 LongBench 数据：
   - `/data/home/szm/backup_dataset/LongBench/data`
-- `selected6` 结果目录：
+- 旧版结果目录：
   - `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6`
+- 修复版结果目录：
+  - `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6_fix4096`
+
+## 已修复的问题
+
+- 旧实现会在 decode 过程中反复对同一段已经量化过的 KV cache 重复 fake-quant。
+- 该问题在 `Qwen2.5-7B-instruct` 上会迅速累积误差，并导致回答退化成明显的乱码 / 重复垃圾串。
+- 修复后改为：
+  - 只对新进入 prefix 的那一小段 KV 做增量量化
+  - 不再每一步重质量化整段旧 prefix
+
+因此，旧版结果中出现的极端异常分数不能再直接引用。
 
 ## KIVI 与我的方法
 
@@ -63,35 +75,38 @@ KIVI 配置：
 - `hadamard_group_size = 64`
 - `residual_length = 128`
 
-主对比表：
+主对比表（修复后）：
 
 | Bit | KIVI | Average | 我的方法 | Average |
 |---|---|---:|---|---:|
-| 4bit | KIVI-align fake | 14.47 | Per-Token-Tile + tile Hadamard(64) | 3.53 |
-| 3bit | KIVI-align fake | 10.94 | Per-Token-Tile + tile Hadamard(64) | 1.76 |
-| 2bit | KIVI-align fake | 8.13 | Per-Token-Tile + tile Hadamard(64) | 2.04 |
+| 4bit | KIVI-align fake | 17.62 | Per-Token-Tile + tile Hadamard(64) | 8.05 |
+| 3bit | KIVI-align fake | 13.52 | Per-Token-Tile + tile Hadamard(64) | 2.88 |
+| 2bit | KIVI-align fake | 9.13 | Per-Token-Tile + tile Hadamard(64) | 2.19 |
 
 ## 完整结果
 
-结果目录：
+结果目录（修复后）：
 
-- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6/per_token_tile_4bit_tile_hadamard64`
-- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6/per_token_tile_3bit_tile_hadamard64`
-- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6/per_token_tile_2bit_tile_hadamard64`
-- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6/kivi_align_fake_4bit`
-- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6/kivi_align_fake_3bit`
-- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6/kivi_align_fake_2bit`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6_fix4096/per_token_tile_4bit_tile_hadamard64`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6_fix4096/per_token_tile_3bit_tile_hadamard64`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6_fix4096/per_token_tile_2bit_tile_hadamard64`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6_fix4096/kivi_align_fake_4bit`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6_fix4096/kivi_align_fake_3bit`
+- `/mnt/nas/nas_192.168.7.2/zh/mustafar/RotateTileKV/exp_qwen2_5_7b_instruct_res128_selected6_fix4096/kivi_align_fake_2bit`
 
 | 方法 | Bit | hotpotqa | lcc | multifieldqa_en | narrativeqa | qasper | trec | average |
 |---|---:|---:|---:|---:|---:|---:|---:|---:|
-| Per-Token-Tile + tile Hadamard(64) | 4bit | 0.16 | 18.74 | 1.90 | 0.13 | 0.25 | 0.00 | 3.53 |
-| Per-Token-Tile + tile Hadamard(64) | 3bit | 0.00 | 9.65 | 0.59 | 0.00 | 0.31 | 0.00 | 1.76 |
-| Per-Token-Tile + tile Hadamard(64) | 2bit | 0.12 | 11.22 | 0.37 | 0.19 | 0.37 | 0.00 | 2.04 |
-| KIVI-align fake | 4bit | 16.30 | 31.18 | 13.81 | 1.65 | 6.37 | 17.50 | 14.47 |
-| KIVI-align fake | 3bit | 9.00 | 27.50 | 11.58 | 2.73 | 4.34 | 10.50 | 10.94 |
-| KIVI-align fake | 2bit | 3.02 | 28.16 | 7.30 | 0.47 | 4.07 | 5.75 | 8.13 |
+| Per-Token-Tile + tile Hadamard(64) | 4bit | 1.32 | 23.71 | 5.59 | 0.51 | 7.16 | 10.00 | 8.05 |
+| Per-Token-Tile + tile Hadamard(64) | 3bit | 0.14 | 12.89 | 1.96 | 0.37 | 1.93 | 0.00 | 2.88 |
+| Per-Token-Tile + tile Hadamard(64) | 2bit | 0.00 | 11.36 | 0.84 | 0.06 | 0.85 | 0.00 | 2.19 |
+| KIVI-align fake | 4bit | 8.36 | 31.97 | 12.44 | 11.14 | 15.05 | 26.75 | 17.62 |
+| KIVI-align fake | 3bit | 8.58 | 27.35 | 9.92 | 8.16 | 10.10 | 17.00 | 13.52 |
+| KIVI-align fake | 2bit | 0.88 | 28.19 | 6.44 | 1.79 | 4.97 | 12.50 | 9.13 |
 
 ## 简短结论
 
-- `4bit/3bit/2bit` 三档下，KIVI 都明显高于我的方法。
-- 当前 `Qwen2.5-7B-instruct` 的 `selected6` 主线对比已经完整结束。
+- 修复后，Qwen 结果已经从“明显异常坏掉”恢复到“正常但仍显著弱于 KIVI”。
+- 这说明旧结果里确实有实现 bug，但 bug 不是全部原因。
+- 当前更合理的结论是：
+  - `Qwen2.5-7B-instruct` 对纯 `Per-Token-Tile + tile Hadamard(64)` 的纯量化路径仍然非常敏感；
+  - 即使修复实现后，`4bit/3bit/2bit` 三档下，KIVI 仍明显优于该路径。

@@ -1,0 +1,40 @@
+{
+  "model_path": "/home/zh/nas/nas_10g/models/Mistral-7B-v0.1",
+  "max_length": 4096,
+  "datasets": [
+    "narrativeqa",
+    "qasper",
+    "multifieldqa_en",
+    "hotpotqa",
+    "trec",
+    "lcc"
+  ],
+  "target_distribution": [
+    0.0,
+    0.833333,
+    0.166667
+  ],
+  "sparsity_levels": [
+    0.0,
+    0.4,
+    1.0
+  ],
+  "importance_mode": "value_aware",
+  "head_aggregation_mode": "max",
+  "value_sink_keep": 2,
+  "quant_cfg": {
+    "enable_hadamard": true,
+    "hadamard_mode": "tile",
+    "hadamard_group_size": 64,
+    "k_bits": 3,
+    "v_bits": 3,
+    "quant_impl": "default",
+    "k_quant_scheme": "per-token-tile",
+    "v_quant_scheme": "per-token-tile",
+    "group_size": 128,
+    "quant_granularity": "per-token-tile",
+    "tile_size": 64,
+    "residual_length": 128
+  },
+  "jsqkv_type": "diffsparse_plus_rotatetile_fake_quant"
+}
